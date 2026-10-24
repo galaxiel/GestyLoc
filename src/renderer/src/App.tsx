@@ -9,6 +9,7 @@ import { Documents } from './pages/Documents'
 import { Quittances } from './pages/Quittances'
 import { BailDetail } from './pages/BailDetail'
 import { Parametres } from './pages/Parametres'
+import { Statistiques } from './pages/Statistiques'
 
 /**
  * Raccourcis clavier de navigation :
@@ -19,7 +20,7 @@ function RaccourcisClavier(): null {
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return
-      const routes = ['/', '/biens', '/paiements', '/quittances', '/documents', '/parametres']
+      const routes = ['/', '/biens', '/paiements', '/quittances', '/documents', '/statistiques', '/parametres']
       const n = parseInt(e.key, 10)
       if (n >= 1 && n <= routes.length) {
         e.preventDefault()
@@ -50,6 +51,7 @@ function App(): React.JSX.Element {
               <Route path="/paiements" element={<Paiements />} />
               <Route path="/quittances" element={<Quittances />} />
               <Route path="/documents" element={<Documents />} />
+              <Route path="/statistiques" element={<Statistiques />} />
               <Route path="/parametres" element={<Parametres />} />
               <Route path="*" element={<Dashboard />} />
             </Routes>

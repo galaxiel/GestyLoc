@@ -55,7 +55,7 @@
 
 ## 🔮 V2 — pistes (non planifié)
 
-- [ ] Statistiques avancées (graphiques : évolution des loyers, taux d'occupation, charges)
+- [ ] Statistiques avancées (DÉMARRÉ : page Statistiques — encaissements 12 mois, répartition par type, loyer moyen/m² ; reste : taux d'occupation, charges, export graphiques)
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
 - [ ] Multi-profils / multi-bailleurs
 - [ ] Chiffrement de la base (mot de passe au lancement)

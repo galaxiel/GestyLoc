@@ -5,6 +5,7 @@ import {
   Receipt,
   Wallet,
   FolderOpen,
+  BarChart3,
   Settings
 } from 'lucide-react'
 import { useStore } from '../../hooks/useStore'
@@ -15,6 +16,7 @@ const liens = [
   { to: '/paiements', label: 'Paiements', icon: Wallet },
   { to: '/quittances', label: 'Quittances', icon: Receipt },
   { to: '/documents', label: 'Documents', icon: FolderOpen },
+  { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
   { to: '/parametres', label: 'Paramètres', icon: Settings }
 ]
 
