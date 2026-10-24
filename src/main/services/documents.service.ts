@@ -57,6 +57,52 @@ export const documentsService = {
       .get() as DocumentRow
   },
 
+  /** Variante : rattacher un document directement au BIEN (diagnostics, travaux...). */
+  async selectAndAttachToBien(
+    bienId: number,
+    typeDocument: TypeDocument
+  ): Promise<DocumentRow | null> {
+    const win = BrowserWindow.getAllWindows()[0]
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Sélectionner un document à joindre au bien',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Documents', extensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'] }
+      ]
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    const sourcePath = result.filePaths[0]
+
+    const destDir = join(app.getPath('userData'), 'documents', `bien_${bienId}`)
+    if (!existsSync(destDir)) {
+      mkdirSync(destDir, { recursive: true })
+    }
+    const stamp = Date.now()
+    const destPath = join(destDir, `${stamp}_${basename(sourcePath)}`)
+    copyFileSync(sourcePath, destPath)
+
+    const taille = statSync(destPath).size
+    return getDb()
+      .insert(documents)
+      .values({
+        bien_id: bienId,
+        nom_original: basename(sourcePath),
+        chemin_stockage: destPath,
+        type_document: typeDocument,
+        taille_octets: taille
+      })
+      .returning()
+      .get() as DocumentRow
+  },
+
+  listByBien(bienId: number): DocumentRow[] {
+    return getDb()
+      .select()
+      .from(documents)
+      .where(eq(documents.bien_id, bienId))
+      .all() as DocumentRow[]
+  },
+
   listByBail(bailId: number): DocumentRow[] {
     return getDb()
       .select()

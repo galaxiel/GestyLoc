@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Pencil, Trash2, X, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Search, Home } from 'lucide-react'
 import type { TypeBien, CreateBienInput, CreateLocataireInput, CreateBailInput } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -421,6 +421,13 @@ export function BiensLocataires(): React.JSX.Element {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex justify-end gap-1">
+                    <button
+                      onClick={() => navigate(`/biens/${r.bien.id}`)}
+                      title="Voir la fiche du bien (historique locataires)"
+                      className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
+                    >
+                      <Home className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => ouvrirEdition(r.bail.id)}
                       title="Modifier"

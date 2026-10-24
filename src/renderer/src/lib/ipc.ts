@@ -63,6 +63,10 @@ export const ipc = {
       unwrap(window.api.docs.attach(bailId, type)),
     list: (bailId: number): Promise<DocumentRow[]> => unwrap(window.api.docs.list(bailId)),
     listAll: (): Promise<DocumentRow[]> => unwrap(window.api.docs.listAll()),
+    attachToBien: (bienId: number, type: TypeDocument): Promise<DocumentRow | null> =>
+      unwrap(window.api.docs.attachToBien(bienId, type)),
+    listByBien: (bienId: number): Promise<DocumentRow[]> =>
+      unwrap(window.api.docs.listByBien(bienId)),
     open: (id: number): Promise<boolean> => unwrap(window.api.docs.open(id)),
     remove: (id: number): Promise<void> => unwrap(window.api.docs.remove(id))
   },

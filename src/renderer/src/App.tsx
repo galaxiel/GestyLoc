@@ -11,6 +11,7 @@ import { BailDetail } from './pages/BailDetail'
 import { Parametres } from './pages/Parametres'
 import { Statistiques } from './pages/Statistiques'
 import { Depenses } from './pages/Depenses'
+import { BienDetail } from './pages/BienDetail'
 
 /**
  * Raccourcis clavier de navigation :
@@ -49,6 +50,7 @@ function App(): React.JSX.Element {
               <Route path="/" element={<Dashboard />} />
               <Route path="/biens" element={<BiensLocataires />} />
               <Route path="/baux/:id" element={<BailDetail />} />
+              <Route path="/biens/:id" element={<BienDetail />} />
               <Route path="/paiements" element={<Paiements />} />
               <Route path="/quittances" element={<Quittances />} />
               <Route path="/documents" element={<Documents />} />

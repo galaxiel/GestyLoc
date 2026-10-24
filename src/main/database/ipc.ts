@@ -101,6 +101,10 @@ export function registerDatabaseHandlers(): void {
   )
   handle('docs:list', (bailId: number) => documentsService.listByBail(bailId))
   handle('docs:list-all', () => documentsService.listAll())
+  handle('docs:attach-to-bien', async (bienId: number, type: TypeDocument) =>
+    documentsService.selectAndAttachToBien(bienId, type)
+  )
+  handle('docs:list-by-bien', (bienId: number) => documentsService.listByBien(bienId))
   handle('docs:open', (id: number) => documentsService.open(id))
   handle('docs:delete', (id: number) => documentsService.delete(id))
 

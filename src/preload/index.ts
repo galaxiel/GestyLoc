@@ -127,6 +127,10 @@ const api = {
     list: (bailId: number): Promise<IpcResult<DocumentRow[]>> =>
       ipcRenderer.invoke('docs:list', bailId),
     listAll: (): Promise<IpcResult<DocumentRow[]>> => ipcRenderer.invoke('docs:list-all'),
+    attachToBien: (bienId: number, type: TypeDocument): Promise<IpcResult<DocumentRow | null>> =>
+      ipcRenderer.invoke('docs:attach-to-bien', bienId, type),
+    listByBien: (bienId: number): Promise<IpcResult<DocumentRow[]>> =>
+      ipcRenderer.invoke('docs:list-by-bien', bienId),
     open: (id: number): Promise<IpcResult<boolean>> => ipcRenderer.invoke('docs:open', id),
     remove: (id: number): Promise<IpcResult<void>> => ipcRenderer.invoke('docs:delete', id)
   },
