@@ -1,123 +1,67 @@
 # GestyLoc
 
-Logiciel de bureau (Windows) de gestion locative : biens, locataires, baux,
-quittances PDF, suivi des paiements et alertes automatiques.
-**100 % local** : les données sont stockées dans SQLite (dossier AppData), aucun
-serveur ni internet requis.
+<div align="center">
+  <img src="build/icon.png" alt="GestyLoc" width="128" />
+</div>
 
-## Stack
+**GestyLoc** est un logiciel de bureau (Windows) de gestion locative pour
+propriétaires privés : suivez vos biens, vos locataires, vos loyers et vos
+quittances — sans abonnement, sans internet, sans quitter votre PC.
 
-- **Electron 40** + **electron-vite** (main / preload / renderer)
-- **React 19 + TypeScript**, **Tailwind CSS** (thème clair/sombre automatique)
-- **SQLite** via `better-sqlite3` v12 (Node-API) + **Drizzle ORM** (schéma typé)
-- **pdfmake** (quittances PDF), **electron-updater** (mises à jour via GitHub Releases)
+> 💡 Pensé pour les petits propriétaires (quelques appartements et garages)
+> qui veulent une solution **simple, locale et gratuite**, sans compte ni
+> synchronisation cloud.
 
-## Démarrage
+## ✨ Ce que GestyLoc sait faire
 
-```bash
-npm install          # installe les dépendances (rebuild natif auto via postinstall)
-npm run dev          # lance l'app en dev (HMR)
-npm run build        # typecheck + build production
-npm run build:win    # génère l'installeur NSIS dans dist/
-```
+- **Biens & locataires** : fiche complète pour chaque bien (type, surface,
+  meublé…) et chaque locataire (coordonnées), reliés par un contrat de bail
+- **Loyers & IRL** : loyers HC/CC, loyer au m², loyer annuel, frais d'agence —
+  avec un outil de **révision annuelle guidée** qui calcule le nouveau loyer à
+  partir de l'IRL au centime près
+- **Quittances** : génération de quittances conformes (article 21, loi de
+  1989) en **PDF** ou **impression directe** — à l'unité ou **toutes d'un
+  coup** pour un mois donné
+- **Suivi des paiements** : pointez chaque loyer comme payé, partiel, en
+  retard ou impayé
+- **Alertes automatiques** : fins de bail qui approchent (< 90 jours),
+  révisions IRL à effectuer, loyers impayés
+- **Statistiques** : encaissements des 12 derniers mois, répartition par type
+  de bien, loyer moyen au m²
+- **Documents** : joignez baux, états des lieux et assurances à chaque bail
+- **Vos données vous appartiennent** : tout est stocké localement sur votre
+  ordinateur (SQLite), aucune donnée ne quitte votre machine
 
-> Si `npm install` échoue sur `better-sqlite3` : `npx electron-rebuild -f -w better-sqlite3`
+## 📥 Installation
 
-## Structure
+1. Rendez-vous sur la page [Releases](https://github.com/galaxiel/GestyLoc/releases/latest)
+2. Téléchargez **`gestyloc-x.y.z-setup.exe`**
+3. Lancez-le : l'installation prend quelques secondes
 
-```
-src/main/        Processus principal : fenêtre, updater, BDD, IPC, services
-  database/      Connexion SQLite (AppData), migrations versionnées, schéma Drizzle
-  repositories/  Accès aux données (1 fichier par entité)
-  services/      Alertes, documents, quittances
-  database/ipc.ts  Registre central des handlers IPC
-src/preload/     Pont sécurisé contextBridge -> window.api (typé)
-src/renderer/    Application React (pages, composants, hooks)
-shared/          Types partagés main <-> renderer (contrats IPC)
-```
+Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
+versions au démarrage, vous propose de les télécharger, et installe au
+redémarrage. Vous n'avez rien à faire.
 
-Ajouter une fonctionnalité = ajouter une table (migration), un repository, un
-handler IPC, une méthode preload, une page React. Rien de l'existant ne bouge.
+**Configuration requise** : Windows 10/11 (64 bits). Aucune autre dépendance.
 
-## Base de données
+## 🔒 Vos données
 
-Emplacement : `%APPDATA%/gestyloc/data/app.db` (mode WAL).
-Migrations versionnées dans `src/main/database/migrations/`, appliquées au
-démarrage. Pour modifier le schéma :
+Les données sont stockées dans `%APPDATA%\gestyloc\data\app.db` sur votre PC.
+Pensez à faire des **sauvegardes régulières** : Paramètres → Données →
+« Sauvegarder la base » (fichier à conserver précieusement, restorable en un
+clic). Un export CSV est également disponible si vous voulez réutiliser vos
+données dans Excel.
 
-1. Éditer `src/main/database/schema.ts`
-2. Générer le SQL : `npm run db:generate`
-3. Importer le nouveau `.sql` dans `migrate.ts` (entrée `{ id: '000N', ... }`)
+## 🛠️ Pour les développeurs
 
-## Publier une nouvelle version (explication détaillée)
+GestyLoc est construit avec Electron, React, TypeScript et SQLite
+(better-sqlite3 + Drizzle ORM). Le projet est **100 % local et open source** :
 
-### Le principe
+- `CONTRIBUTING.md` : installer l'environnement, comprendre l'architecture,
+  publier une version
+- `ROADMAP.md` : ce qui est fait et ce qui est prévu
+- `AGENTS.md` : note de passation technique (pour développeurs et agents LLM)
 
-Le fichier `.github/workflows/release.yml` dit à GitHub : « **quand un tag qui
-commence par `v` est poussé sur le dépôt, construis l'installeur Windows et
-crée une release avec** ». Un **tag** est simplement une étiquette posée sur un
-commit (une photo du code à un instant T), par exemple `v1.0.1`.
+## 📄 Licence
 
-Autrement dit : **tu n'as jamais besoin de construire l'installeur sur ta
-machine pour distribuer une version**. GitHub le fait à ta place, gratuitement.
-
-### Le rituel, étape par étape
-
-Quand tu as terminé des modifications et que tu veux les livrer aux
-utilisateurs :
-
-**1. Augmente le numéro de version** dans `package.json` :
-
-```json
-"version": "1.0.1",
-```
-
-**2. Enregistre et pousse ton code** :
-
-```bash
-git add -A
-git commit -m "Description de ce qui a changé"
-git push
-```
-
-**3. Pose l'étiquette (tag) et pousse-la.** Le nom du tag doit correspondre à
-la version, précédé d'un `v` :
-
-```bash
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-**4. Attends ~5 minutes.** Va sur l'onglet
-[Actions](https://github.com/galaxiel/GestyLoc/actions) du dépôt : tu vois le
-build se dérouler. Quand il devient vert, une **draft release** (brouillon)
-apparaît dans l'onglet
-[Releases](https://github.com/galaxiel/GestyLoc/releases) avec l'installeur
-`gestyloc-1.0.1-setup.exe` et le fichier `latest.yml`.
-
-**5. Publie le brouillon.** Clique sur la release, complète si tu veux les
-notes de version (elles seront affichées aux utilisateurs), puis clique sur
-**Publish release** (bouton vert). La version devient téléchargeable
-publiquement.
-
-**6. C'est tout.** Les installations existantes détectent la nouvelle version
-au prochain lancement de GestyLoc : notification native, téléchargement sur
-accord de l'utilisateur, installation au redémarrage. Aucune action manuelle
-de ta part.
-
-### En résumé
-
-```bash
-# version dans package.json + commit + push, puis :
-git tag v1.1.0 && git push origin v1.1.0
-# ~5 min plus tard : Publish sur GitHub → l'auto-update fait le reste
-```
-
-### Cas particulier : publier depuis sa propre machine
-
-C'est possible (utile si GitHub Actions est indisponible) : crée un token
-GitHub avec droit `repo` (voir `.env.example`), puis :
-
-```bash
-GH_TOKEN=ton_token npx electron-builder --win --publish always
-```
+Projet personnel open source — utilisez librement.

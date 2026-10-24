@@ -144,7 +144,7 @@ tests (vitest sur repositories/services) est une dette listée dans ROADMAP.
   noms de canaux sont dans `shared/updater-channels.ts`.
 - **Release** : bump `package.json` → commit → `git tag vX.Y.Z` → push →
   GitHub Actions construit et crée une draft → publier la draft sur GitHub.
-  Détail complet pour humains dans `README.md`.
+  Détail complet pour humains dans `CONTRIBUTING.md`.
 
 ### Bug connu d'electron-builder (v26.15.3)
 
