@@ -60,6 +60,8 @@
 - [ ] Multi-profils / multi-bailleurs
 - [ ] Chiffrement de la base (mot de passe au lancement)
 - [x] Statut **occupation gratuite** sur un bail (ex : logement familial) : badge, exclus des loyers/quittances/alertes/paiements
+- [x] Statut **occupation gratuite** sur un bail (ex : logement familial) : badge dans le tableau, exclus des loyers attendus, quittances, alertes IRL et pointage
+- [x] Quittances : bouton **Imprimer** (dialogue d'impression système) en plus de l'export PDF
 - [ ] Rappels par email (optionnel, nécessite connexion)
 - [ ] Version portable (.exe sans installation)
 
