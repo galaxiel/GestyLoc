@@ -9,7 +9,14 @@ import { depenseRepository } from '../repositories/depense.repository'
 import type { CreateDepenseInput } from '@shared/types'
 import { documentsService } from '../services/documents.service'
 import { computeAlertes } from '../services/alertes.service'
-import { saveQuittancePdf, choisirDossierQuittances, saveToDossier } from '../services/quittance.service'
+import {
+  saveQuittancePdf,
+  choisirDossierQuittances,
+  saveToDossier,
+  saveToDossierTrace,
+  listQuittances,
+  enregistrerQuittance
+} from '../services/quittance.service'
 import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
@@ -119,13 +126,23 @@ export function registerDatabaseHandlers(): void {
   )
 
   // ---------- Quittances PDF ----------
-  handle('quittance:save', (base64: string, nomFichier: string) =>
-    saveQuittancePdf(base64, nomFichier)
+  handle(
+    'quittance:save',
+    (base64: string, nomFichier: string, bailId?: number, periode?: string) =>
+      saveQuittancePdf(base64, nomFichier).then((chemin) => {
+        if (chemin && bailId && periode) enregistrerQuittance(bailId, periode, nomFichier, chemin)
+        return chemin
+      })
   )
   handle('quittance:choose-folder', () => choisirDossierQuittances())
-  handle('quittance:save-to', (base64: string, dossier: string, nomFichier: string) =>
-    saveToDossier(base64, dossier, nomFichier)
+  handle(
+    'quittance:save-to',
+    (base64: string, dossier: string, nomFichier: string, bailId?: number, periode?: string) =>
+      bailId && periode
+        ? saveToDossierTrace(base64, dossier, nomFichier, bailId, periode)
+        : saveToDossier(base64, dossier, nomFichier)
   )
+  handle('quittances:list', () => listQuittances())
 
   // ---------- Données : import / export / sauvegarde ----------
   handle('data:export-csv', () => exporterCsv())

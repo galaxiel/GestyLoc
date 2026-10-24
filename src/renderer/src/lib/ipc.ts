@@ -1,6 +1,7 @@
 import type {
   Depense,
   CreateDepenseInput,
+  QuittanceHistorique,
   BienLocationRow,
   CreateBienInput,
   CreateLocataireInput,
@@ -116,11 +117,28 @@ export const ipc = {
       >)
   },
   quittances: {
-    save: (base64: string, nomFichier: string): Promise<string | null> =>
-      unwrap(window.api.quittances.save(base64, nomFichier)),
+    save: (
+      base64: string,
+      nomFichier: string,
+      bailId?: number,
+      periode?: string
+    ): Promise<string | null> =>
+      unwrap(window.api.quittances.save(base64, nomFichier, bailId, periode)),
     chooseFolder: (): Promise<string | null> => unwrap(window.api.quittances.chooseFolder()),
-    saveTo: (base64: string, dossier: string, nomFichier: string): Promise<string> =>
-      unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier))
+    saveTo: (
+      base64: string,
+      dossier: string,
+      nomFichier: string,
+      bailId?: number,
+      periode?: string
+    ): Promise<string> =>
+      unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier, bailId, periode)),
+    list: (): Promise<QuittanceHistorique[]> =>
+      unwrap(window.api.quittances.list() as Promise<{
+        ok: boolean
+        data?: QuittanceHistorique[]
+        error?: string
+      }>)
   },
   data: {
     exportCsv: (): Promise<string | null> => unwrap(window.api.data.exportCsv()),

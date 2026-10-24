@@ -137,12 +137,24 @@ const api = {
 
   // ---- Quittances PDF ----
   quittances: {
-    save: (base64: string, nomFichier: string): Promise<IpcResult<string | null>> =>
-      ipcRenderer.invoke('quittance:save', base64, nomFichier),
+    save: (
+      base64: string,
+      nomFichier: string,
+      bailId?: number,
+      periode?: string
+    ): Promise<IpcResult<string | null>> =>
+      ipcRenderer.invoke('quittance:save', base64, nomFichier, bailId, periode),
     chooseFolder: (): Promise<IpcResult<string | null>> =>
       ipcRenderer.invoke('quittance:choose-folder'),
-    saveTo: (base64: string, dossier: string, nomFichier: string): Promise<IpcResult<string>> =>
-      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier)
+    saveTo: (
+      base64: string,
+      dossier: string,
+      nomFichier: string,
+      bailId?: number,
+      periode?: string
+    ): Promise<IpcResult<string>> =>
+      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier, bailId, periode),
+    list: (): Promise<IpcResult<unknown[]>> => ipcRenderer.invoke('quittances:list')
   },
 
   // ---- Indices INSEE (IRL / ICC) ----

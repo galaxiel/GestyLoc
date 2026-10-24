@@ -4,6 +4,8 @@ import { FileText, Download, Loader2, AlertTriangle, Printer, Layers } from 'luc
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { QuittanceHistorique } from '@shared/types'
+import { formatPeriode } from '../lib/format'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate } from '../lib/format'
@@ -144,6 +146,17 @@ export function Quittances(): React.JSX.Element {
     total: 0,
     erreurs: 0
   })
+  const [historique, setHistorique] = useState<QuittanceHistorique[]>([])
+
+  const rechargerHistorique = (): Promise<void> =>
+    ipc.quittances
+      .list()
+      .then(setHistorique)
+      .catch(() => setHistorique([]))
+
+  useEffect(() => {
+    void rechargerHistorique()
+  }, [])
 
   // Chargement du profil bailleur (Paramètres) pour pré-remplir la quittance.
   useEffect(() => {
@@ -185,8 +198,9 @@ export function Quittances(): React.JSX.Element {
 
       pdfMake.createPdf(doc).getBase64(async (base64: string) => {
         const nomFichier = `quittance_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${periode}.pdf`
-        const chemin = await ipc.quittances.save(base64, nomFichier)
+        const chemin = await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
         setMessage(chemin ? `Quittance enregistrée : ${chemin}` : 'Enregistrement annulé.')
+        void rechargerHistorique()
         setEnCours(false)
       })
     } catch (err) {
@@ -270,7 +284,7 @@ export function Quittances(): React.JSX.Element {
           setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
         })
         const nom = `quittance_${r.locataire.nom_complet.replace(/\s+/g, '_')}_${suffixe}.pdf`
-        await ipc.quittances.saveTo(base64, dossier, nom)
+        await ipc.quittances.saveTo(base64, dossier, nom, r.bail.id, periode)
       } catch {
         erreurs++
       }
@@ -278,6 +292,7 @@ export function Quittances(): React.JSX.Element {
     }
 
     setLot({ enCours: false, fait: bauxActifs.length, total: bauxActifs.length, erreurs })
+    void rechargerHistorique()
     setMessage(
       erreurs === 0
         ? `${bauxActifs.length} quittances générées dans : ${dossier}`
@@ -409,6 +424,47 @@ export function Quittances(): React.JSX.Element {
           </p>
         )}
       </div>
+
+      {/* Historique des quittances générées */}
+      <section>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Historique des quittances générées ({historique.length})
+        </h2>
+        {historique.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-700">
+            Aucune quittance générée pour l'instant.
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-2">Générée le</th>
+                  <th className="px-4 py-2">Période</th>
+                  <th className="px-4 py-2">Fichier</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historique.slice(0, 20).map((q) => {
+                  const row = locations.find((r) => r.bail.id === q.bail_id)
+                  return (
+                    <tr key={q.id} className="border-t border-slate-200 dark:border-slate-800">
+                      <td className="px-4 py-2">{q.genere_le.slice(0, 10)}</td>
+                      <td className="px-4 py-2">
+                        {formatPeriode(q.periode)}
+                        <span className="ml-2 text-xs text-slate-400">
+                          {row ? `— ${row.locataire.nom_complet} (${row.bien.designation})` : ''}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-slate-400">{q.nom_fichier}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

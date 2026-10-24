@@ -174,3 +174,19 @@ export const depenses = sqliteTable('depenses', {
   notes: text('notes'),
   ...timestamps
 })
+
+// ----------------------------------------------------------------------------
+// Table Quittances générées (historique/trace) — migration 0006
+// ----------------------------------------------------------------------------
+export const quittances = sqliteTable('quittances', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bail_id: integer('bail_id')
+    .notNull()
+    .references(() => baux.id, { onDelete: 'cascade' }),
+  periode: text('periode').notNull(), // 'yyyy-mm'
+  nom_fichier: text('nom_fichier').notNull(),
+  chemin: text('chemin'),
+  genere_le: text('genere_le')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`)
+})

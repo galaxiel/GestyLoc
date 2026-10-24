@@ -248,3 +248,15 @@ export interface CreateDepenseInput {
   date_depense?: string | null
   notes?: string | null
 }
+
+// ----------------------------------------------------------------------------
+// QUITTANCES générées (historique) — migration 0006
+// ----------------------------------------------------------------------------
+export interface QuittanceHistorique {
+  id: number
+  bail_id: number
+  periode: string
+  nom_fichier: string
+  chemin: string | null
+  genere_le: string
+}

@@ -61,13 +61,13 @@
 
 ### 1. Tableau de bord
 
-- [ ] 🖥️ **Trésorerie prévisionnelle** : carte "attendu ce mois" (somme des loyers CC
+- [x] 🖥️ **Trésorerie prévisionnelle** (v1.5.0) : carte "attendu ce mois" (somme des loyers CC
   des baux actifs payants) à côté de "encaissé ce mois" + **impayés cumulés en €**
   (somme des périodes pointées retard/impayé)
-- [ ] 🖥️ **Regroupement des alertes** : quand le parc grandit, regrouper par type
+- [x] 🖥️ **Regroupement des alertes** (v1.5.0, accordéons) : quand le parc grandit, regrouper par type
   (ex : "12 révisions d'IRL en attente" avec accordéon ou page dédiée au lieu d'une
   longue liste verticale)
-- [ ] 🖥️ **Actions rapides** : boutons "Enregistrer un paiement", "Générer les
+- [x] 🖥️ **Actions rapides** (v1.5.0), "Générer les
   quittances du mois", "Ajouter un bien" en tête du dashboard
 
 ### 2. Biens & Locataires
@@ -76,11 +76,11 @@
   progressive des passoires thermiques : colonne `dpe` + filtre + affichage couleur
 - [ ] 🗃️ **Dépôt de garantie** sur le bail (montant, date de réception) + suivi de la
   restitution en fin de bail
-- [ ] 🗃️ **Type de charges** : forfaitaires vs provisionnelles (avec régularisation
+- [x] 🗃️ **Type de charges** (v1.5.0) : forfaitaires vs provisionnelles (avec régularisation
   annuelle) — impacte les décomptes
-- [ ] 🖥️ **Filtres et tris** du tableau : par type (appartement/garage), baux finissant
+- [x] 🖥️ **Filtres et tris** du tableau (v1.5.0 : chips Tous/Appartements/Garages/Fin<6 mois/Gratuits/Vacants + badge DPE) : par type (appartement/garage), baux finissant
   < 6 mois, baux gratuits, vacants
-- [ ] 🖥️ **Fiche Bien dissociée de la fiche Bail** : la base de données est DÉJÀ
+- [x] 🖥️ **Fiche Bien dissociée de la fiche Bail** (v1.5.0, route /biens/:id) : la base de données est DÉJÀ
   normalisée (tables `biens` et `baux` séparées) — ce qui manque est l'UI : une page
   "Biens" listant les biens indépendamment des baux, avec l'**historique des
   locataires passés** (baux `actif = false`) et le détail du bien actuel. Permet de
@@ -88,11 +88,11 @@
 
 ### 3. Suivi des paiements
 
-- [ ] 🖥️ **Vue matrice Mois × Biens** (le gros gain d'ergonomie) : grille où chaque
+- [x] 🖥️ **Vue matrice Mois × Biens** (v1.5.0 : pointage 1 clic, annulation par re-clic, totaux du mois, mode de règlement) (le gros gain d'ergonomie) : grille où chaque
   colonne est un bail et chaque ligne un mois, avec un clic pour cocher "payé" —
   remplace le pointage bail par bail actuel. Le backend (upsert par bail+periode)
   existe déjà.
-- [ ] 🖥️ **Mode de règlement au pointage** : virement / chèque / espèces — la colonne
+- [x] 🖥️ **Mode de règlement au pointage** (v1.5.0) : virement / chèque / espèces — la colonne
   `mode_paiement` existe déjà en BDD, seule l'interface manque.
 
 ### 4. Quittances
@@ -100,7 +100,7 @@
 - [ ] 🖥️ **Profil bailleur incitatif** : bandeau d'onboarding au premier lancement si
   le profil est vide + badge dans la sidebar ; garder l'avertissement sur la page
   Quittances
-- [ ] 🗃️ **Historique des quittances générées** : table `quittances` (bail, période,
+- [x] 🗃️ **Historique des quittances générées** (v1.5.0, migration 0006, upsert par bail+période) : table `quittances` (bail, période,
   date, nom de fichier) — évite les doublons et les oublis, sert de preuve d'envoi
 - [ ] 🌐 **Envoi par email** (optionnel) : générer + envoyer la quittance au locataire
   depuis l'app (SMTP à configurer dans Paramètres, ex : Gmail/Orange avec mot de
@@ -108,19 +108,19 @@
 
 ### 5. Documents
 
-- [ ] 🖥️ **Documents rattachés au BIEN** (diagnostics techniques, factures de travaux,
+- [x] 🖥️ **Documents rattachés au BIEN** (v1.5.0, fiche Bien) (diagnostics techniques, factures de travaux,
   taxe foncière, PNO) : la colonne `bien_id` existe déjà dans la table `documents` —
   ajouter l'UI de rattachement/consultation par bien, en plus des baux.
 
 ### 6. Statistiques patrimoniales
 
-- [ ] 🗃️ **Valeur vénale** saisie par bien (estimation, mise à jour datée) — socle des
+- [x] 🗃️ **Valeur vénale** (v1.5.0) saisie par bien (estimation, mise à jour datée) — socle des
   calculs de rentabilité
 - [ ] 🖥️ **Taux de vacance locative** : % du temps où chaque bien est resté sans bail
   actif (calculable depuis les périodes entre baux)
-- [ ] 🖥️ **Rentabilité brute** = loyers annuels HC ÷ valeur vénale × 100 (par bien et
+- [x] 🖥️ **Rentabilité brute** (v1.5.0) = loyers annuels HC ÷ valeur vénale × 100 (par bien et
   global)
-- [ ] 🖥️ **Rentabilité nette & cash-flow** : nécessite le module Dépenses (ci-dessous) —
+- [x] 🖥️ **Rentabilité nette & cash-flow** (v1.5.0, basée sur les dépenses de l'année) : nécessite le module Dépenses (ci-dessous) —
   (loyers − charges non récupérables − taxe foncière − frais/agence − assurance) ÷
   valeur vénale
 - [ ] 🖥️ **Gains dus aux révisions IRL** : suivi des € gagnés par an grâce aux
@@ -130,7 +130,7 @@
 
 ### 7. Modules transverses
 
-- [ ] 🗃️ **Module Dépenses / Frais** (le pilier de la partie patrimoniale) : table
+- [x] 🗃️ **Module Dépenses / Frais** LIVRÉ v1.5.0 (le pilier de la partie patrimoniale) : table
   `depenses` (bien, catégorie : travaux/réparations/assurance PNO/taxe
   foncière/charges non récupérables, montant, date, justificatif) + page de saisie +
   alimentation des statistiques et du récap 2044
@@ -139,6 +139,14 @@
 - [ ] 🌐 (optionnel) **Journal d'activité / multi-profils** : si l'app reste
   strictement personnelle, inutile ; ne traiter que si une gestion à plusieurs devient
   un besoin réel
+
+### Reste à faire (au réveil de l'utilisateur)
+
+- [ ] 🗃️ **DPE** : saisie faite via le formulaire — mais la valeur "vacants" du filtre et la régularisation annuelle des charges restent ouvertes
+- [ ] 🗃️ **Régularisation annuelle des charges** (décompte PDF par locataire)
+- [ ] 🖥️ **Taux de vacance locative** + **gains dus aux révisions IRL** (statistiques patrimoniales fines)
+- [ ] 🗃️ **Récap revenus fonciers (2044)** — recettes vs charges déductibles
+- [ ] 🌐 Email quittances + multi-profils — exclus de cette passe
 
 ### Priorisation suggérée (par rapport valeur/effort)
 

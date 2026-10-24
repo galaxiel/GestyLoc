@@ -1,6 +1,6 @@
 {
   "name": "gestyloc",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Logiciel de gestion locative - biens, locataires, quittances, suivi des paiements",
   "main": "./out/main/index.js",
   "author": "gestion-locative",
