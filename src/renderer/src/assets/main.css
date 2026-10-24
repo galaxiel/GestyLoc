@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base épurée : le thème sombre/clair est géré par Tailwind (darkMode: media). */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 antialiased;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: hidden; /* le scroll est géré par la zone de contenu */
+  }
+}
+
+/* Scrollbar discrète adaptée aux deux thèmes. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

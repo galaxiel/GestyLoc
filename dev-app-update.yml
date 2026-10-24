@@ -1,0 +1,6 @@
+# Utilisé par electron-updater EN DÉVELOPPEMENT uniquement (lancé via `npm run dev`).
+# En production (app packagée), la config est injectée automatiquement par
+# electron-builder depuis le bloc `publish` de electron-builder.yml.
+provider: github
+owner: galaxiel
+repo: GestyLoc

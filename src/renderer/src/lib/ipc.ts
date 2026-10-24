@@ -1,0 +1,70 @@
+import type {
+  BienLocationRow,
+  CreateBienInput,
+  CreateLocataireInput,
+  CreateBailInput,
+  CreatePaiementInput,
+  Paiement,
+  DocumentRow,
+  Alerte,
+  TypeDocument
+} from '@shared/types'
+
+/**
+ * Client IPC typé : délègue à window.api et déballe l'enveloppe
+ * { ok, data | error } en levant une exception en cas d'erreur.
+ * Le renderer ne voit jamais l'enveloppe — juste les données ou une Error.
+ */
+async function unwrap<T>(p: Promise<{ ok: boolean; data?: T; error?: string }>): Promise<T> {
+  const res = await p
+  if (!res.ok) throw new Error(res.error ?? 'Erreur inconnue')
+  return res.data as T
+}
+
+export const ipc = {
+  locations: {
+    list: (): Promise<BienLocationRow[]> => unwrap(window.api.db.listLocations())
+  },
+  alertes: {
+    list: (): Promise<Alerte[]> => unwrap(window.api.db.getAlertes())
+  },
+  biens: {
+    create: (input: CreateBienInput): Promise<unknown> => unwrap(window.api.db.createBien(input)),
+    update: (id: number, input: Partial<CreateBienInput>): Promise<unknown> =>
+      unwrap(window.api.db.updateBien(id, input)),
+    remove: (id: number): Promise<void> => unwrap(window.api.db.deleteBien(id))
+  },
+  locataires: {
+    create: (input: CreateLocataireInput): Promise<unknown> =>
+      unwrap(window.api.db.createLocataire(input)),
+    update: (id: number, input: Partial<CreateLocataireInput>): Promise<unknown> =>
+      unwrap(window.api.db.updateLocataire(id, input)),
+    remove: (id: number): Promise<void> => unwrap(window.api.db.deleteLocataire(id))
+  },
+  baux: {
+    create: (input: CreateBailInput): Promise<unknown> => unwrap(window.api.db.createBail(input)),
+    update: (id: number, input: Partial<CreateBailInput>): Promise<unknown> =>
+      unwrap(window.api.db.updateBail(id, input)),
+    remove: (id: number): Promise<void> => unwrap(window.api.db.deleteBail(id))
+  },
+  paiements: {
+    listByBail: (bailId: number): Promise<Paiement[]> =>
+      unwrap(window.api.db.listPaiementsByBail(bailId)),
+    listAll: (): Promise<Paiement[]> => unwrap(window.api.db.listPaiements()),
+    upsert: (input: CreatePaiementInput): Promise<Paiement> =>
+      unwrap(window.api.db.upsertPaiement(input)),
+    remove: (bailId: number, periode: string): Promise<void> =>
+      unwrap(window.api.db.deletePaiement(bailId, periode))
+  },
+  documents: {
+    attach: (bailId: number, type: TypeDocument): Promise<DocumentRow | null> =>
+      unwrap(window.api.docs.attach(bailId, type)),
+    list: (bailId: number): Promise<DocumentRow[]> => unwrap(window.api.docs.list(bailId)),
+    open: (id: number): Promise<boolean> => unwrap(window.api.docs.open(id)),
+    remove: (id: number): Promise<void> => unwrap(window.api.docs.remove(id))
+  },
+  quittances: {
+    save: (base64: string, nomFichier: string): Promise<string | null> =>
+      unwrap(window.api.quittances.save(base64, nomFichier))
+  }
+}

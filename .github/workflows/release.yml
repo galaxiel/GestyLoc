@@ -1,0 +1,36 @@
+# Publication automatique d'une release GitHub à chaque push de tag v*.
+# L'updater de l'app installée lira alors latest.yml + le .exe de la release.
+#
+# Usage :
+#   git tag v1.0.1
+#   git push origin v1.0.1
+# -> le workflow build l'installeur NSIS et crée une DRAFT release
+#    (releaseType: draft dans electron-builder.yml) : va sur GitHub, relis-la,
+#    ajoute les notes de version, puis "Publish".
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build & publish draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build && npx electron-builder --win --publish always
