@@ -29,6 +29,7 @@ export interface Bien {
   meuble: boolean // Booléen
   valeur_venale: number | null // estimation (patrimoine)
   valeur_venale_date: string | null
+  dpe: string | null // classe A->G (migration 0005)
   created_at: string // ISO
   updated_at: string // ISO
 }
@@ -80,6 +81,10 @@ export interface Bail {
   // --- Frais ---
   frais_agence: number | null // Réel
 
+  // --- Compléments (migration 0005) ---
+  depot_garantie: number | null
+  type_charges: string | null // 'forfaitaires' | 'provisionnelles'
+
   // --- Métadonnées ---
   actif: boolean // true = bail en cours
   occupation_gratuite: boolean // occupé sans loyer (ex : famille)
@@ -110,6 +115,7 @@ export interface CreateBienInput {
   meuble?: boolean
   valeur_venale?: number | null
   valeur_venale_date?: string | null
+  dpe?: string | null
 }
 
 export interface CreateLocataireInput {
@@ -139,6 +145,8 @@ export interface CreateBailInput {
   frais_agence?: number | null
   actif?: boolean
   occupation_gratuite?: boolean
+  depot_garantie?: number | null
+  type_charges?: string | null
 }
 
 // Update payloads = mêmes champs mais tous optionnels.

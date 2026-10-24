@@ -20,6 +20,7 @@ import initSql from './migrations/0001_init.sql?raw'
 import parametresSql from './migrations/0002_parametres.sql?raw'
 import occupationGratuiteSql from './migrations/0003_occupation_gratuite.sql?raw'
 import patrimoineSql from './migrations/0004_patrimoine.sql?raw'
+import bauxComplementsSql from './migrations/0005_baux_complements.sql?raw'
 
 interface Migration {
   id: string
@@ -34,7 +35,8 @@ const migrations: Migration[] = [
   { id: '0001', name: 'init', sql: initSql },
   { id: '0002', name: 'parametres', sql: parametresSql },
   { id: '0003', name: 'occupation_gratuite', sql: occupationGratuiteSql },
-  { id: '0004', name: 'patrimoine', sql: patrimoineSql }
+  { id: '0004', name: 'patrimoine', sql: patrimoineSql },
+  { id: '0005', name: 'baux_complements', sql: bauxComplementsSql }
   // Futures migrations à ajouter ici :
   // { id: '0004', name: 'add_xxx', sql: xxxSql },
 ]

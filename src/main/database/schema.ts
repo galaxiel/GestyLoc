@@ -33,6 +33,8 @@ export const biens = sqliteTable('biens', {
   // Patrimoine (migration 0004)
   valeur_venale: real('valeur_venale'),
   valeur_venale_date: text('valeur_venale_date'),
+  // DPE (migration 0005) : classe énergétique A->G, null si inconnu
+  dpe: text('dpe'),
   ...timestamps
 })
 
@@ -84,6 +86,10 @@ export const baux = sqliteTable('baux', {
 
   // Frais
   frais_agence: real('frais_agence'),
+
+  // Compléments (migration 0005)
+  depot_garantie: real('depot_garantie'),
+  type_charges: text('type_charges'), // 'forfaitaires' | 'provisionnelles'
 
   // État
   actif: integer('actif', { mode: 'boolean' }).notNull().default(true),

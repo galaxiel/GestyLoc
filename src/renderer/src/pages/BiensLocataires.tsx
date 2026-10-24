@@ -19,6 +19,7 @@ interface FormState {
   surface_m2: string
   meuble: boolean
   valeur_venale: string
+  dpe: string
   // Locataire
   nom_complet: string
   email: string
@@ -37,6 +38,8 @@ interface FormState {
   frais_agence: string
   actif: boolean
   occupation_gratuite: boolean
+  depot_garantie: string
+  type_charges: string
 }
 
 const FORM_VIDE: FormState = {
@@ -48,6 +51,7 @@ const FORM_VIDE: FormState = {
   surface_m2: '',
   meuble: false,
   valeur_venale: '',
+  dpe: '',
   nom_complet: '',
   email: '',
   telephone: '',
@@ -63,7 +67,9 @@ const FORM_VIDE: FormState = {
   nouveau_loyer_hc: '',
   frais_agence: '',
   actif: true,
-  occupation_gratuite: false
+  occupation_gratuite: false,
+  depot_garantie: '',
+  type_charges: ''
 }
 
 function num(v: string): number | null {
@@ -102,22 +108,49 @@ export function BiensLocataires(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
   const [recherche, setRecherche] = useState('')
+  const [filtreActif, setFiltreActif] = useState<string>('tous')
   const [formOuvert, setFormOuvert] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
   const [form, setForm] = useState<FormState>(FORM_VIDE)
   const [erreur, setErreur] = useState<string | null>(null)
   const [suppression, setSuppression] = useState<number | null>(null)
 
+  const FILTRES = [
+    { id: 'tous', label: 'Tous' },
+    { id: 'appartements', label: 'Appartements' },
+    { id: 'garages', label: 'Garages / parkings' },
+    { id: 'fin_proche', label: 'Fin < 6 mois' },
+    { id: 'gratuits', label: 'Occupation gratuite' },
+    { id: 'vacants', label: 'Sans loyer' }
+  ]
+
   const filtres = useMemo(() => {
     const q = recherche.toLowerCase()
-    if (!q) return locations
-    return locations.filter(
-      (r) =>
-        r.bien.designation.toLowerCase().includes(q) ||
-        r.locataire.nom_complet.toLowerCase().includes(q) ||
-        r.bien.ville?.toLowerCase().includes(q)
-    )
-  }, [locations, recherche])
+    return locations.filter((r) => {
+      if (
+        q &&
+        !r.bien.designation.toLowerCase().includes(q) &&
+        !r.locataire.nom_complet.toLowerCase().includes(q) &&
+        !r.bien.ville?.toLowerCase().includes(q)
+      ) {
+        return false
+      }
+      switch (filtreActif) {
+        case 'appartements':
+          return r.bien.type_bien === 'Appartement' || r.bien.type_bien === 'Studio'
+        case 'garages':
+          return r.bien.type_bien === 'Garage' || r.bien.type_bien === 'Parking'
+        case 'fin_proche':
+          return r.jours_avant_fin_bail !== null && r.jours_avant_fin_bail < 180
+        case 'gratuits':
+          return r.bail.occupation_gratuite
+        case 'vacants':
+          return !r.bail.occupation_gratuite && r.bail.loyer_cc === null && r.bail.loyer_hc === null
+        default:
+          return true
+      }
+    })
+  }, [locations, recherche, filtreActif])
 
   // Ctrl+N depuis n'importe quelle page : ouvre le formulaire de création.
   const openNewDemande = (location.state as { openNew?: boolean } | null)?.openNew
@@ -148,6 +181,7 @@ export function BiensLocataires(): React.JSX.Element {
       surface_m2: row.bien.surface_m2?.toString() ?? '',
       meuble: row.bien.meuble,
       valeur_venale: row.bien.valeur_venale?.toString() ?? '',
+      dpe: row.bien.dpe ?? '',
       nom_complet: row.locataire.nom_complet,
       email: row.locataire.email ?? '',
       telephone: row.locataire.telephone ?? '',
@@ -163,7 +197,9 @@ export function BiensLocataires(): React.JSX.Element {
       nouveau_loyer_hc: row.bail.nouveau_loyer_hc?.toString() ?? '',
       frais_agence: row.bail.frais_agence?.toString() ?? '',
       actif: row.bail.actif,
-      occupation_gratuite: row.bail.occupation_gratuite
+      occupation_gratuite: row.bail.occupation_gratuite,
+      depot_garantie: row.bail.depot_garantie?.toString() ?? '',
+      type_charges: row.bail.type_charges ?? ''
     })
     setEditId(bailId)
     setErreur(null)
@@ -185,7 +221,8 @@ export function BiensLocataires(): React.JSX.Element {
         surface_m2: num(form.surface_m2),
         meuble: form.meuble,
         valeur_venale: num(form.valeur_venale),
-        valeur_venale_date: num(form.valeur_venale) !== null ? new Date().toISOString().slice(0, 10) : null
+        valeur_venale_date: num(form.valeur_venale) !== null ? new Date().toISOString().slice(0, 10) : null,
+        dpe: form.dpe.trim() || null
       }
       const locataireInput: CreateLocataireInput = {
         nom_complet: form.nom_complet.trim(),
@@ -217,7 +254,9 @@ export function BiensLocataires(): React.JSX.Element {
         frais_agence: num(form.frais_agence),
         actif: form.actif,
         // Occupation gratuite : aucun loyer n'est dû, tous les montants à null.
-        occupation_gratuite: form.occupation_gratuite
+        occupation_gratuite: form.occupation_gratuite,
+        depot_garantie: num(form.depot_garantie),
+        type_charges: form.type_charges || null
       }
       if (form.occupation_gratuite) {
         bailInput.loyer_hc = null
@@ -289,6 +328,23 @@ export function BiensLocataires(): React.JSX.Element {
         />
       </div>
 
+      {/* Filtres rapides */}
+      <div className="flex flex-wrap gap-1.5">
+        {FILTRES.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFiltreActif(f.id)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              filtreActif === f.id
+                ? 'bg-primary-600 text-white'
+                : 'border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Tableau */}
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
         <table className="w-full min-w-[900px] text-sm">
@@ -316,6 +372,20 @@ export function BiensLocataires(): React.JSX.Element {
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">
                     {r.bien.type_bien}
                   </span>
+                  {r.bien.dpe && (
+                    <span
+                      title="Classe énergétique (DPE)"
+                      className={`ml-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-white ${
+                        ['A', 'B', 'C'].includes(r.bien.dpe)
+                          ? 'bg-emerald-500'
+                          : r.bien.dpe === 'D'
+                            ? 'bg-amber-500'
+                            : 'bg-red-500'
+                      }`}
+                    >
+                      {r.bien.dpe}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-2 font-medium">
                   <button
@@ -483,6 +553,20 @@ export function BiensLocataires(): React.JSX.Element {
                   placeholder="pour la rentabilité"
                 />
               </Field>
+              <Field label="DPE (classe énergétique)">
+                <select
+                  value={form.dpe}
+                  onChange={(e) => setForm({ ...form, dpe: e.target.value })}
+                  className={inputCls}
+                >
+                  <option value="">— Inconnu —</option>
+                  {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </Field>
             </div>
 
             {/* Section Locataire */}
@@ -591,6 +675,26 @@ export function BiensLocataires(): React.JSX.Element {
                   value={form.loyer_metre_carre_hc}
                   onChange={(e) => setForm({ ...form, loyer_metre_carre_hc: e.target.value })}
                 />
+              </Field>
+              <Field label="Dépôt de garantie (€)">
+                <input
+                  className={inputCls}
+                  type="number"
+                  step="0.01"
+                  value={form.depot_garantie}
+                  onChange={(e) => setForm({ ...form, depot_garantie: e.target.value })}
+                />
+              </Field>
+              <Field label="Type de charges">
+                <select
+                  value={form.type_charges}
+                  onChange={(e) => setForm({ ...form, type_charges: e.target.value })}
+                  className={inputCls}
+                >
+                  <option value="">— Non précisé —</option>
+                  <option value="forfaitaires">Forfaitaires</option>
+                  <option value="provisionnelles">Provisionnelles (régularisation annuelle)</option>
+                </select>
               </Field>
               <Field label="Frais agence (€)">
                 <input
