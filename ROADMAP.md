@@ -53,15 +53,12 @@
 - [x] Sauvegarde/restauration de la base (checkpoint WAL, copie de sécurité avant restauration, redémarrage auto)
 - [x] Raccourcis clavier (Ctrl+1 à Ctrl+6 = navigation, Ctrl+N = nouveau bail)
 
-## 🔮 V2 — pistes (non planifié)
+## 🔮 V2 — pistes (démarré, non planifié)
 
-- [ ] Statistiques avancées (DÉMARRÉ : page Statistiques — encaissements 12 mois, répartition par type, loyer moyen/m² ; reste : taux d'occupation, charges, export graphiques)
+- [ ] **Statistiques avancées** (DÉMARRÉ v1.3.0 : page Statistiques — encaissements 12 mois, répartition par type de bien, loyer moyen/m². Reste : taux d'occupation détaillé, suivi des charges, comparaison inter-annuelle)
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
 - [ ] Multi-profils / multi-bailleurs
 - [ ] Chiffrement de la base (mot de passe au lancement)
-- [x] Statut **occupation gratuite** sur un bail (ex : logement familial) : badge, exclus des loyers/quittances/alertes/paiements
-- [x] Statut **occupation gratuite** sur un bail (ex : logement familial) : badge dans le tableau, exclus des loyers attendus, quittances, alertes IRL et pointage
-- [x] Quittances : bouton **Imprimer** (dialogue d'impression système) en plus de l'export PDF
 - [ ] Rappels par email (optionnel, nécessite connexion)
 - [ ] Version portable (.exe sans installation)
 
@@ -70,7 +67,59 @@
 ## Bugs connus / dettes techniques
 
 - [x] Montant « Encaissé ce mois » branché sur les paiements pointés (payé/partiel) de la période courante
-- [ ] Quittance : champs bailleur à compléter (dépend du profil bailleur V1.1)
-- [x] Tests automatisés de premier niveau : vitest sur les utilitaires purs (parsers CSV/franchement formats) — `npm test` (11 tests)
-- [ ] Étendre les tests aux repositories et au service d'alertes (nécessite un harness pour better-sqlite3 natif)
-- [ ] Icône d'app à personnaliser (actuellement l'icône template electron-vite dans `build/` et `resources/`)
+- [x] Quittances : champs bailleur pré-remplis depuis le profil bailleur (v1.1.0)
+- [x] Icône d'app personnalisée : logo GestyLoc converti en `build/icon.ico` multi-tailles (16→256 px) + `resources/icon.png` (v1.3.0)
+- [x] Tests automatisés de premier niveau : vitest sur les utilitaires purs (parsers CSV, formats français) — `npm test` (11 tests)
+- [ ] Étendre les tests aux repositories et au service d'alertes — **voir la section « Problématique du harnais de test » ci-dessous**
+
+---
+
+## 🧪 Problématique du harnais de test (dette technique expliquée)
+
+> **Pourquoi tout le code n'est pas couvert par des tests automatiques ?**
+> Ce n'est pas de la paresse : c'est une contrainte technique précise, décrite ici
+> pour qu'un futur développeur (humain ou LLM) comprenne le problème avant de
+> chercher à le résoudre.
+
+### Ce qui est déjà testé
+
+Les 11 tests (`npm test`, vitest) couvrent les **fonctions pures** : des calculs
+qui ne touchent ni base de données ni fichiers système. On leur donne une
+entrée, elles retournent une sortie, toujours pareil. Exemples : convertir
+« 650,00 € » en 650, transformer « 19/10/2024 » en « 2024-10-19 », parser un
+CSV avec des guillemets. Tester ça est trivial et ces fonctions protègent le
+point le plus fragile (l'import de tableur).
+
+### Ce qui n'est PAS testé, et pourquoi
+
+Le reste du code (les **repositories** qui parlent à SQLite, le **service
+d'alertes** qui lit la base) ne peut pas être testé sans créer une **mini base
+de données de test** : la créer vide, y insérer des données fictives, vérifier
+les résultats, tout jeter, et ça pour chaque test. Cette machinerie de
+préparation s'appelle un **harnais de test** (*test harness*).
+
+Le blocage est le suivant :
+
+1. `better-sqlite3` est un module **natif** compilé pour le moteur d'**Electron**
+   (voir l'historique du projet : recompilation obligatoire contre les headers
+   Electron, sinon `NODE_MODULE_VERSION` mismatch au chargement).
+2. L'outil de tests (vitest) tourne sur le moteur de **Node.js pur**, qui ne
+   peut **pas charger** ce binaire — on l'a vérifié : le module s'ouvre dans
+   Electron mais lève une erreur dans Node.
+3. Donc pour tester les repositories, il faut un des 3 contournements :
+
+| Option | Principe | Coût / inconvénient |
+|---|---|---|
+| **A. Base de test via `libsql`** | Drizzle supporte un pilote SQLite en pur JS/WebAssembly, compatible vitest | Écrire le code des repositories contre une abstraction, ou dupliquer les requêtes → risque de tester autre chose que le vrai code |
+| **B. Lancer vitest dans Electron** | Utiliser Electron comme runtime de tests | Configuration fragile, lenteur, outillage peu documenté |
+| **C. Recompiler better-sqlite3 pour Node dans les tests** | Deux compilations du même module selon le contexte | Casse la compilation Electron à chaque bascule — le plus risqué |
+
+### Décision (état actuel)
+
+Le rapport coût/bénéfice n'est pas favorable aujourd'hui : l'app est déjà
+validée par (1) le **typecheck strict** à chaque build, (2) les tests de
+parsing sur le point le plus fragile, (3) un **test manuel avant chaque
+release** (l'app est lancée et vérifiée avant publication). Le jour où le
+projet gagne en complexité (ou devient le socle d'un SaaS multi-locataires,
+où une régression coûterait cher), l'**option A** est la plus propre : c'est
+le chantier à ouvrir en priorité.
