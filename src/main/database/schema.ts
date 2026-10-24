@@ -190,3 +190,17 @@ export const quittances = sqliteTable('quittances', {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`)
 })
+
+// ----------------------------------------------------------------------------
+// Table Régularisation des charges (bail × année) — migration 0007
+// ----------------------------------------------------------------------------
+export const regularisationsCharges = sqliteTable('regularisations_charges', {
+  bail_id: integer('bail_id')
+    .notNull()
+    .references(() => baux.id, { onDelete: 'cascade' }),
+  annee: integer('annee').notNull(),
+  charges_reelles: real('charges_reelles').notNull(),
+  regularise_le: text('regularise_le')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`)
+})

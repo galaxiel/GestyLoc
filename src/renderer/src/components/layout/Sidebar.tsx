@@ -7,6 +7,7 @@ import {
   FolderOpen,
   BarChart3,
   Coins,
+  Scale,
   Settings
 } from 'lucide-react'
 import { useStore } from '../../hooks/useStore'
@@ -19,6 +20,7 @@ const liens = [
   { to: '/documents', label: 'Documents', icon: FolderOpen },
   { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
   { to: '/depenses', label: 'Dépenses', icon: Coins },
+  { to: '/regularisation', label: 'Régularisation', icon: Scale },
   { to: '/parametres', label: 'Paramètres', icon: Settings }
 ]
 

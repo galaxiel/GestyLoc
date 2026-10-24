@@ -22,6 +22,7 @@ import occupationGratuiteSql from './migrations/0003_occupation_gratuite.sql?raw
 import patrimoineSql from './migrations/0004_patrimoine.sql?raw'
 import bauxComplementsSql from './migrations/0005_baux_complements.sql?raw'
 import quittancesSql from './migrations/0006_quittances.sql?raw'
+import regularisationSql from './migrations/0007_regularisation.sql?raw'
 
 interface Migration {
   id: string
@@ -38,7 +39,8 @@ const migrations: Migration[] = [
   { id: '0003', name: 'occupation_gratuite', sql: occupationGratuiteSql },
   { id: '0004', name: 'patrimoine', sql: patrimoineSql },
   { id: '0005', name: 'baux_complements', sql: bauxComplementsSql },
-  { id: '0006', name: 'quittances', sql: quittancesSql }
+  { id: '0006', name: 'quittances', sql: quittancesSql },
+  { id: '0007', name: 'regularisation', sql: regularisationSql }
   // Futures migrations à ajouter ici :
   // { id: '0004', name: 'add_xxx', sql: xxxSql },
 ]

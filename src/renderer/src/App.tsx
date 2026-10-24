@@ -11,6 +11,7 @@ import { BailDetail } from './pages/BailDetail'
 import { Parametres } from './pages/Parametres'
 import { Statistiques } from './pages/Statistiques'
 import { Depenses } from './pages/Depenses'
+import { Regularisation } from './pages/Regularisation'
 import { BienDetail } from './pages/BienDetail'
 
 /**
@@ -22,7 +23,7 @@ function RaccourcisClavier(): null {
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return
-      const routes = ['/', '/biens', '/paiements', '/quittances', '/documents', '/statistiques', '/depenses', '/parametres']
+      const routes = ['/', '/biens', '/paiements', '/quittances', '/documents', '/statistiques', '/depenses', '/regularisation', '/parametres']
       const n = parseInt(e.key, 10)
       if (n >= 1 && n <= routes.length) {
         e.preventDefault()
@@ -56,6 +57,7 @@ function App(): React.JSX.Element {
               <Route path="/documents" element={<Documents />} />
               <Route path="/statistiques" element={<Statistiques />} />
               <Route path="/depenses" element={<Depenses />} />
+              <Route path="/regularisation" element={<Regularisation />} />
               <Route path="/parametres" element={<Parametres />} />
               <Route path="*" element={<Dashboard />} />
             </Routes>

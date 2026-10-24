@@ -260,3 +260,13 @@ export interface QuittanceHistorique {
   chemin: string | null
   genere_le: string
 }
+
+// ----------------------------------------------------------------------------
+// RÉGULARISATION DES CHARGES — migration 0007
+// ----------------------------------------------------------------------------
+export interface RegularisationCharges {
+  bail_id: number
+  annee: number
+  charges_reelles: number
+  regularise_le: string
+}

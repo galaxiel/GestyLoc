@@ -6,6 +6,7 @@ import { bailRepository } from '../repositories/bail.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
 import { parametresRepository, type BailleurProfile } from '../repositories/parametres.repository'
 import { depenseRepository } from '../repositories/depense.repository'
+import { regularisationRepository } from '../repositories/regularisation.repository'
 import type { CreateDepenseInput } from '@shared/types'
 import { documentsService } from '../services/documents.service'
 import { computeAlertes } from '../services/alertes.service'
@@ -91,6 +92,12 @@ export function registerDatabaseHandlers(): void {
   handle('db:depenses:create', (input: CreateDepenseInput) => depenseRepository.create(input))
   handle('db:depenses:update', (id: number, input: CreateDepenseInput) => depenseRepository.update(id, input))
   handle('db:depenses:delete', (id: number) => depenseRepository.delete(id))
+
+  // ---------- Régularisation des charges ----------
+  handle('db:regularisations:list', () => regularisationRepository.list())
+  handle('db:regularisations:upsert', (bailId: number, annee: number, chargesReelles: number) =>
+    regularisationRepository.upsert(bailId, annee, chargesReelles)
+  )
 
   // ---------- Paiements ----------
   handle('db:paiements:by-bail', (bailId: number) => paiementRepository.listByBail(bailId))

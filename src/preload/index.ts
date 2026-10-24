@@ -97,6 +97,16 @@ const api = {
     deleteDepense: (id: number): Promise<IpcResult<void>> =>
       ipcRenderer.invoke('db:depenses:delete', id),
 
+    // Régularisation des charges
+    listRegularisations: (): Promise<IpcResult<unknown[]>> =>
+      ipcRenderer.invoke('db:regularisations:list'),
+    upsertRegularisation: (
+      bailId: number,
+      annee: number,
+      chargesReelles: number
+    ): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:regularisations:upsert', bailId, annee, chargesReelles),
+
     // Paiements (suivi loyers)
     listPaiementsByBail: (bailId: number): Promise<IpcResult<Paiement[]>> =>
       ipcRenderer.invoke('db:paiements:by-bail', bailId),

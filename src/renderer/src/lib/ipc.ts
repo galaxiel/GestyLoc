@@ -2,6 +2,7 @@ import type {
   Depense,
   CreateDepenseInput,
   QuittanceHistorique,
+  RegularisationCharges,
   BienLocationRow,
   CreateBienInput,
   CreateLocataireInput,
@@ -85,6 +86,19 @@ export const ipc = {
       >),
     remove: (id: number): Promise<void> =>
       unwrap(window.api.db.deleteDepense(id) as Promise<{ ok: boolean; error?: string }>)
+  },
+  regularisations: {
+    list: (): Promise<RegularisationCharges[]> =>
+      unwrap(window.api.db.listRegularisations() as Promise<{
+        ok: boolean
+        data?: RegularisationCharges[]
+        error?: string
+      }>),
+    upsert: (bailId: number, annee: number, chargesReelles: number): Promise<void> =>
+      unwrap(window.api.db.upsertRegularisation(bailId, annee, chargesReelles) as Promise<{
+        ok: boolean
+        error?: string
+      }>)
   },
   indices: {
     fetch: (
