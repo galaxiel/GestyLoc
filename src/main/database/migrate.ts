@@ -19,6 +19,7 @@ import log from 'electron-log'
 import initSql from './migrations/0001_init.sql?raw'
 import parametresSql from './migrations/0002_parametres.sql?raw'
 import occupationGratuiteSql from './migrations/0003_occupation_gratuite.sql?raw'
+import patrimoineSql from './migrations/0004_patrimoine.sql?raw'
 
 interface Migration {
   id: string
@@ -32,7 +33,8 @@ interface Migration {
 const migrations: Migration[] = [
   { id: '0001', name: 'init', sql: initSql },
   { id: '0002', name: 'parametres', sql: parametresSql },
-  { id: '0003', name: 'occupation_gratuite', sql: occupationGratuiteSql }
+  { id: '0003', name: 'occupation_gratuite', sql: occupationGratuiteSql },
+  { id: '0004', name: 'patrimoine', sql: patrimoineSql }
   // Futures migrations à ajouter ici :
   // { id: '0004', name: 'add_xxx', sql: xxxSql },
 ]

@@ -27,6 +27,8 @@ export interface Bien {
   ville: string | null
   surface_m2: number | null // Réel (ex: 65.5)
   meuble: boolean // Booléen
+  valeur_venale: number | null // estimation (patrimoine)
+  valeur_venale_date: string | null
   created_at: string // ISO
   updated_at: string // ISO
 }
@@ -106,6 +108,8 @@ export interface CreateBienInput {
   ville?: string | null
   surface_m2?: number | null
   meuble?: boolean
+  valeur_venale?: number | null
+  valeur_venale_date?: string | null
 }
 
 export interface CreateLocataireInput {
@@ -204,4 +208,35 @@ export interface Alerte {
   severite: 'info' | 'warning' | 'urgent'
   message: string
   bail_id: number
+}
+
+// ----------------------------------------------------------------------------
+// DÉPENSES (travaux, PNO, taxe foncière...) — module patrimonial
+// ----------------------------------------------------------------------------
+export type CategorieDepense =
+  | 'travaux'
+  | 'reparations'
+  | 'assurance_pno'
+  | 'taxe_fonciere'
+  | 'charges_non_recuperables'
+  | 'frais_agence'
+  | 'autre'
+
+export interface Depense {
+  id: number
+  bien_id: number | null
+  categorie: CategorieDepense
+  montant: number
+  date_depense: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateDepenseInput {
+  bien_id?: number | null
+  categorie: CategorieDepense
+  montant: number
+  date_depense?: string | null
+  notes?: string | null
 }

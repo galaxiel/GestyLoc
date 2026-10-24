@@ -18,6 +18,7 @@ interface FormState {
   ville: string
   surface_m2: string
   meuble: boolean
+  valeur_venale: string
   // Locataire
   nom_complet: string
   email: string
@@ -46,6 +47,7 @@ const FORM_VIDE: FormState = {
   ville: '',
   surface_m2: '',
   meuble: false,
+  valeur_venale: '',
   nom_complet: '',
   email: '',
   telephone: '',
@@ -145,6 +147,7 @@ export function BiensLocataires(): React.JSX.Element {
       ville: row.bien.ville ?? '',
       surface_m2: row.bien.surface_m2?.toString() ?? '',
       meuble: row.bien.meuble,
+      valeur_venale: row.bien.valeur_venale?.toString() ?? '',
       nom_complet: row.locataire.nom_complet,
       email: row.locataire.email ?? '',
       telephone: row.locataire.telephone ?? '',
@@ -180,7 +183,9 @@ export function BiensLocataires(): React.JSX.Element {
         code_postal: str(form.code_postal),
         ville: str(form.ville),
         surface_m2: num(form.surface_m2),
-        meuble: form.meuble
+        meuble: form.meuble,
+        valeur_venale: num(form.valeur_venale),
+        valeur_venale_date: num(form.valeur_venale) !== null ? new Date().toISOString().slice(0, 10) : null
       }
       const locataireInput: CreateLocataireInput = {
         nom_complet: form.nom_complet.trim(),
@@ -466,6 +471,16 @@ export function BiensLocataires(): React.JSX.Element {
                   step="0.1"
                   value={form.surface_m2}
                   onChange={(e) => setForm({ ...form, surface_m2: e.target.value })}
+                />
+              </Field>
+              <Field label="Valeur vénale estimée (€)">
+                <input
+                  className={inputCls}
+                  type="number"
+                  step="1"
+                  value={form.valeur_venale}
+                  onChange={(e) => setForm({ ...form, valeur_venale: e.target.value })}
+                  placeholder="pour la rentabilité"
                 />
               </Field>
             </div>

@@ -30,6 +30,9 @@ export const biens = sqliteTable('biens', {
   ville: text('ville'),
   surface_m2: real('surface_m2'), // Réel
   meuble: integer('meuble', { mode: 'boolean' }).notNull().default(false),
+  // Patrimoine (migration 0004)
+  valeur_venale: real('valeur_venale'),
+  valeur_venale_date: text('valeur_venale_date'),
   ...timestamps
 })
 
@@ -147,4 +150,21 @@ export const parametres = sqliteTable('parametres', {
   updated_at: text('updated_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`)
+})
+
+// ----------------------------------------------------------------------------
+// Table Dépenses (travaux, PNO, taxe foncière...) — migration 0004
+// ----------------------------------------------------------------------------
+export const depenses = sqliteTable('depenses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bien_id: integer('bien_id').references(() => biens.id, { onDelete: 'cascade' }),
+  categorie: text('categorie', {
+    enum: ['travaux', 'reparations', 'assurance_pno', 'taxe_fonciere', 'charges_non_recuperables', 'frais_agence', 'autre']
+  })
+    .notNull()
+    .default('autre'),
+  montant: real('montant').notNull(),
+  date_depense: text('date_depense'),
+  notes: text('notes'),
+  ...timestamps
 })

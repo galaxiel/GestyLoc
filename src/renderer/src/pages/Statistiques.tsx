@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  BarChart3, Home, Wallet, Ruler, AlertTriangle, Coins, Percent
+  BarChart3, TrendingUp, Home, Wallet, Ruler, AlertTriangle, Coins, Percent
 } from 'lucide-react'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -9,6 +9,7 @@ import {
 import type { Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
+import type { Depense } from '@shared/types'
 import { formatEuro, formatPeriode } from '../lib/format'
 
 /** Génère les N dernières périodes 'yyyy-mm', la plus ancienne en premier. */
@@ -67,14 +68,19 @@ const COULEURS_TYPES = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '
 export function Statistiques(): React.JSX.Element {
   const { locations } = useStore()
   const [paiements, setPaiements] = useState<Paiement[]>([])
+  const [depensesList, setDepensesList] = useState<Depense[]>([])
   const [loading, setLoading] = useState(true)
   const sombre = useSombre()
 
   useEffect(() => {
-    void ipc.paiements
-      .listAll()
-      .then(setPaiements)
-      .catch(() => setPaiements([]))
+    void Promise.all([ipc.paiements.listAll(), ipc.depenses.list()])
+      .then(([pay, dep]) => {
+        setPaiements(pay)
+        setDepensesList(dep)
+      })
+      .catch(() => {
+        /* chargement partiel toléré */
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -187,6 +193,56 @@ export function Statistiques(): React.JSX.Element {
           couleur="text-teal-500"
         />
       </div>
+
+      {/* Patrimoine & rentabilité */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Patrimoine &amp; rentabilité
+        </h2>
+        {(() => {
+          const biensAvecValeur = locations.filter((r) => (r.bien.valeur_venale ?? 0) > 0)
+          const valeurTotale = biensAvecValeur.reduce((s, r) => s + (r.bien.valeur_venale ?? 0), 0)
+          const loyersAnnuelsHc = bauxPayants.reduce(
+            (s, r) => s + (r.bail.loyer_hc ?? 0) * 12,
+            0
+          )
+          const depensesAnnee = depensesList
+            .filter((d) => d.date_depense?.startsWith(String(annee)))
+            .reduce((s, d) => s + d.montant, 0)
+          const rentBrute =
+            valeurTotale > 0 ? Math.round((loyersAnnuelsHc / valeurTotale) * 10000) / 100 : null
+          const rentNette =
+            valeurTotale > 0
+              ? Math.round(((loyersAnnuelsHc - depensesAnnee) / valeurTotale) * 10000) / 100
+              : null
+          const cashFlow = loyerMensuelCc * 12 - depensesAnnee
+
+          if (valeurTotale === 0) {
+            return (
+              <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-700">
+                Renseigne la <strong>valeur vénale</strong> de tes biens (formulaire Biens
+                &amp; Locataires) pour activer la rentabilité brute/nette et le cash-flow.
+                {depensesAnnee > 0 &&
+                  ` Tes dépenses ${annee} sont déjà enregistrées : ${formatEuro(depensesAnnee)}.`}
+              </p>
+            )
+          }
+          return (
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+              <KpiCard titre="Valeur du patrimoine" valeur={formatEuro(valeurTotale)}
+                detail={`${biensAvecValeur.length} bien(s) valorisé(s)`} icon={Home} couleur="text-indigo-500" />
+              <KpiCard titre="Loyers annuels HC" valeur={formatEuro(loyersAnnuelsHc)}
+                detail="sur baux actifs" icon={Wallet} couleur="text-emerald-500" />
+              <KpiCard titre={`Dépenses ${annee}`} valeur={formatEuro(depensesAnnee)}
+                detail="travaux, TF, PNO…" icon={Coins} couleur="text-red-500" />
+              <KpiCard titre="Rentabilité brute" valeur={rentBrute !== null ? `${rentBrute} %` : '—'}
+                detail="loyers HC ÷ valeur" icon={Percent} couleur="text-sky-500" />
+              <KpiCard titre="Rentabilité nette" valeur={rentNette !== null ? `${rentNette} %` : '—'}
+                detail={`cash-flow ${formatEuro(cashFlow)}`} icon={TrendingUp} couleur={rentNette !== null && rentNette >= 0 ? 'text-emerald-500' : 'text-amber-500'} />
+            </div>
+          )
+        })()}
+      </section>
 
       {/* Encaissements 12 mois */}
       <section>

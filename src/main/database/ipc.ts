@@ -5,6 +5,8 @@ import { locataireRepository } from '../repositories/locataire.repository'
 import { bailRepository } from '../repositories/bail.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
 import { parametresRepository, type BailleurProfile } from '../repositories/parametres.repository'
+import { depenseRepository } from '../repositories/depense.repository'
+import type { CreateDepenseInput } from '@shared/types'
 import { documentsService } from '../services/documents.service'
 import { computeAlertes } from '../services/alertes.service'
 import { saveQuittancePdf, choisirDossierQuittances, saveToDossier } from '../services/quittance.service'
@@ -75,6 +77,13 @@ export function registerDatabaseHandlers(): void {
     bailRepository.update(id, input)
   )
   handle('db:baux:delete', (id: number) => bailRepository.delete(id))
+
+  // ---------- Dépenses (module patrimonial) ----------
+  handle('db:depenses:list', () => depenseRepository.list())
+  handle('db:depenses:by-bien', (bienId: number) => depenseRepository.listByBien(bienId))
+  handle('db:depenses:create', (input: CreateDepenseInput) => depenseRepository.create(input))
+  handle('db:depenses:update', (id: number, input: CreateDepenseInput) => depenseRepository.update(id, input))
+  handle('db:depenses:delete', (id: number) => depenseRepository.delete(id))
 
   // ---------- Paiements ----------
   handle('db:paiements:by-bail', (bailId: number) => paiementRepository.listByBail(bailId))

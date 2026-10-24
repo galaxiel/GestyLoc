@@ -85,6 +85,18 @@ const api = {
     deleteBail: (id: number): Promise<IpcResult<void>> =>
       ipcRenderer.invoke('db:baux:delete', id),
 
+    // Dépenses (patrimoine)
+    listDepenses: (): Promise<IpcResult<unknown[]>> =>
+      ipcRenderer.invoke('db:depenses:list'),
+    listDepensesByBien: (bienId: number): Promise<IpcResult<unknown[]>> =>
+      ipcRenderer.invoke('db:depenses:by-bien', bienId),
+    createDepense: (input: unknown): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:depenses:create', input),
+    updateDepense: (id: number, input: unknown): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:depenses:update', id, input),
+    deleteDepense: (id: number): Promise<IpcResult<void>> =>
+      ipcRenderer.invoke('db:depenses:delete', id),
+
     // Paiements (suivi loyers)
     listPaiementsByBail: (bailId: number): Promise<IpcResult<Paiement[]>> =>
       ipcRenderer.invoke('db:paiements:by-bail', bailId),

@@ -1,4 +1,6 @@
 import type {
+  Depense,
+  CreateDepenseInput,
   BienLocationRow,
   CreateBienInput,
   CreateLocataireInput,
@@ -63,6 +65,21 @@ export const ipc = {
     listAll: (): Promise<DocumentRow[]> => unwrap(window.api.docs.listAll()),
     open: (id: number): Promise<boolean> => unwrap(window.api.docs.open(id)),
     remove: (id: number): Promise<void> => unwrap(window.api.docs.remove(id))
+  },
+  depenses: {
+    list: (): Promise<Depense[]> => unwrap(window.api.db.listDepenses() as Promise<
+      { ok: boolean; data?: Depense[]; error?: string }
+    >),
+    create: (input: CreateDepenseInput): Promise<Depense> =>
+      unwrap(window.api.db.createDepense(input) as Promise<
+        { ok: boolean; data?: Depense; error?: string }
+      >),
+    update: (id: number, input: Partial<CreateDepenseInput>): Promise<Depense> =>
+      unwrap(window.api.db.updateDepense(id, input) as Promise<
+        { ok: boolean; data?: Depense; error?: string }
+      >),
+    remove: (id: number): Promise<void> =>
+      unwrap(window.api.db.deleteDepense(id) as Promise<{ ok: boolean; error?: string }>)
   },
   indices: {
     fetch: (
