@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Home, User, Wallet, TrendingUp, Printer, FileUp,
-  ExternalLink, Trash2, Loader2, CheckCircle2
+  ExternalLink, Trash2, Loader2, CheckCircle2, Globe
 } from 'lucide-react'
 import type { Paiement, DocumentRow } from '@shared/types'
+import type { ValeurIndice } from '@shared/indices'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface, libelleStatut, formatPeriode } from '../lib/format'
@@ -38,6 +39,30 @@ export function BailDetail(): React.JSX.Element {
   useEffect(() => {
     if (row?.bail.irl_nouveau) setIrlNouveau(String(row.bail.irl_nouveau))
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- Récupération des indices IRL/ICC depuis l'INSEE ---
+  const [typeIndice, setTypeIndice] = useState<'IRL' | 'ICC'>('IRL')
+  const [indicesRecuperes, setIndicesRecuperes] = useState<ValeurIndice[] | null>(null)
+  const [indicesEnCours, setIndicesEnCours] = useState(false)
+  const [indicesErreur, setIndicesErreur] = useState<string | null>(null)
+
+  const recupererIndices = async (): Promise<void> => {
+    setIndicesEnCours(true)
+    setIndicesErreur(null)
+    try {
+      const res = await ipc.indices.fetch(typeIndice)
+      if (res.erreur) {
+        setIndicesErreur(res.erreur)
+        setIndicesRecuperes(null)
+      } else {
+        setIndicesRecuperes(res.valeurs)
+      }
+    } catch (err) {
+      setIndicesErreur(err instanceof Error ? err.message : String(err))
+    } finally {
+      setIndicesEnCours(false)
+    }
+  }
 
   // --- Historique paiements + documents ---
   const [paiements, setPaiements] = useState<Paiement[]>([])
@@ -229,6 +254,65 @@ export function BailDetail(): React.JSX.Element {
                 onChange={(e) => setIrlNouveau(e.target.value)}
                 placeholder="ex : 145.78"
               />
+            </div>
+            {/* Récupération automatique des indices sur INSEE.fr (internet) */}
+            <div className="w-full rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
+              <div className="flex flex-wrap items-center gap-2">
+                <Globe className="h-4 w-4 text-slate-400" />
+                <select
+                  value={typeIndice}
+                  onChange={(e) => {
+                    setTypeIndice(e.target.value as 'IRL' | 'ICC')
+                    setIndicesRecuperes(null)
+                    setIndicesErreur(null)
+                  }}
+                  className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="IRL">IRL (habitation)</option>
+                  <option value="ICC">ICC (construction)</option>
+                </select>
+                <button
+                  onClick={() => void recupererIndices()}
+                  disabled={indicesEnCours}
+                  className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+                  title="Récupérer les derniers indices publiés sur INSEE.fr"
+                >
+                  {indicesEnCours ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>Récupérer sur INSEE.fr</>
+                  )}
+                </button>
+                <span className="text-xs text-slate-400">
+                  puis cliquez sur un trimestre pour remplir le champ ci-dessus
+                </span>
+              </div>
+              {indicesErreur && (
+                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                  Connexion impossible : {indicesErreur} — saisie manuelle toujours possible.
+                </p>
+              )}
+              {indicesRecuperes && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {indicesRecuperes.map((v) => (
+                    <button
+                      key={v.periode}
+                      onClick={() => setIrlNouveau(String(v.valeur))}
+                      title="Remplir le champ IRL nouveau avec cette valeur"
+                      className={`rounded-lg border px-2 py-1 text-xs transition-colors ${
+                        String(v.valeur) === irlNouveau
+                          ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-500'
+                          : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <strong>{v.periode}</strong> : {v.valeur}
+                    </button>
+                  ))}
+                  <span className="w-full text-[11px] text-slate-400">
+                    Source : INSEE (bdm.insee.fr), données officielles. {indicesRecuperes[0]?.periode} est le dernier publié.
+                  </span>
+                </div>
+              )}
             </div>
             <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-800/60">
               <div>

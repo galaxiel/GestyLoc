@@ -55,7 +55,8 @@
 
 ## 🔮 V2 — pistes (démarré, non planifié)
 
-- [ ] **Statistiques avancées** (DÉMARRÉ v1.3.0 : page Statistiques — encaissements 12 mois, répartition par type de bien, loyer moyen/m². Reste : taux d'occupation détaillé, suivi des charges, comparaison inter-annuelle)
+- [x] **Statistiques enrichies** (v1.4.0 : graphiques recharts — encaissements 12 mois, camembert par type, comparaison annuelle ; 6 indicateurs dont taux d'occupation, charges, impayés. Reste possible : comparaison inter-annuelle fine, export des graphiques)
+- [x] **Récupération automatique des indices IRL/ICC sur INSEE.fr** (v1.4.0 : bouton dans la fiche bail, séries BDM officielles 001515333/000008630, 8 derniers trimestres, saisie manuelle conservée hors ligne)
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
 - [ ] Multi-profils / multi-bailleurs
 - [ ] Chiffrement de la base (mot de passe au lancement)

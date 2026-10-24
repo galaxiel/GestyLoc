@@ -64,6 +64,26 @@ export const ipc = {
     open: (id: number): Promise<boolean> => unwrap(window.api.docs.open(id)),
     remove: (id: number): Promise<void> => unwrap(window.api.docs.remove(id))
   },
+  indices: {
+    fetch: (
+      type: 'IRL' | 'ICC'
+    ): Promise<{
+      type: 'IRL' | 'ICC'
+      titre: string
+      valeurs: { periode: string; valeur: number }[]
+      erreur: string | null
+    }> =>
+      unwrap(window.api.indices.fetch(type) as Promise<{
+        ok: boolean
+        data?: {
+          type: 'IRL' | 'ICC'
+          titre: string
+          valeurs: { periode: string; valeur: number }[]
+          erreur: string | null
+        }
+        error?: string
+      }>)
+  },
   parametres: {
     getBailleur: (): Promise<{ nom_complet: string; adresse: string } | null> =>
       unwrap(window.api.parametres.getBailleur() as Promise<

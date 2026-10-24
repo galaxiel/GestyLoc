@@ -129,6 +129,12 @@ const api = {
       ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier)
   },
 
+  // ---- Indices INSEE (IRL / ICC) ----
+  indices: {
+    fetch: (type: string): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('indices:fetch', type)
+  },
+
   // ---- Données : import / export / sauvegarde ----
   data: {
     exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),

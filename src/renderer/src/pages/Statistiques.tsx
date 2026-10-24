@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BarChart3, TrendingUp, Home, Wallet, Ruler } from 'lucide-react'
+import {
+  BarChart3, Home, Wallet, Ruler, AlertTriangle, Coins, Percent
+} from 'lucide-react'
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell
+} from 'recharts'
 import type { Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -42,10 +48,27 @@ function KpiCard({
   )
 }
 
+/** Hook : suit le thème de l'OS pour adapter les couleurs des graphiques. */
+function useSombre(): boolean {
+  const [sombre, setSombre] = useState(
+    () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (e: MediaQueryListEvent): void => setSombre(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return sombre
+}
+
+const COULEURS_TYPES = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#14b8a6']
+
 export function Statistiques(): React.JSX.Element {
   const { locations } = useStore()
   const [paiements, setPaiements] = useState<Paiement[]>([])
   const [loading, setLoading] = useState(true)
+  const sombre = useSombre()
 
   useEffect(() => {
     void ipc.paiements
@@ -57,29 +80,42 @@ export function Statistiques(): React.JSX.Element {
 
   // --- Encaissements par mois (12 derniers) ---
   const encaissements = useMemo(() => {
-    const periodes = periodesPassees(12)
-    return periodes.map((p) => ({
-      periode: p,
+    return periodesPassees(12).map((p) => ({
+      periode: formatPeriode(p).slice(0, 4), // "janv.", "févr."…
+      periodeComplete: formatPeriode(p),
       total: paiements
         .filter((x) => x.periode === p && (x.statut === 'paye' || x.statut === 'partiel'))
         .reduce((s, x) => s + x.montant_paye, 0)
     }))
   }, [paiements])
 
-  const maxEncaissement = Math.max(...encaissements.map((e) => e.total), 1)
-
-  // --- Répartition par type de bien (loyer CC mensuel) ---
+  // --- Répartition par type de bien ---
   const parType = useMemo(() => {
-    const map = new Map<string, { total: number; nb: number }>()
+    const map = new Map<string, number>()
     for (const r of locations) {
       if (!r.bail.actif || r.bail.occupation_gratuite) continue
       const cc = r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)
-      const cur = map.get(r.bien.type_bien) ?? { total: 0, nb: 0 }
-      map.set(r.bien.type_bien, { total: cur.total + cc, nb: cur.nb + 1 })
+      map.set(r.bien.type_bien, (map.get(r.bien.type_bien) ?? 0) + cc)
     }
-    return [...map.entries()].sort((a, b) => b[1].total - a[1].total)
+    return [...map.entries()]
+      .map(([type, total]) => ({ type, total: Math.round(total * 100) / 100 }))
+      .sort((a, b) => b.total - a.total)
   }, [locations])
-  const maxType = Math.max(...parType.map(([, v]) => v.total), 1)
+
+  // --- Comparaison annuelle (encaissé année en cours vs précédente) ---
+  const annee = new Date().getFullYear()
+  const parAnnee = useMemo(() => {
+    const enCours = paiements
+      .filter((p) => p.periode.startsWith(String(annee)))
+      .reduce((s, p) => s + p.montant_paye, 0)
+    const precedente = paiements
+      .filter((p) => p.periode.startsWith(String(annee - 1)))
+      .reduce((s, p) => s + p.montant_paye, 0)
+    return [
+      { annee: String(annee - 1), total: Math.round(precedente * 100) / 100 },
+      { annee: String(annee), total: Math.round(enCours * 100) / 100 }
+    ]
+  }, [paiements, annee])
 
   // --- KPI ---
   const bauxPayants = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
@@ -87,12 +123,18 @@ export function Statistiques(): React.JSX.Element {
     (s, r) => s + (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)),
     0
   )
-  const encaisseAnnee = paiements
-    .filter((p) => p.periode.startsWith(String(new Date().getFullYear())))
-    .reduce((s, p) => s + p.montant_paye, 0)
+  const chargesMensuelles = bauxPayants.reduce((s, r) => s + (r.bail.charges ?? 0), 0)
+  const impayes = paiements.filter((p) => p.statut === 'retard' || p.statut === 'impaye')
+  const montantImpaye = impayes.reduce((s, p) => s + p.montant_paye, 0)
   const surfaceLouee = bauxPayants.reduce((s, r) => s + (r.bien.surface_m2 ?? 0), 0)
-  const loyerM2Moyen =
-    surfaceLouee > 0 ? loyerMensuelCc / surfaceLouee : 0
+  const loyerM2Moyen = surfaceLouee > 0 ? loyerMensuelCc / surfaceLouee : 0
+  // Taux d'occupation : biens occupés (bail actif, payant ou gratuit) / total des biens
+  const biensOccupes = locations.filter((r) => r.bail.actif).length
+  const tauxOccupation = locations.length > 0 ? Math.round((biensOccupes / locations.length) * 100) : 0
+
+  const axes = sombre ? '#64748b' : '#94a3b8'
+  const grille = sombre ? '#334155' : '#e2e8f0'
+  const texte = sombre ? '#cbd5e1' : '#334155'
 
   if (loading) return <div className="p-8 text-slate-400">Chargement…</div>
 
@@ -101,34 +143,48 @@ export function Statistiques(): React.JSX.Element {
       <h1 className="text-xl font-bold tracking-tight">Statistiques</h1>
 
       {/* KPI */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
-          titre="Loyers mensuels (CC)"
+          titre="Loyers mensuels CC"
           valeur={formatEuro(loyerMensuelCc)}
           detail={`${bauxPayants.length} bail(s) payant(s)`}
           icon={Wallet}
           couleur="text-emerald-500"
         />
         <KpiCard
-          titre={`Encaissé en ${new Date().getFullYear()}`}
-          valeur={formatEuro(encaisseAnnee)}
-          detail="tous paiements pointés"
-          icon={TrendingUp}
-          couleur="text-blue-500"
+          titre="Taux d'occupation"
+          valeur={`${tauxOccupation} %`}
+          detail={`${biensOccupes}/${locations.length} biens occupés`}
+          icon={Percent}
+          couleur="text-sky-500"
+        />
+        <KpiCard
+          titre="Charges mensuelles"
+          valeur={formatEuro(chargesMensuelles)}
+          detail="provisions sur baux actifs"
+          icon={Coins}
+          couleur="text-violet-500"
+        />
+        <KpiCard
+          titre="Impayés en cours"
+          valeur={formatEuro(montantImpaye)}
+          detail={`${impayes.length} période(s) non réglée(s)`}
+          icon={AlertTriangle}
+          couleur={impayes.length > 0 ? 'text-red-500' : 'text-slate-400'}
         />
         <KpiCard
           titre="Surface louée"
           valeur={`${surfaceLouee.toLocaleString('fr-FR')} m²`}
-          detail={`${locations.length} bien(s) au total`}
+          detail={`${locations.length} bien(s)`}
           icon={Home}
-          couleur="text-violet-500"
+          couleur="text-amber-500"
         />
         <KpiCard
           titre="Loyer moyen / m²"
           valeur={formatEuro(Math.round(loyerM2Moyen * 100) / 100)}
           detail="loyer CC ÷ surface louée"
           icon={Ruler}
-          couleur="text-amber-500"
+          couleur="text-teal-500"
         />
       </div>
 
@@ -137,69 +193,169 @@ export function Statistiques(): React.JSX.Element {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Encaissements — 12 derniers mois
         </h2>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+        <div className="h-72 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
           {encaissements.every((e) => e.total === 0) ? (
-            <p className="py-8 text-center text-sm text-slate-400">
+            <div className="flex h-full items-center justify-center text-sm text-slate-400">
               Aucun paiement pointé sur les 12 derniers mois — pointe tes loyers dans la
-              page Paiements pour voir la courbe se remplir.
-            </p>
-          ) : (
-            <div className="flex h-48 items-end gap-2">
-              {encaissements.map((e) => (
-                <div key={e.periode} className="group flex flex-1 flex-col items-center gap-1">
-                  <span className="text-[10px] font-medium text-slate-500 opacity-0 transition-opacity group-hover:opacity-100 dark:text-slate-400">
-                    {formatEuro(e.total)}
-                  </span>
-                  <div
-                    className="w-full rounded-t-md bg-primary-500 transition-all group-hover:bg-primary-600"
-                    style={{ height: `${Math.max((e.total / maxEncaissement) * 100, 2)}%` }}
-                    title={`${formatPeriode(e.periode)} : ${formatEuro(e.total)}`}
-                  />
-                  <span className="text-[10px] text-slate-400">
-                    {e.periode.slice(5)}/{e.periode.slice(2, 4)}
-                  </span>
-                </div>
-              ))}
+              page Paiements pour remplir ce graphique.
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* Répartition par type */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Répartition des loyers par type de bien
-        </h2>
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
-          {parType.length === 0 ? (
-            <p className="text-sm text-slate-400">Aucun bail actif.</p>
           ) : (
-            parType.map(([type, v]) => (
-              <div key={type}>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span className="font-medium">
-                    {type} <span className="text-xs text-slate-400">({v.nb})</span>
-                  </span>
-                  <span>{formatEuro(v.total)}/mois</span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-primary-500"
-                    style={{ width: `${(v.total / maxType) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={encaissements} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={grille} vertical={false} />
+                <XAxis
+                  dataKey="periode"
+                  tick={{ fill: axes, fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={{ stroke: grille }}
+                />
+                <YAxis
+                  tick={{ fill: axes, fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) => `${v} €`}
+                  width={65}
+                />
+                <Tooltip
+                  formatter={(v) => [formatEuro(Number(v)), 'Encaissé']}
+                  labelFormatter={(l, payload) =>
+                    payload?.[0]?.payload.periodeComplete ?? String(l)
+                  }
+                  contentStyle={{
+                    background: sombre ? '#0f172a' : '#fff',
+                    border: `1px solid ${grille}`,
+                    borderRadius: 8,
+                    color: texte
+                  }}
+                />
+                <Bar dataKey="total" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
       </section>
 
-      {/* Astuce */}
-      <p className="flex items-start gap-2 text-xs text-slate-400">
-        <BarChart3 className="mt-0.5 h-4 w-4 shrink-0" />
-        Les graphiques se remplissent automatiquement au fur et à mesure de tes pointages
-        dans la page Paiements.
-      </p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Répartition par type */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Répartition des loyers par type de bien
+          </h2>
+          <div className="h-72 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+            {parType.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                Aucun bail payant actif.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={parType}
+                    dataKey="total"
+                    nameKey="type"
+                    innerRadius="50%"
+                    outerRadius="75%"
+                    paddingAngle={3}
+                  >
+                    {parType.map((_, i) => (
+                      <Cell key={i} fill={COULEURS_TYPES[i % COULEURS_TYPES.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v, n) => [formatEuro(Number(v)) + '/mois', String(n)]}
+                    contentStyle={{
+                      background: sombre ? '#0f172a' : '#fff',
+                      border: `1px solid ${grille}`,
+                      borderRadius: 8,
+                      color: texte
+                    }}
+                  />
+                  <text
+                    x="50%"
+                    y="47%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={texte}
+                    fontSize="13"
+                  >
+                    {formatEuro(loyerMensuelCc)}
+                  </text>
+                  <text
+                    x="50%"
+                    y="55%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={axes}
+                    fontSize="11"
+                  >
+                    par mois
+                  </text>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          {/* Légende */}
+          <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            {parType.map((p, i) => (
+              <span key={p.type} className="flex items-center gap-1.5">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ background: COULEURS_TYPES[i % COULEURS_TYPES.length] }}
+                />
+                {p.type} : {formatEuro(p.total)}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Comparaison annuelle */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Encaissé par année
+          </h2>
+          <div className="h-72 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+            {parAnnee.every((a) => a.total === 0) ? (
+              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                Pas encore d'historique sur deux années.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={parAnnee} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={grille} vertical={false} />
+                  <XAxis
+                    dataKey="annee"
+                    tick={{ fill: axes, fontSize: 13 }}
+                    tickLine={false}
+                    axisLine={{ stroke: grille }}
+                  />
+                  <YAxis
+                    tick={{ fill: axes, fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v: number) => `${v} €`}
+                    width={65}
+                  />
+                  <Tooltip
+                    formatter={(v) => [formatEuro(Number(v)), 'Encaissé']}
+                    contentStyle={{
+                      background: sombre ? '#0f172a' : '#fff',
+                      border: `1px solid ${grille}`,
+                      borderRadius: 8,
+                      color: texte
+                    }}
+                  />
+                  <Bar dataKey="total" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={90} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <p className="mt-2 flex items-start gap-2 text-xs text-slate-400">
+            <BarChart3 className="mt-0.5 h-4 w-4 shrink-0" />
+            Ces graphiques se remplissent automatiquement au fur et à mesure de tes
+            pointages dans la page Paiements.
+          </p>
+        </section>
+      </div>
     </div>
   )
 }

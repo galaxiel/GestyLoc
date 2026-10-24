@@ -10,6 +10,7 @@ import { computeAlertes } from '../services/alertes.service'
 import { saveQuittancePdf, choisirDossierQuittances, saveToDossier } from '../services/quittance.service'
 import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
+import { recupererIndices, type TypeIndice } from '../services/indices.service'
 import type {
   CreateBienInput,
   CreateLocataireInput,
@@ -119,4 +120,7 @@ export function registerDatabaseHandlers(): void {
   handle('data:backup-restore', () => restaurerSauvegarde())
   handle('data:import-preview', () => previewImport())
   handle('data:import-commit', () => commitImport())
+
+  // ---------- Indices INSEE (IRL / ICC) ----------
+  handle('indices:fetch', (type: TypeIndice) => recupererIndices(type))
 }
