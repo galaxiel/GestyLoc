@@ -1,21 +1,52 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2 } from 'lucide-react'
+import { RefreshCw, Rocket, Loader2, User, Save } from 'lucide-react'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
+import { ipc } from '../lib/ipc'
 
 const cardCls =
   'rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950'
+
+const inputCls =
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-900'
 
 export function Parametres(): React.JSX.Element {
   const [version, setVersion] = useState<string>('…')
   const [etat, setEtat] = useState<'inactif' | 'verification' | 'disponible' | 'telecharge' | 'erreur'>('inactif')
   const [message, setMessage] = useState<string | null>(null)
 
+  // --- Profil bailleur ---
+  const [bailleurNom, setBailleurNom] = useState('')
+  const [bailleurAdresse, setBailleurAdresse] = useState('')
+  const [bailleurMessage, setBailleurMessage] = useState<string | null>(null)
+
   useEffect(() => {
-    void window.electron.webFrame
     // Version de l'app (depuis package.json, injecté par electron).
     void window.electron.ipcRenderer.invoke('app:get-version').then(setVersion)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Chargement du profil bailleur.
+    void ipc.parametres
+      .getBailleur()
+      .then((profil) => {
+        if (profil) {
+          setBailleurNom(profil.nom_complet)
+          setBailleurAdresse(profil.adresse)
+        }
+      })
+      .catch(() => {
+        /* profil absent : champs vides */
+      })
   }, [])
+
+  const enregistrerBailleur = async (): Promise<void> => {
+    try {
+      await ipc.parametres.setBailleur({
+        nom_complet: bailleurNom.trim(),
+        adresse: bailleurAdresse.trim()
+      })
+      setBailleurMessage('Profil enregistré — utilisé dans les quittances.')
+    } catch (err) {
+      setBailleurMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
 
   const verifierMiseAJour = async (): Promise<void> => {
     setEtat('verification')
@@ -57,6 +88,49 @@ export function Parametres(): React.JSX.Element {
   return (
     <div className="max-w-xl space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Paramètres</h1>
+
+      {/* Profil bailleur */}
+      <div className={cardCls}>
+        <h2 className="mb-3 flex items-center gap-2 font-semibold">
+          <User className="h-4 w-4 text-primary-500" /> Profil bailleur
+        </h2>
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+          Ces informations pré-remplissent la section « BAILLEUR » de vos quittances.
+        </p>
+        <div className="space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Nom complet
+            </span>
+            <input
+              className={inputCls}
+              value={bailleurNom}
+              onChange={(e) => setBailleurNom(e.target.value)}
+              placeholder="ex : Jean Martin"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Adresse
+            </span>
+            <textarea
+              className={`${inputCls} min-h-[64px] resize-y`}
+              value={bailleurAdresse}
+              onChange={(e) => setBailleurAdresse(e.target.value)}
+              placeholder="ex : 12 rue des Lilas, 75011 Paris"
+            />
+          </label>
+          <button
+            onClick={() => void enregistrerBailleur()}
+            className="flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            <Save className="h-4 w-4" /> Enregistrer
+          </button>
+          {bailleurMessage && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">{bailleurMessage}</p>
+          )}
+        </div>
+      </div>
 
       {/* Infos app */}
       <div className={cardCls}>

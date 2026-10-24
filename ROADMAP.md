@@ -41,8 +41,8 @@
   - [ ] Script de mapping colonnes tableur → tables `biens` / `locataires` / `baux`
   - [ ] Interface d'import (sélection fichier, aperçu, validation, rapport d'erreurs)
   - [ ] Détection des doublons à l'import
-- [ ] Profil **bailleur** (nom, adresse, signature) dans Paramètres → pré-rempli dans les quittances
-- [ ] Page **Documents** : interface React (les IPC existent déjà) — liste par bail, ajout, ouverture, suppression
+- [x] Profil **bailleur** (nom, adresse) dans Paramètres → pré-rempli dans les quittances (avertissement si vide)
+- [x] Page **Documents** : interface React — sélection bail, ajout (dialog OS), ouverture, suppression
 
 ## 🔜 V1.2 — Confort d'usage
 
@@ -66,7 +66,7 @@
 
 ## Bugs connus / dettes techniques
 
-- [ ] Montant « Encaissé ce mois » du dashboard = 0 par défaut (à brancher sur la somme des paiements `paye` de la période courante)
+- [x] Montant « Encaissé ce mois » branché sur les paiements pointés (payé/partiel) de la période courante
 - [ ] Quittance : champs bailleur à compléter (dépend du profil bailleur V1.1)
 - [ ] Ajouter des tests automatisés (repositories + services d'alertes)
 - [ ] Icône d'app à personnaliser (actuellement l'icône template electron-vite dans `build/` et `resources/`)

@@ -4,6 +4,7 @@ import { bienRepository } from '../repositories/bien.repository'
 import { locataireRepository } from '../repositories/locataire.repository'
 import { bailRepository } from '../repositories/bail.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
+import { parametresRepository, type BailleurProfile } from '../repositories/parametres.repository'
 import { documentsService } from '../services/documents.service'
 import { computeAlertes } from '../services/alertes.service'
 import { saveQuittancePdf } from '../services/quittance.service'
@@ -90,6 +91,16 @@ export function registerDatabaseHandlers(): void {
   handle('docs:list-all', () => documentsService.listAll())
   handle('docs:open', (id: number) => documentsService.open(id))
   handle('docs:delete', (id: number) => documentsService.delete(id))
+
+  // ---------- Paramètres (profil bailleur, préférences) ----------
+  handle('db:parametres:get', (cle: string) => parametresRepository.get(cle))
+  handle('db:parametres:set', (cle: string, valeur: unknown) =>
+    parametresRepository.set(cle, valeur)
+  )
+  handle('db:parametres:get-bailleur', () => parametresRepository.getBailleur())
+  handle('db:parametres:set-bailleur', (profil: BailleurProfile) =>
+    parametresRepository.setBailleur(profil)
+  )
 
   // ---------- Quittances PDF ----------
   handle('quittance:save', (base64: string, nomFichier: string) =>

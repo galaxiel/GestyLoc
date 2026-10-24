@@ -115,7 +115,7 @@ export const paiements = sqliteTable(
 )
 
 // ----------------------------------------------------------------------------
-// Table Documents (étape : pièces jointes baux/états des lieux)
+// Table Documents (pièces jointes baux/états des lieux)
 // Le fichier est stocké sur disque ; seul le chemin est en BDD.
 // ----------------------------------------------------------------------------
 export const documents = sqliteTable('documents', {
@@ -132,4 +132,15 @@ export const documents = sqliteTable('documents', {
   taille_octets: integer('taille_octets'),
   mime_type: text('mime_type'),
   ...timestamps
+})
+
+// ----------------------------------------------------------------------------
+// Table Paramètres (clé → valeur JSON : profil bailleur, préférences...)
+// ----------------------------------------------------------------------------
+export const parametres = sqliteTable('parametres', {
+  cle: text('cle').primaryKey(),
+  valeur: text('valeur').notNull(), // JSON libre
+  updated_at: text('updated_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`)
 })

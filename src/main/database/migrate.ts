@@ -17,6 +17,7 @@ import log from 'electron-log'
 
 // Imports "?raw" : le contenu SQL est embarqué dans le bundle comme une string.
 import initSql from './migrations/0001_init.sql?raw'
+import parametresSql from './migrations/0002_parametres.sql?raw'
 
 interface Migration {
   id: string
@@ -26,11 +27,12 @@ interface Migration {
 
 // Liste ordonnée des migrations à appliquer.
 // IMPORTANT : ne JAMAIS réordonner ni modifier une migration déjà publiée.
-// Pour changer un schéma existant : ajouter une NOUVELLE entrée à la fin.
+// Pour changer un schéma : ajouter une NOUVELLE entrée à la fin.
 const migrations: Migration[] = [
-  { id: '0001', name: 'init', sql: initSql }
+  { id: '0001', name: 'init', sql: initSql },
+  { id: '0002', name: 'parametres', sql: parametresSql }
   // Futures migrations à ajouter ici :
-  // { id: '0002', name: 'add_xxx', sql: xxxSql },
+  // { id: '0003', name: 'add_xxx', sql: xxxSql },
 ]
 
 /**

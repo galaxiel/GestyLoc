@@ -4,6 +4,7 @@ import { StoreProvider } from './hooks/useStore'
 import { Dashboard } from './pages/Dashboard'
 import { BiensLocataires } from './pages/BiensLocataires'
 import { Paiements } from './pages/Paiements'
+import { Documents } from './pages/Documents'
 import { Quittances } from './pages/Quittances'
 import { Parametres } from './pages/Parametres'
 
@@ -18,6 +19,7 @@ function App(): React.JSX.Element {
               <Route path="/" element={<Dashboard />} />
               <Route path="/biens" element={<BiensLocataires />} />
               <Route path="/paiements" element={<Paiements />} />
+              <Route path="/documents" element={<Documents />} />
               <Route path="/quittances" element={<Quittances />} />
               <Route path="/parametres" element={<Parametres />} />
               <Route path="*" element={<Dashboard />} />

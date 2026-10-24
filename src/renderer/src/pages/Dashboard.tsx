@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Wallet, Home, AlertTriangle, CalendarClock } from 'lucide-react'
-import type { Alerte } from '@shared/types'
+import type { Alerte, Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
-import { formatEuro, formatDate } from '../lib/format'
+import { ipc } from '../lib/ipc'
+import { formatEuro, formatDate, periodeCourante } from '../lib/format'
 
 /** Carte statistique générique. */
 function StatCard({
@@ -38,6 +40,15 @@ const styleSeverite: Record<Alerte['severite'], string> = {
 
 export function Dashboard(): React.JSX.Element {
   const { locations, alertes, loading, error } = useStore()
+  const [paiements, setPaiements] = useState<Paiement[]>([])
+
+  // Chargement des paiements pour la stat "Encaissé ce mois".
+  useEffect(() => {
+    void ipc.paiements
+      .listAll()
+      .then(setPaiements)
+      .catch(() => setPaiements([]))
+  }, [locations]) // rechargé après chaque mutation (refresh du store)
 
   // --- Statistiques ---
   const bauxActifs = locations.filter((r) => r.bail.actif)
@@ -45,7 +56,14 @@ export function Dashboard(): React.JSX.Element {
     (sum, r) => sum + (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)),
     0
   )
-  const totalEncaisse = bauxActifs.length * 0 // TODO: somme des paiements 'paye' (étape suivante)
+  const periode = periodeCourante()
+  const totalEncaisse = paiements
+    .filter(
+      (p) =>
+        p.periode === periode &&
+        (p.statut === 'paye' || p.statut === 'partiel')
+    )
+    .reduce((sum, p) => sum + p.montant_paye, 0)
   const surfaceTotale = locations.reduce((sum, r) => sum + (r.bien.surface_m2 ?? 0), 0)
 
   if (loading) {
@@ -75,7 +93,7 @@ export function Dashboard(): React.JSX.Element {
         <StatCard
           titre="Encaissé ce mois"
           valeur={formatEuro(totalEncaisse)}
-          detail="Pointer dans Paiements"
+          detail={`sur ${formatEuro(totalLoyerCcMensuel)} attendus — pointer dans Paiements`}
           icon={Wallet}
           couleur="text-blue-500"
         />

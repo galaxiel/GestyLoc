@@ -4,6 +4,7 @@ import {
   Home,
   Receipt,
   Wallet,
+  FolderOpen,
   Settings
 } from 'lucide-react'
 import { useStore } from '../../hooks/useStore'
@@ -13,6 +14,7 @@ const liens = [
   { to: '/biens', label: 'Biens & Locataires', icon: Home },
   { to: '/paiements', label: 'Paiements', icon: Wallet },
   { to: '/quittances', label: 'Quittances', icon: Receipt },
+  { to: '/documents', label: 'Documents', icon: FolderOpen },
   { to: '/parametres', label: 'Paramètres', icon: Settings }
 ]
 

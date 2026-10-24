@@ -96,6 +96,18 @@ const api = {
       ipcRenderer.invoke('db:paiements:delete', bailId, periode)
   },
 
+  // ---- Paramètres (profil bailleur, préférences) ----
+  parametres: {
+    get: (cle: string): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:parametres:get', cle),
+    set: (cle: string, valeur: unknown): Promise<IpcResult<void>> =>
+      ipcRenderer.invoke('db:parametres:set', cle, valeur),
+    getBailleur: (): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:parametres:get-bailleur'),
+    setBailleur: (profil: unknown): Promise<IpcResult<void>> =>
+      ipcRenderer.invoke('db:parametres:set-bailleur', profil)
+  },
+
   // ---- Documents (pièces jointes) ----
   docs: {
     attach: (bailId: number, type: TypeDocument): Promise<IpcResult<DocumentRow | null>> =>

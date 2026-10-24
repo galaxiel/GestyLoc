@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { FileText, Download, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FileText, Download, Loader2, AlertTriangle } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -131,6 +131,15 @@ export function Quittances(): React.JSX.Element {
   })
   const [enCours, setEnCours] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [bailleur, setBailleur] = useState<{ nom_complet: string; adresse: string } | null>(null)
+
+  // Chargement du profil bailleur (Paramètres) pour pré-remplir la quittance.
+  useEffect(() => {
+    void ipc.parametres
+      .getBailleur()
+      .then(setBailleur)
+      .catch(() => setBailleur(null))
+  }, [])
 
   const row = locations.find((r) => r.bail.id === Number(bailId))
 
@@ -149,8 +158,8 @@ export function Quittances(): React.JSX.Element {
       )
 
       const doc = construireQuittance({
-        bailleur: '________________', // TODO : profil bailleur dans Paramètres
-        adresseBailleur: '________________',
+        bailleur: bailleur?.nom_complet || '________________',
+        adresseBailleur: bailleur?.adresse || '________________',
         locataire: row.locataire.nom_complet,
         bienDesignation: row.bien.designation,
         bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
@@ -228,6 +237,14 @@ export function Quittances(): React.JSX.Element {
               </div>
             </div>
           </div>
+        )}
+
+        {!bailleur && (
+          <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            Le profil bailleur n'est pas renseigné : les champs correspondants
+            resteront vides dans le PDF. Complétez-le dans Paramètres.
+          </p>
         )}
 
         <button
