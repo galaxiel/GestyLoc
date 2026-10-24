@@ -59,6 +59,24 @@ export function BienDetail(): React.JSX.Element {
     )
   }
 
+  // Taux de vacance : part du temps sans bail actif depuis le 1er bail.
+  const tauxVacance = ((): number | null => {
+    const baux = rowsDuBien.filter((r) => r.bail.date_debut_bail)
+    if (baux.length === 0) return null
+    const premierJour = baux.map((r) => r.bail.date_debut_bail!).sort()[0]
+    const debut = new Date(premierJour).getTime()
+    const fin = Date.now()
+    const dureeTotale = fin - debut
+    if (dureeTotale <= 0) return null
+    let joursOccupes = 0
+    for (const r of baux) {
+      const d = new Date(r.bail.date_debut_bail!).getTime()
+      const f = r.bail.date_fin_bail ? new Date(r.bail.date_fin_bail).getTime() : fin
+      joursOccupes += Math.min(Math.max(f - d, 0), dureeTotale)
+    }
+    return Math.min(Math.round((1 - joursOccupes / dureeTotale) * 100), 100)
+  })()
+
   const bauxTries = [...rowsDuBien].sort((a, b) => {
     // Bail actif d'abord, puis par date de début décroissante
     if (a.bail.actif !== b.bail.actif) return a.bail.actif ? -1 : 1
@@ -114,6 +132,10 @@ export function BienDetail(): React.JSX.Element {
           <Info
             label="DPE"
             valeur={bien.dpe ? `Classe ${bien.dpe}` : '—'}
+          />
+          <Info
+            label="Taux de vacance"
+            valeur={tauxVacance !== null ? `${tauxVacance} %` : '—'}
           />
           <Info
             label="Valeur vénale"

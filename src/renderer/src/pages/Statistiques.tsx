@@ -216,6 +216,16 @@ export function Statistiques(): React.JSX.Element {
               ? Math.round(((loyersAnnuelsHc - depensesAnnee) / valeurTotale) * 10000) / 100
               : null
           const cashFlow = loyerMensuelCc * 12 - depensesAnnee
+          // Gains dus aux révisions IRL : le taux est appliqué au loyer AVANT
+          // révision, donc gain mensuel = loyer_actuel x t/(100+t).
+          const gainsIrlMensuel = bauxPayants
+            .filter((r) => r.bail.taux_irl && r.bail.taux_irl > 0 && r.bail.loyer_hc)
+            .reduce(
+              (s, r) =>
+                s + ((r.bail.loyer_hc ?? 0) * (r.bail.taux_irl ?? 0)) / (100 + (r.bail.taux_irl ?? 0)),
+              0
+            )
+          const gainsIrl = Math.round(gainsIrlMensuel * 12 * 100) / 100
 
           if (valeurTotale === 0) {
             return (
@@ -228,7 +238,7 @@ export function Statistiques(): React.JSX.Element {
             )
           }
           return (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
               <KpiCard titre="Valeur du patrimoine" valeur={formatEuro(valeurTotale)}
                 detail={`${biensAvecValeur.length} bien(s) valorisé(s)`} icon={Home} couleur="text-indigo-500" />
               <KpiCard titre="Loyers annuels HC" valeur={formatEuro(loyersAnnuelsHc)}
@@ -239,6 +249,70 @@ export function Statistiques(): React.JSX.Element {
                 detail="loyers HC ÷ valeur" icon={Percent} couleur="text-sky-500" />
               <KpiCard titre="Rentabilité nette" valeur={rentNette !== null ? `${rentNette} %` : '—'}
                 detail={`cash-flow ${formatEuro(cashFlow)}`} icon={TrendingUp} couleur={rentNette !== null && rentNette >= 0 ? 'text-emerald-500' : 'text-amber-500'} />
+              <KpiCard titre="Gains dus aux révisions IRL" valeur={formatEuro(gainsIrl)}
+                detail="estimation annualisée (baux révisés)" icon={TrendingUp} couleur="text-blue-500" />
+            </div>
+          )
+        })()}
+      </section>
+
+      {/* Fiscalité — revenus fonciers (2044) */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Fiscalité — revenus fonciers {annee} (récap 2044)
+        </h2>
+        {(() => {
+          const recettes = paiements
+            .filter((p) => p.periode.startsWith(String(annee)) && (p.statut === 'paye' || p.statut === 'partiel'))
+            .reduce((s, p) => s + p.montant_paye, 0)
+          // Charges déductibles : toutes les catégories du module Dépenses
+          const chargesDeductibles = depensesList
+            .filter((d) => d.date_depense?.startsWith(String(annee)))
+            .reduce((s, d) => s + d.montant, 0)
+          const resultat = recettes - chargesDeductibles
+          const microFoncier = recettes <= 15000
+          const netMicro = recettes * 0.7
+          const netReel = Math.max(resultat, 0)
+
+          return (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <KpiCard titre="Recettes encaissées" valeur={formatEuro(recettes)}
+                  detail={`loyers pointés ${annee}`} icon={Wallet} couleur="text-emerald-500" />
+                <KpiCard titre="Charges déductibles" valeur={formatEuro(chargesDeductibles)}
+                  detail="module Dépenses" icon={Coins} couleur="text-red-500" />
+                <KpiCard titre="Résultat foncier (réel)" valeur={formatEuro(resultat)}
+                  detail={resultat >= 0 ? 'bénéfice imposable' : 'déficit reportable'} icon={TrendingUp}
+                  couleur={resultat >= 0 ? 'text-blue-500' : 'text-amber-500'} />
+                <KpiCard titre="Régime conseillé" valeur={microFoncier ? 'Micro-foncier' : 'Réel'}
+                  detail={microFoncier ? `recettes ≤ 15 000 € — abattement 30 % : ${formatEuro(recettes - netMicro)}` : 'recettes > 15 000 € — réel obligatoire'}
+                  icon={Percent} couleur="text-violet-500" />
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-950">
+                <table className="w-full">
+                  <thead className="text-left text-xs uppercase tracking-wide text-slate-400">
+                    <tr>
+                      <th className="pb-2">Net imposable estimé</th>
+                      <th className="pb-2 text-right">Micro-foncier (abattement 30 %)</th>
+                      <th className="pb-2 text-right">Régime réel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-slate-500 dark:text-slate-400">Base imposable</td>
+                      <td className="text-right font-medium">{formatEuro(Math.max(netMicro, 0))}</td>
+                      <td className="text-right font-medium">{formatEuro(netReel)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="mt-3 text-xs text-slate-400">
+                  Estimations indicatives basées sur tes pointages et ton module Dépenses.
+                  Reporte ces montants dans la déclaration 2044 (régime réel) ou 2042
+                  case 4BE (micro-foncier). Un déficit foncier est reportable sur les
+                  revenus globaux jusqu'à 10 700 €/an. Vérifie avec ton comptable ou
+                  l'administration fiscale.
+                </p>
+              </div>
             </div>
           )
         })()}

@@ -116,16 +116,16 @@
 
 - [x] 🗃️ **Valeur vénale** (v1.5.0) saisie par bien (estimation, mise à jour datée) — socle des
   calculs de rentabilité
-- [ ] 🖥️ **Taux de vacance locative** : % du temps où chaque bien est resté sans bail
+- [x] 🖥️ **Taux de vacance locative** (v1.6.0, fiche Bien) : % du temps où chaque bien est resté sans bail
   actif (calculable depuis les périodes entre baux)
 - [x] 🖥️ **Rentabilité brute** (v1.5.0) = loyers annuels HC ÷ valeur vénale × 100 (par bien et
   global)
 - [x] 🖥️ **Rentabilité nette & cash-flow** (v1.5.0, basée sur les dépenses de l'année) : nécessite le module Dépenses (ci-dessous) —
   (loyers − charges non récupérables − taxe foncière − frais/agence − assurance) ÷
   valeur vénale
-- [ ] 🖥️ **Gains dus aux révisions IRL** : suivi des € gagnés par an grâce aux
+- [x] 🖥️ **Gains dus aux révisions IRL** (v1.6.0, estimation annualisée) : suivi des € gagnés par an grâce aux
   révisions (historique `date_derniere_revision` + taux déjà en base)
-- [ ] 🗃️ **Récap revenus fonciers (2044, régime réel)** : recettes vs charges
+- [x] 🗃️ **Récap revenus fonciers (2044)** LIVRÉ v1.6.0 : recettes/charges/résultat + comparaison micro-foncier vs réel et net imposable estimé : recettes vs charges
   déductibles par bien, prêt à reporter — s'appuie sur le module Dépenses
 
 ### 7. Modules transverses
@@ -143,8 +143,8 @@
 ### Reste à faire (au réveil de l'utilisateur)
 
 - [ ] 🗃️ **DPE** : saisie faite via le formulaire — mais la valeur "vacants" du filtre et la régularisation annuelle des charges restent ouvertes
-- [ ] 🗃️ **Régularisation annuelle des charges** (décompte PDF par locataire)
-- [ ] 🖥️ **Taux de vacance locative** + **gains dus aux révisions IRL** (statistiques patrimoniales fines)
+- [x] 🗃️ **Régularisation annuelle des charges** LIVRÉE v1.6.0 : saisie charges réelles par bail/année, écart à reverser/récupérer, décompte PDF conforme art. 23
+- [x] 🖥️ **Taux de vacance locative** (v1.6.0, fiche Bien) + **gains dus aux révisions IRL** (statistiques patrimoniales fines)
 - [ ] 🗃️ **Récap revenus fonciers (2044)** — recettes vs charges déductibles
 - [ ] 🌐 Email quittances + multi-profils — exclus de cette passe
 

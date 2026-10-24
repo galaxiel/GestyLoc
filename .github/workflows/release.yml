@@ -33,4 +33,4 @@ jobs:
       - name: Build & publish draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build && npx electron-builder --win --publish always
+        run: npm run build && npx electron-builder --win nsis portable --publish always
