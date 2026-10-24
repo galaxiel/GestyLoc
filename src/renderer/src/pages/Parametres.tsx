@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2, User, Save } from 'lucide-react'
+import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput } from 'lucide-react'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
 
@@ -13,6 +13,23 @@ export function Parametres(): React.JSX.Element {
   const [version, setVersion] = useState<string>('…')
   const [etat, setEtat] = useState<'inactif' | 'verification' | 'disponible' | 'telecharge' | 'erreur'>('inactif')
   const [message, setMessage] = useState<string | null>(null)
+
+  // --- Données : export / import / sauvegarde ---
+  const [dataMsg, setDataMsg] = useState<string | null>(null)
+  const [dataEnCours, setDataEnCours] = useState<string | null>(null)
+
+  const executer = async (nom: string, action: () => Promise<string | null>): Promise<void> => {
+    setDataEnCours(nom)
+    setDataMsg(null)
+    try {
+      const res = await action()
+      setDataMsg(res ?? 'Opération annulée.')
+    } catch (err) {
+      setDataMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setDataEnCours(null)
+    }
+  }
 
   // --- Profil bailleur ---
   const [bailleurNom, setBailleurNom] = useState('')
@@ -149,6 +166,66 @@ export function Parametres(): React.JSX.Element {
             <dd className="font-medium">Suit le thème de Windows</dd>
           </div>
         </dl>
+      </div>
+
+      {/* Données : import / export / sauvegarde */}
+      <div className={cardCls}>
+        <h2 className="mb-3 flex items-center gap-2 font-semibold">
+          <Database className="h-4 w-4 text-primary-500" /> Données
+        </h2>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            onClick={() => void executer('export', () => ipc.data.exportCsv())}
+            disabled={dataEnCours !== null}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {dataEnCours === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileOutput className="h-4 w-4" />}
+            Exporter en CSV
+          </button>
+          <button
+            onClick={() => void executer('import', async () => {
+              const prev = await ipc.data.importPreview()
+              if (!prev || prev.nbLignes === 0) {
+                return prev?.erreur ?? 'Aucune ligne exploitable (ou boîte annulée).'
+              }
+              const conf = confirm(
+                `${prev.nbLignes} baux détectés (ex : ${prev.apercu[0]?.locataire ?? ''} — ${prev.apercu[0]?.designation ?? ''}).
+
+` +
+                  'Importer maintenant ? (refusé si la base contient déjà des baux)'
+              )
+              if (!conf) return 'Import annulé.'
+              const r = await ipc.data.importCommit()
+              return `Import réussi : ${r.baux} baux, ${r.biens} biens, ${r.locataires} locataires (${r.ignores} lignes ignorées).`
+            })}
+            disabled={dataEnCours !== null}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {dataEnCours === 'import' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileInput className="h-4 w-4" />}
+            Importer un tableur (CSV)
+          </button>
+          <button
+            onClick={() => void executer('backup', () => ipc.data.backupCreate())}
+            disabled={dataEnCours !== null}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {dataEnCours === 'backup' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Sauvegarder la base
+          </button>
+          <button
+            onClick={() => {
+              if (confirm('Restaurer une sauvegarde remplacera TOUTES vos données actuelles (une copie de sécurité sera faite). Continuer ?')) {
+                void executer('restore', () => ipc.data.backupRestore().then((ok) => (ok ? 'Restauration en cours, redémarrage…' : 'Restauration annulée.')))
+              }
+            }}
+            disabled={dataEnCours !== null}
+            className="flex items-center gap-2 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50 disabled:opacity-40 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+          >
+            {dataEnCours === 'restore' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            Restaurer une sauvegarde
+          </button>
+        </div>
+        {dataMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{dataMsg}</p>}
       </div>
 
       {/* Mise à jour */}

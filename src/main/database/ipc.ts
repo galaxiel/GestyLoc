@@ -7,7 +7,9 @@ import { paiementRepository } from '../repositories/paiement.repository'
 import { parametresRepository, type BailleurProfile } from '../repositories/parametres.repository'
 import { documentsService } from '../services/documents.service'
 import { computeAlertes } from '../services/alertes.service'
-import { saveQuittancePdf } from '../services/quittance.service'
+import { saveQuittancePdf, choisirDossierQuittances, saveToDossier } from '../services/quittance.service'
+import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
+import { previewImport, commitImport } from '../services/import.service'
 import type {
   CreateBienInput,
   CreateLocataireInput,
@@ -106,4 +108,15 @@ export function registerDatabaseHandlers(): void {
   handle('quittance:save', (base64: string, nomFichier: string) =>
     saveQuittancePdf(base64, nomFichier)
   )
+  handle('quittance:choose-folder', () => choisirDossierQuittances())
+  handle('quittance:save-to', (base64: string, dossier: string, nomFichier: string) =>
+    saveToDossier(base64, dossier, nomFichier)
+  )
+
+  // ---------- Données : import / export / sauvegarde ----------
+  handle('data:export-csv', () => exporterCsv())
+  handle('data:backup-create', () => creerSauvegarde())
+  handle('data:backup-restore', () => restaurerSauvegarde())
+  handle('data:import-preview', () => previewImport())
+  handle('data:import-commit', () => commitImport())
 }

@@ -37,21 +37,21 @@
 
 ## 🔜 V1.1 — Reprise des données réelles (priorité haute)
 
-- [ ] **Import du tableur Excel existant** (CSV → BDD) :
-  - [ ] Script de mapping colonnes tableur → tables `biens` / `locataires` / `baux`
-  - [ ] Interface d'import (sélection fichier, aperçu, validation, rapport d'erreurs)
-  - [ ] Détection des doublons à l'import
+- [x] **Import du tableur Excel existant** (CSV → BDD) : *(données réelles importées le 24/10/2026)*
+  - [x] Script de mapping colonnes tableur → tables `biens` / `locataires` / `baux`
+  - [x] Interface d'import intégrée (Paramètres → Données → « Importer un tableur CSV ») : aperçu, confirmation, rapport
+  - [x] Détection des doublons (refus si la base contient déjà des baux)
 - [x] Profil **bailleur** (nom, adresse) dans Paramètres → pré-rempli dans les quittances (avertissement si vide)
 - [x] Page **Documents** : interface React — sélection bail, ajout (dialog OS), ouverture, suppression
 
-## 🔜 V1.2 — Confort d'usage
+## ✅ V1.2 — Confort d'usage (TERMINÉ)
 
-- [ ] Fiche détaillée d'un bail (vue complète : historique paiements, documents, IRL)
-- [ ] Calcul automatique de la révision IRL (formulaire guidé : IRL ref → nouveau loyer)
-- [ ] Génération de quittances **en lot** (un mois → tous les baux actifs)
-- [ ] Export des données (CSV/Excel) pour sauvegarde externe
-- [ ] Sauvegarde/restauration de la base (copie datée dans AppData)
-- [ ] Raccourcis clavier (navigation, nouveau bail)
+- [x] Fiche détaillée d'un bail (cliquer sur le nom du bien dans le tableau) : infos, historique paiements, documents
+- [x] Calcul automatique de la révision IRL (dans la fiche du bail : IRL ref → nouveau loyer arrondi au centime, application en 1 clic avec date de révision)
+- [x] Génération de quittances **en lot** (un mois → tous les baux payants, un PDF par locataire dans un dossier au choix)
+- [x] Export des données (CSV Excel-fr : biens, locataires, baux, paiements)
+- [x] Sauvegarde/restauration de la base (checkpoint WAL, copie de sécurité avant restauration, redémarrage auto)
+- [x] Raccourcis clavier (Ctrl+1 à Ctrl+6 = navigation, Ctrl+N = nouveau bail)
 
 ## 🔮 V2 — pistes (non planifié)
 
@@ -71,5 +71,6 @@
 
 - [x] Montant « Encaissé ce mois » branché sur les paiements pointés (payé/partiel) de la période courante
 - [ ] Quittance : champs bailleur à compléter (dépend du profil bailleur V1.1)
-- [ ] Ajouter des tests automatisés (repositories + services d'alertes)
+- [x] Tests automatisés de premier niveau : vitest sur les utilitaires purs (parsers CSV/franchement formats) — `npm test` (11 tests)
+- [ ] Étendre les tests aux repositories et au service d'alertes (nécessite un harness pour better-sqlite3 natif)
 - [ ] Icône d'app à personnaliser (actuellement l'icône template electron-vite dans `build/` et `resources/`)

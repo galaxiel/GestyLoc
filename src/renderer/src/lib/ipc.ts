@@ -76,6 +76,26 @@ export const ipc = {
   },
   quittances: {
     save: (base64: string, nomFichier: string): Promise<string | null> =>
-      unwrap(window.api.quittances.save(base64, nomFichier))
+      unwrap(window.api.quittances.save(base64, nomFichier)),
+    chooseFolder: (): Promise<string | null> => unwrap(window.api.quittances.chooseFolder()),
+    saveTo: (base64: string, dossier: string, nomFichier: string): Promise<string> =>
+      unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier))
+  },
+  data: {
+    exportCsv: (): Promise<string | null> => unwrap(window.api.data.exportCsv()),
+    backupCreate: (): Promise<string | null> => unwrap(window.api.data.backupCreate()),
+    backupRestore: (): Promise<boolean> => unwrap(window.api.data.backupRestore()),
+    importPreview: (): Promise<{ nbLignes: number; apercu: { designation: string; type_bien: string; locataire: string; loyer_cc: number | null }[]; erreur: string | null }> =>
+      unwrap(window.api.data.importPreview() as Promise<{
+        ok: boolean
+        data?: { nbLignes: number; apercu: { designation: string; type_bien: string; locataire: string; loyer_cc: number | null }[]; erreur: string | null }
+        error?: string
+      }>),
+    importCommit: (): Promise<{ baux: number; biens: number; locataires: number; ignores: number }> =>
+      unwrap(window.api.data.importCommit() as Promise<{
+        ok: boolean
+        data?: { baux: number; biens: number; locataires: number; ignores: number }
+        error?: string
+      }>)
   }
 }

@@ -122,7 +122,21 @@ const api = {
   // ---- Quittances PDF ----
   quittances: {
     save: (base64: string, nomFichier: string): Promise<IpcResult<string | null>> =>
-      ipcRenderer.invoke('quittance:save', base64, nomFichier)
+      ipcRenderer.invoke('quittance:save', base64, nomFichier),
+    chooseFolder: (): Promise<IpcResult<string | null>> =>
+      ipcRenderer.invoke('quittance:choose-folder'),
+    saveTo: (base64: string, dossier: string, nomFichier: string): Promise<IpcResult<string>> =>
+      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier)
+  },
+
+  // ---- Données : import / export / sauvegarde ----
+  data: {
+    exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),
+    backupCreate: (): Promise<IpcResult<string | null>> =>
+      ipcRenderer.invoke('data:backup-create'),
+    backupRestore: (): Promise<IpcResult<boolean>> => ipcRenderer.invoke('data:backup-restore'),
+    importPreview: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-preview'),
+    importCommit: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-commit')
   }
 }
 

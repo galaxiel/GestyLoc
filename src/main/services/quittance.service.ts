@@ -21,3 +21,25 @@ export async function saveQuittancePdf(base64: string, nomSuggere: string): Prom
   await writeFileAsync(result.filePath, buffer)
   return result.filePath
 }
+
+/**
+ * Générations en lot : choisit UN dossier, puis chaque quittance y est écrite
+ * directement (l'appelleur renderer boucle sur les baux).
+ */
+export async function choisirDossierQuittances(): Promise<string | null> {
+  const win = BrowserWindow.getAllWindows()[0]
+  const result = await dialog.showOpenDialog(win, {
+    title: 'Choisir le dossier où enregistrer toutes les quittances',
+    properties: ['openDirectory', 'createDirectory']
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+  return result.filePaths[0]
+}
+
+/** Écrit un PDF base64 dans un dossier déjà choisi (retourne le chemin). */
+export async function saveToDossier(base64: string, dossier: string, nomFichier: string): Promise<string> {
+  const chemin = `${dossier}\\${nomFichier}`.replace(/\//g, '\\')
+  const buffer = Buffer.from(base64, 'base64')
+  await writeFileAsync(chemin, buffer)
+  return chemin
+}

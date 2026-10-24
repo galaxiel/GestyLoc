@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { FileText, Download, Loader2, AlertTriangle, Printer } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { FileText, Download, Loader2, AlertTriangle, Printer, Layers } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -122,11 +123,14 @@ function construireQuittance(params: {
 
 export function Quittances(): React.JSX.Element {
   const { locations } = useStore()
+  const [params] = useSearchParams()
   // Baux éligibles à une quittance : actifs ET payant un loyer.
   // (occupation gratuite = pas de quittance à établir)
   const bauxActifs = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
 
-  const [bailId, setBailId] = useState<string>('')
+  // Pré-sélection depuis la fiche d'un bail (?bail=ID).
+  const bailParam = params.get('bail')
+  const [bailId, setBailId] = useState<string>(bailParam ?? '')
   const [periode, setPeriode] = useState<string>(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth()).padStart(2, '0')}` // mois précédent par défaut
@@ -134,6 +138,12 @@ export function Quittances(): React.JSX.Element {
   const [enCours, setEnCours] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [bailleur, setBailleur] = useState<{ nom_complet: string; adresse: string } | null>(null)
+  const [lot, setLot] = useState<{ enCours: boolean; fait: number; total: number; erreurs: number }>({
+    enCours: false,
+    fait: 0,
+    total: 0,
+    erreurs: 0
+  })
 
   // Chargement du profil bailleur (Paramètres) pour pré-remplir la quittance.
   useEffect(() => {
@@ -222,9 +232,91 @@ export function Quittances(): React.JSX.Element {
     }
   }
 
+  /** Génère les quittances de TOUS les baux payants pour le mois choisi. */
+  const genererTout = async (): Promise<void> => {
+    if (bauxActifs.length === 0) return
+    const dossier = await ipc.quittances.chooseFolder()
+    if (!dossier) return
+
+    setLot({ enCours: true, fait: 0, total: bauxActifs.length, erreurs: 0 })
+    setMessage(null)
+
+    const [annee, mois] = periode.split('-')
+    const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
+      'fr-FR',
+      { month: 'long', year: 'numeric' }
+    )
+    const suffixe = `${annee}-${mois}`
+
+    let erreurs = 0
+    for (let i = 0; i < bauxActifs.length; i++) {
+      const r = bauxActifs[i]
+      try {
+        const doc = construireQuittance({
+          bailleur: bailleur?.nom_complet || '________________',
+          adresseBailleur: bailleur?.adresse || '________________',
+          locataire: r.locataire.nom_complet,
+          bienDesignation: r.bien.designation,
+          bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
+            .filter(Boolean)
+            .join(', '),
+          periode: libellePeriode,
+          dateDebutBail: r.bail.date_debut_bail,
+          loyerHc: r.bail.loyer_hc ?? 0,
+          charges: r.bail.charges ?? 0
+        })
+        const base64 = await new Promise<string>((resolve, reject) => {
+          pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
+          setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
+        })
+        const nom = `quittance_${r.locataire.nom_complet.replace(/\s+/g, '_')}_${suffixe}.pdf`
+        await ipc.quittances.saveTo(base64, dossier, nom)
+      } catch {
+        erreurs++
+      }
+      setLot({ enCours: true, fait: i + 1, total: bauxActifs.length, erreurs })
+    }
+
+    setLot({ enCours: false, fait: bauxActifs.length, total: bauxActifs.length, erreurs })
+    setMessage(
+      erreurs === 0
+        ? `${bauxActifs.length} quittances générées dans : ${dossier}`
+        : `${bauxActifs.length - erreurs}/${bauxActifs.length} quittances générées (${erreurs} erreur(s)) — dossier : ${dossier}`
+    )
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Quittances de loyer</h1>
+
+      {/* Génération en lot */}
+      <div className="max-w-xl rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold">Toutes les quittances du mois</h2>
+            <p className="text-xs text-slate-400">
+              {bauxActifs.length} bail(s) payant(s) — un PDF par locataire dans un dossier au
+              choix
+            </p>
+          </div>
+          <button
+            onClick={() => void genererTout()}
+            disabled={bauxActifs.length === 0 || lot.enCours}
+            className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {lot.enCours ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {lot.fait}/{lot.total}
+              </>
+            ) : (
+              <>
+                <Layers className="h-4 w-4" /> Générer tout
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       <div className="max-w-xl space-y-4 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
         <label className="block">

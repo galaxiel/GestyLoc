@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Plus, Pencil, Trash2, X, Search } from 'lucide-react'
 import type { TypeBien, CreateBienInput, CreateLocataireInput, CreateBailInput } from '@shared/types'
 import { useStore } from '../hooks/useStore'
@@ -96,6 +97,8 @@ const inputCls =
 
 export function BiensLocataires(): React.JSX.Element {
   const { locations, refresh, loading } = useStore()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [recherche, setRecherche] = useState('')
   const [formOuvert, setFormOuvert] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -113,6 +116,16 @@ export function BiensLocataires(): React.JSX.Element {
         r.bien.ville?.toLowerCase().includes(q)
     )
   }, [locations, recherche])
+
+  // Ctrl+N depuis n'importe quelle page : ouvre le formulaire de création.
+  const openNewDemande = (location.state as { openNew?: boolean } | null)?.openNew
+  const [formOuvertInit, setFormOuvertInit] = useState(false)
+  if (openNewDemande && !formOuvertInit) {
+    setFormOuvertInit(true)
+    setForm(FORM_VIDE)
+    setEditId(null)
+    setFormOuvert(true)
+  }
 
   const ouvrirCreation = (): void => {
     setForm(FORM_VIDE)
@@ -300,7 +313,13 @@ export function BiensLocataires(): React.JSX.Element {
                   </span>
                 </td>
                 <td className="px-4 py-2 font-medium">
-                  {r.bien.designation}
+                  <button
+                    onClick={() => navigate(`/baux/${r.bail.id}`)}
+                    title="Voir la fiche détaillée"
+                    className="hover:text-primary-600 hover:underline"
+                  >
+                    {r.bien.designation}
+                  </button>
                   {r.bail.occupation_gratuite && (
                     <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
                       Gratuit
