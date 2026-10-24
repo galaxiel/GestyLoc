@@ -41,7 +41,7 @@ handler IPC, une méthode preload, une page React. Rien de l'existant ne bouge.
 
 ## Base de données
 
-Emplacement : `%APPDATA%/gestion-locative/data/app.db` (mode WAL).
+Emplacement : `%APPDATA%/gestyloc/data/app.db` (mode WAL).
 Migrations versionnées dans `src/main/database/migrations/`, appliquées au
 démarrage. Pour modifier le schéma :
 
@@ -49,18 +49,75 @@ démarrage. Pour modifier le schéma :
 2. Générer le SQL : `npm run db:generate`
 3. Importer le nouveau `.sql` dans `migrate.ts` (entrée `{ id: '000N', ... }`)
 
-## Publication d'une mise à jour
+## Publier une nouvelle version (explication détaillée)
 
-Les releases sont publiées sur GitHub (`galaxiel/GestyLoc`, en draft) :
+### Le principe
+
+Le fichier `.github/workflows/release.yml` dit à GitHub : « **quand un tag qui
+commence par `v` est poussé sur le dépôt, construis l'installeur Windows et
+crée une release avec** ». Un **tag** est simplement une étiquette posée sur un
+commit (une photo du code à un instant T), par exemple `v1.0.1`.
+
+Autrement dit : **tu n'as jamais besoin de construire l'installeur sur ta
+machine pour distribuer une version**. GitHub le fait à ta place, gratuitement.
+
+### Le rituel, étape par étape
+
+Quand tu as terminé des modifications et que tu veux les livrer aux
+utilisateurs :
+
+**1. Augmente le numéro de version** dans `package.json` :
+
+```json
+"version": "1.0.1",
+```
+
+**2. Enregistre et pousse ton code** :
+
+```bash
+git add -A
+git commit -m "Description de ce qui a changé"
+git push
+```
+
+**3. Pose l'étiquette (tag) et pousse-la.** Le nom du tag doit correspondre à
+la version, précédé d'un `v` :
 
 ```bash
 git tag v1.0.1
-git push origin v1.0.1   # -> GitHub Actions build et crée la draft release
+git push origin v1.0.1
 ```
 
-Puis sur GitHub : relire la draft (notes de version) et cliquer **Publish**.
-Les installs existantes détectent la nouvelle version au lancement (notif
-native), proposent le téléchargement, et installent au redémarrage.
+**4. Attends ~5 minutes.** Va sur l'onglet
+[Actions](https://github.com/galaxiel/GestyLoc/actions) du dépôt : tu vois le
+build se dérouler. Quand il devient vert, une **draft release** (brouillon)
+apparaît dans l'onglet
+[Releases](https://github.com/galaxiel/GestyLoc/releases) avec l'installeur
+`gestyloc-1.0.1-setup.exe` et le fichier `latest.yml`.
 
-Variables utiles : voir `.env.example` (`GH_TOKEN` pour publier en local avec
-`npx electron-builder --win --publish always`).
+**5. Publie le brouillon.** Clique sur la release, complète si tu veux les
+notes de version (elles seront affichées aux utilisateurs), puis clique sur
+**Publish release** (bouton vert). La version devient téléchargeable
+publiquement.
+
+**6. C'est tout.** Les installations existantes détectent la nouvelle version
+au prochain lancement de GestyLoc : notification native, téléchargement sur
+accord de l'utilisateur, installation au redémarrage. Aucune action manuelle
+de ta part.
+
+### En résumé
+
+```bash
+# version dans package.json + commit + push, puis :
+git tag v1.1.0 && git push origin v1.1.0
+# ~5 min plus tard : Publish sur GitHub → l'auto-update fait le reste
+```
+
+### Cas particulier : publier depuis sa propre machine
+
+C'est possible (utile si GitHub Actions est indisponible) : crée un token
+GitHub avec droit `repo` (voir `.env.example`), puis :
+
+```bash
+GH_TOKEN=ton_token npx electron-builder --win --publish always
+```
