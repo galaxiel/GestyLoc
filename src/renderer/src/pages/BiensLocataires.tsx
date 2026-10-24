@@ -34,6 +34,7 @@ interface FormState {
   nouveau_loyer_hc: string
   frais_agence: string
   actif: boolean
+  occupation_gratuite: boolean
 }
 
 const FORM_VIDE: FormState = {
@@ -58,7 +59,8 @@ const FORM_VIDE: FormState = {
   taux_irl: '',
   nouveau_loyer_hc: '',
   frais_agence: '',
-  actif: true
+  actif: true,
+  occupation_gratuite: false
 }
 
 function num(v: string): number | null {
@@ -144,7 +146,8 @@ export function BiensLocataires(): React.JSX.Element {
       taux_irl: row.bail.taux_irl?.toString() ?? '',
       nouveau_loyer_hc: row.bail.nouveau_loyer_hc?.toString() ?? '',
       frais_agence: row.bail.frais_agence?.toString() ?? '',
-      actif: row.bail.actif
+      actif: row.bail.actif,
+      occupation_gratuite: row.bail.occupation_gratuite
     })
     setEditId(bailId)
     setErreur(null)
@@ -194,7 +197,22 @@ export function BiensLocataires(): React.JSX.Element {
         taux_irl: num(form.taux_irl),
         nouveau_loyer_hc: num(form.nouveau_loyer_hc),
         frais_agence: num(form.frais_agence),
-        actif: form.actif
+        actif: form.actif,
+        // Occupation gratuite : aucun loyer n'est dû, tous les montants à null.
+        occupation_gratuite: form.occupation_gratuite
+      }
+      if (form.occupation_gratuite) {
+        bailInput.loyer_hc = null
+        bailInput.charges = null
+        bailInput.loyer_cc = null
+        bailInput.loyer_metre_carre_hc = null
+        bailInput.loyer_annuel_hc = null
+        bailInput.loyer_annuel_cc = null
+        bailInput.nouveau_loyer_hc = null
+        bailInput.frais_agence = null
+        bailInput.irl_reference = null
+        bailInput.irl_nouveau = null
+        bailInput.taux_irl = null
       }
 
       if (editId === null) {
@@ -281,7 +299,14 @@ export function BiensLocataires(): React.JSX.Element {
                     {r.bien.type_bien}
                   </span>
                 </td>
-                <td className="px-4 py-2 font-medium">{r.bien.designation}</td>
+                <td className="px-4 py-2 font-medium">
+                  {r.bien.designation}
+                  {r.bail.occupation_gratuite && (
+                    <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+                      Gratuit
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-2">{r.locataire.nom_complet}</td>
                 <td className="px-4 py-2">{formatSurface(r.bien.surface_m2)}</td>
                 <td className="px-4 py-2 text-right">{formatEuro(r.bail.loyer_hc)}</td>
@@ -459,7 +484,7 @@ export function BiensLocataires(): React.JSX.Element {
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Le bail &amp; le loyer
             </h3>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <fieldset disabled={form.occupation_gratuite} className="grid grid-cols-2 gap-3 md:grid-cols-4 disabled:opacity-50">
               <Field label="Début du bail">
                 <input
                   className={inputCls}
@@ -493,6 +518,17 @@ export function BiensLocataires(): React.JSX.Element {
                     className="h-4 w-4 rounded"
                   />
                   En cours
+                </label>
+              </Field>
+              <Field label="Occupation gratuite" className="col-span-2">
+                <label className="flex h-[34px] items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.occupation_gratuite}
+                    onChange={(e) => setForm({ ...form, occupation_gratuite: e.target.checked })}
+                    className="h-4 w-4 rounded"
+                  />
+                  Occupé sans loyer (famille…) — exclut des loyers, quittances et alertes
                 </label>
               </Field>
               <Field label="Loyer HC (€)">
@@ -567,7 +603,7 @@ export function BiensLocataires(): React.JSX.Element {
                   onChange={(e) => setForm({ ...form, nouveau_loyer_hc: e.target.value })}
                 />
               </Field>
-            </div>
+            </fieldset>
 
             <div className="mt-6 flex justify-end gap-2">
               <button

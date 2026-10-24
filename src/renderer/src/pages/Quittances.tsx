@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FileText, Download, Loader2, AlertTriangle } from 'lucide-react'
+import { FileText, Download, Loader2, AlertTriangle, Printer } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -122,7 +122,9 @@ function construireQuittance(params: {
 
 export function Quittances(): React.JSX.Element {
   const { locations } = useStore()
-  const bauxActifs = locations.filter((r) => r.bail.actif)
+  // Baux éligibles à une quittance : actifs ET payant un loyer.
+  // (occupation gratuite = pas de quittance à établir)
+  const bauxActifs = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
 
   const [bailId, setBailId] = useState<string>('')
   const [periode, setPeriode] = useState<string>(() => {
@@ -179,6 +181,43 @@ export function Quittances(): React.JSX.Element {
       })
     } catch (err) {
       setMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+      setEnCours(false)
+    }
+  }
+
+  /** Ouvre le dialogue d'impression du système avec la quittance. */
+  const imprimer = async (): Promise<void> => {
+    if (!row) return
+    setEnCours(true)
+    try {
+      const loyerHc = row.bail.loyer_hc ?? 0
+      const charges = row.bail.charges ?? 0
+
+      const [annee, mois] = periode.split('-')
+      const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
+        'fr-FR',
+        { month: 'long', year: 'numeric' }
+      )
+
+      const doc = construireQuittance({
+        bailleur: bailleur?.nom_complet || '________________',
+        adresseBailleur: bailleur?.adresse || '________________',
+        locataire: row.locataire.nom_complet,
+        bienDesignation: row.bien.designation,
+        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
+          .filter(Boolean)
+          .join(', '),
+        periode: libellePeriode,
+        dateDebutBail: row.bail.date_debut_bail,
+        loyerHc,
+        charges
+      })
+
+      // pdfmake ouvre un iframe avec le PDF et déclenche l'impression système.
+      pdfMake.createPdf(doc).print()
+    } catch (err) {
+      setMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
       setEnCours(false)
     }
   }
@@ -247,20 +286,30 @@ export function Quittances(): React.JSX.Element {
           </p>
         )}
 
-        <button
-          onClick={() => void generer()}
-          disabled={!row || enCours}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {enCours ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <FileText className="h-4 w-4" />
-              Générer la quittance PDF <Download className="h-3.5 w-3.5" />
-            </>
-          )}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => void generer()}
+            disabled={!row || enCours}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {enCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <FileText className="h-4 w-4" />
+                Exporter en PDF <Download className="h-3.5 w-3.5" />
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => void imprimer()}
+            disabled={!row || enCours}
+            title="Ouvrir le dialogue d'impression"
+            className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            <Printer className="h-4 w-4" /> Imprimer
+          </button>
+        </div>
 
         {message && (
           <p className="rounded-lg border border-emerald-300 bg-emerald-50 p-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">

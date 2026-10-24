@@ -80,6 +80,7 @@ export interface Bail {
 
   // --- Métadonnées ---
   actif: boolean // true = bail en cours
+  occupation_gratuite: boolean // occupé sans loyer (ex : famille)
   created_at: string
   updated_at: string
 }
@@ -133,6 +134,7 @@ export interface CreateBailInput {
   date_derniere_revision?: string | null
   frais_agence?: number | null
   actif?: boolean
+  occupation_gratuite?: boolean
 }
 
 // Update payloads = mêmes champs mais tous optionnels.

@@ -47,7 +47,8 @@ const styleCellule: Record<StatutPaiement, string> = {
 
 export function Paiements(): React.JSX.Element {
   const { locations, refresh } = useStore()
-  const bauxActifs = locations.filter((r) => r.bail.actif)
+  // Les occupations gratuites (sans loyer) ne se pointent pas.
+  const bauxActifs = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
 
   const [bailId, setBailId] = useState<string>('')
   const [paiements, setPaiements] = useState<Paiement[]>([])

@@ -84,6 +84,10 @@ export const baux = sqliteTable('baux', {
 
   // État
   actif: integer('actif', { mode: 'boolean' }).notNull().default(true),
+  // Occupation gratuite (sans loyer, ex : membre de la famille) — migration 0003
+  occupation_gratuite: integer('occupation_gratuite', { mode: 'boolean' })
+    .notNull()
+    .default(false),
 
   ...timestamps
 })

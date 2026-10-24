@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>GestyLoc</title>
-    <!-- CSP : scripts locaux uniquement, styles inline (Tailwind), img data: (polices pdfmake). -->
+    <!-- CSP : scripts locaux uniquement, styles inline (Tailwind), img/font data: (pdfmake),
+         frame-src data:/blob: pour l'impression des quittances (iframe pdfmake). -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; frame-src data: blob:"
     />
   </head>
 

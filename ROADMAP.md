@@ -59,6 +59,7 @@
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
 - [ ] Multi-profils / multi-bailleurs
 - [ ] Chiffrement de la base (mot de passe au lancement)
+- [x] Statut **occupation gratuite** sur un bail (ex : logement familial) : badge, exclus des loyers/quittances/alertes/paiements
 - [ ] Rappels par email (optionnel, nécessite connexion)
 - [ ] Version portable (.exe sans installation)
 

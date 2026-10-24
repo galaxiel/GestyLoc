@@ -14,6 +14,8 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
 
   for (const row of rows) {
     if (!row.bail.actif) continue
+    // Occupation gratuite (famille) : pas de loyer -> pas d'alerte IRL ni impayé.
+    if (row.bail.occupation_gratuite) continue
 
     // --- Fin de bail < 90 jours ---
     if (row.bail.date_fin_bail) {
