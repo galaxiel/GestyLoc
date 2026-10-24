@@ -15,10 +15,11 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.0.0 publiée** et fonctionnelle (voir
-https://github.com/galaxiel/GestyLoc/releases). Le MVP est complet — ne
-considère aucune fonctionnalité listée dans la V1.0 de `ROADMAP.md` comme
-restante.
+État actuel : **v1.3.0 publiée** et fonctionnelle (voir
+https://github.com/galaxiel/GestyLoc/releases). Les données réelles de
+l'utilisateur (16 baux) sont déjà importées dans sa base locale. Les versions
+V1.1, V1.2 et V1.3 sont livrées — considère toute case cochée de `ROADMAP.md`
+comme faite, ne la refais pas.
 
 ## 2. Stack et versions (IMPORTANT — compatibilités fragiles)
 
@@ -59,8 +60,8 @@ src/preload/       Pont contextBridge : définit window.api (l'unique surface
                    d'appel renderer → main). Typé via index.d.ts.
 
 src/renderer/      Application React (HashRouter)
-  pages/           1 page = 1 module (Dashboard, BiensLocataires, Paiements,
-                   Quittances, Parametres)
+  pages/           1 page = 1 module (Dashboard, BiensLocataires, BailDetail,
+                   Paiements, Quittances, Documents, Statistiques, Parametres)
   hooks/useStore.tsx  Store central : locations + alertes + refresh()
   lib/ipc.ts       Client typé : déballe {ok, data|error} en exceptions
   lib/format.ts    Formatage fr-FR (euros, dates, périodes)
@@ -126,11 +127,14 @@ npm run build:unpack # build + dossier non packagé (test rapide sans installeur
 npm run db:generate  # génère une migration depuis schema.ts (drizzle-kit)
 ```
 
-Il n'y a **pas encore de suite de tests automatisée**. Les validations ont été
-faites par smoke-tests Electron (scripts lancés avec
-`./node_modules/.bin/electron script.js` — le module natif ne charge PAS dans
-`node` pur, seulement dans Electron : c'est normal, voir §2). Ajouter des
-tests (vitest sur repositories/services) est une dette listée dans ROADMAP.
+Les tests vitest (`npm test`, dossier `tests/`) couvrent les utilitaires purs
+de `shared/csv.ts` (parsers CSV / formats français) — 11 tests. Ils tournent
+sur Node pur : ne les fais PAS importer des modules qui chargent
+better-sqlite3 (incompatibilité de moteur, voir §2 et la section
+« Problématique du harnais de test » de ROADMAP.md). Pour fumer-tester un
+module qui touche la BDD : écrire un script temporaire et le lancer avec
+`./node_modules/.bin/electron script.js` (le module natif ne charge que dans
+Electron), puis supprimer le script.
 
 ## 7. Auto-mise-à-jour et releases
 
@@ -144,7 +148,9 @@ tests (vitest sur repositories/services) est une dette listée dans ROADMAP.
   noms de canaux sont dans `shared/updater-channels.ts`.
 - **Release** : bump `package.json` → commit → `git tag vX.Y.Z` → push →
   GitHub Actions construit et crée une draft → publier la draft sur GitHub.
-  Détail complet pour humains dans `CONTRIBUTING.md`.
+  Rituel détaillé pas à pas pour humains : `CONTRIBUTING.md`. Fusion des
+  drafts dupliquées : script générique documenté dans CONTRIBUTING §« Vérifie
+  les assets » (télécharger blockmap orphelin, re-uploader, supprimer).
 
 ### Bug connu d'electron-builder (v26.15.3)
 
@@ -161,26 +167,45 @@ supprimer la draft orpheline. Une release valide = **exactement 3 assets** :
 généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
 échec updater « ENOENT app-update.yml » sur un build `--dir` est donc normal.
 
-## 8. Fonctionnalités livrées (v1.0.0) — ne pas refaire
+## 8. Fonctionnalités livrées (v1.0.0 -> v1.3.0) — ne pas refaire
 
-- CRUD complet biens/locataires/baux (formulaire unifié « ligne tableur »)
-- Dashboard : stats (loyers CC mensuels, surface) + alertes (fins de bail
-  < 90 j calculées dans `alertes.service.ts`, révisions IRL > 1 an, impayés)
-- Quittances PDF : pdfmake **côté renderer** (polices via `vfs_fonts`,
-  branchement tolerant aux formes de module — voir `pages/Quittances.tsx`),
-  sauvegarde via dialog natif côté main (`quittance.service.ts`)
+- CRUD complet biens/locataires/baux (formulaire unifié « ligne tableur »),
+  avec statut **occupation gratuite** (badge, exclus des loyers/quittances/
+  alertes/paiements)
+- Dashboard : stats (loyers CC mensuels, encaissé ce mois, surface) + alertes
+  (fins de bail < 90 j via `alertes.service.ts`, révisions IRL > 1 an, impayés)
+- Quittances : pdfmake **côté renderer** (polices via `vfs_fonts`, branchement
+  tolerant aux formes de module — voir `pages/Quittances.tsx`), export PDF via
+  dialog natif, impression système, **génération en lot** (1 mois -> tous les
+  baux payants dans un dossier), pré-remplies avec le **profil bailleur**
+  (table `parametres`, clé 'bailleur')
 - Paiements : upsert par (bail_id, période) — clé composite en BDD
+- **Fiche détaillée bail** (`pages/BailDetail.tsx`, route `/baux/:id`) :
+  infos, historique paiements, documents, **révision IRL guidée** (calcul
+  nouveau loyer = HC x IRL_nouveau/IRL_ref arrondi au centime, application
+  en 1 clic avec date_derniere_revision)
 - Documents : service main complet (copie vers AppData, chemin en BDD),
-  IPC `docs:*` — **l'interface React n'existe pas encore** (voir ROADMAP V1.1)
+  IPC `docs:*`, page React dédiée + section dans la fiche bail
+- **Statistiques** (`pages/Statistiques.tsx`) : encaissements 12 mois (barres
+  CSS, pas de lib de graphiques), répartition par type de bien, loyer/m²
+- Données (Paramètres + `services/donnees.service.ts`, `import.service.ts`) :
+  export CSV Excel-fr (4 tables), sauvegarde/restauration de la base
+  (checkpoint WAL + relaunch), import CSV avec aperçu et anti-doublon
+  (mapping par index de colonnes = format du tableur Google Sheets de
+  l'utilisateur, parsers dans `shared/csv.ts` testés)
+- Raccourcis clavier : Ctrl+1..7 navigation, Ctrl+N nouveau bail
+  (`RaccourcisClavier` dans `App.tsx`)
 - Thème clair/sombre : Tailwind `darkMode: 'media'` (suit l'OS) ;
   `nativeTheme.themeSource = 'system'`
+- Icône : logo utilisateur converti en `build/icon.ico` (16-256 px, entrées
+  PNG) + `resources/icon.png` (256 px, importé par main/index.ts)
 
 ## 9. Prochaines étapes
 
-Lire `ROADMAP.md` : la priorité V1.1 est **l'import du tableur Excel
-existant** de l'utilisateur (mapping colonnes → tables normalisées), le
-**profil bailleur** (nom/adresse pré-remplis dans les quittances — champs
-actuellement `____`) et la **page Documents** (backend déjà prêt).
+Lire `ROADMAP.md` (source de vérité) : V2 démarré (statistiques de base
+livrées). Reste en pistes V2 : taux d'occupation détaillé, récap impôts 2042,
+multi-profils, chiffrement, version portable. Dettes techniques : tests
+repositories (voir section « Problématique du harnais de test » de ROADMAP.md).
 
 ## 10. Environnement humain
 
