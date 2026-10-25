@@ -1,0 +1,36 @@
+# Mise à jour automatique de la table IRL embarquée, 4 fois par an
+# (l'IRL est publiée mi-janvier, mi-avril, mi-juillet, mi-octobre).
+# Si la série INSEE a changé, le nouveau fichier est commité sur main.
+name: Mise à jour IRL
+
+on:
+  schedule:
+    - cron: '0 9 16 1,4,7,10 *' # 16 jan/avr/juil/oct à 9h UTC
+  workflow_dispatch: # lancement manuel possible depuis l'onglet Actions
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Régénérer la table IRL depuis INSEE
+        run: python scripts/update-irl.py
+
+      - name: Commit si changement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet shared/irl-insee.ts; then
+            echo "IRL inchangée — rien à commiter"
+          else
+            git add shared/irl-insee.ts
+            git commit -m "Table IRL : mise à jour trimestrielle INSEE"
+            git push
+          fi

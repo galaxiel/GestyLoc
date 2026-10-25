@@ -4,6 +4,7 @@ import type { CategorieDepense, Depense } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate } from '../lib/format'
+import { libelleBien, triParLibelle } from '@shared/labels'
 
 const inputCls =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-900'
@@ -90,8 +91,16 @@ export function Depenses(): React.JSX.Element {
     await refresh()
   }
 
-  const bienDesignation = (bienId: number | null): string =>
-    locations.find((r) => r.bien.id === bienId)?.bien.designation ?? '—'
+    const bienRow = (bienId: number | null) =>
+    locations.find((r) => r.bien.id === bienId)
+  const bienDesignation = (bienId: number | null): string => {
+    const r = bienRow(bienId)
+    return r ? libelleBien({
+      type_bien: r.bien.type_bien,
+      designation: r.bien.designation,
+      locataire: r.locataire.nom_complet
+    }) : '—'
+  }
 
   // Totaux par catégorie pour l'année sélectionnée
   const parCategorie = useMemo(() => {
@@ -122,9 +131,13 @@ export function Depenses(): React.JSX.Element {
             <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Bien</span>
             <select value={bienId} onChange={(e) => setBienId(e.target.value)} className={inputCls}>
               <option value="">— Aucun / global —</option>
-              {locations.map((r) => (
+              {triParLibelle(locations, (r) => r.locataire.nom_complet).map((r) => (
                 <option key={r.bien.id} value={r.bien.id}>
-                  {r.bien.designation}
+                  {libelleBien({
+                    type_bien: r.bien.type_bien,
+                    designation: r.bien.designation,
+                    locataire: r.locataire.nom_complet
+                  })}
                 </option>
               ))}
             </select>

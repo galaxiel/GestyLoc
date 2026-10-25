@@ -4,6 +4,7 @@ import type { TypeDocument, DocumentRow } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatDate } from '../lib/format'
+import { libelleBien, triParLibelle } from '@shared/labels'
 
 const inputCls =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-900'
@@ -98,9 +99,13 @@ export function Documents(): React.JSX.Element {
             </span>
             <select value={bailId} onChange={(e) => setBailId(e.target.value)} className={inputCls}>
               <option value="">— Sélectionner un bail —</option>
-              {baux.map((r) => (
+              {triParLibelle(baux, (r) => r.locataire.nom_complet).map((r) => (
                 <option key={r.bail.id} value={r.bail.id}>
-                  {r.bien.designation} — {r.locataire.nom_complet}
+                  {libelleBien({
+                    type_bien: r.bien.type_bien,
+                    designation: r.bien.designation,
+                    locataire: r.locataire.nom_complet
+                  })}
                 </option>
               ))}
             </select>

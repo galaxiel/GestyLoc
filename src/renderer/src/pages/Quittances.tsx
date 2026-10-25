@@ -6,6 +6,7 @@ import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
 import type { QuittanceHistorique, Paiement } from '@shared/types'
 import { formatPeriode } from '../lib/format'
+import { libelleBien, triParLibelle } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate } from '../lib/format'
@@ -435,9 +436,13 @@ ${bailleur?.nom_complet ?? ''}`,
             className={inputCls}
           >
             <option value="">— Sélectionner un bail —</option>
-            {bauxActifs.map((r) => (
+            {triParLibelle(bauxActifs, (r) => r.locataire.nom_complet).map((r) => (
               <option key={r.bail.id} value={r.bail.id}>
-                {r.bien.designation} — {r.locataire.nom_complet}
+                {libelleBien({
+                  type_bien: r.bien.type_bien,
+                  designation: r.bien.designation,
+                  locataire: r.locataire.nom_complet
+                })}
               </option>
             ))}
           </select>

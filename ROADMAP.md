@@ -80,6 +80,25 @@
 - **Multi-bailleur / SCI**, sync chiffrée multi-PC, TRI/prévisionnel
 - **Email** : rappels automatiques (nécessite la config SMTP, livrée)
 
+## 💡 Idées récentes (issues des retours d'usage du 25/10/2026)
+
+- [x] 🖥️ **Libellés de biens uniques** : fait via le helper `shared/labels.ts`
+  (« Type · Désignation — Locataire » partout). Si tu veux un jour des noms
+  courts encore plus parlants (« Studio Rdc »), il suffit de renommer la
+  désignation du bien — le libellé suit automatiquement.
+- [x] 🗃️ **Mise à jour automatique de la table IRL** : GitHub Action
+  trimestriel `update-irl.yml` (16 jan/avr/juil/oct) qui recharge la série
+  INSEE et commite `shared/irl-insee.ts` si elle a changé. À préciser : l'app
+  utilise DEUX sources — la table embarquée (fiche bail, hors ligne) et
+  l'interrogation live INSEE (simulateur).
+- [ ] 🖥️ **Sauvegarde automatique périodique** (hebdo dans
+  AppData/backups, rotation des 5 dernières) en plus de la sauvegarde manuelle
+- [ ] 🖥️ **Notifications Windows au démarrage** pour les alertes urgentes
+  (fin de bail < 30 j, loyer impayé) — la notif existe déjà pour les mises à jour
+- [ ] 🖥️ **Décomptes de régularisation en lot** : générer d'un coup le décompte
+  PDF de TOUS les baux régularisés (comme « Générer tout » des quittances —
+  aujourd'hui il faut cliquer bail par bail dans la page Régularisation)
+- [ ] 🖥️ **Export PDF du récap 2044** (mode « comptable » de l'audit)
 ## ❌ Abandonnés (décision 25/10/2026)
 
 - **Chiffrement de la base** — jugé inutile pour l'usage actuel
