@@ -38,6 +38,16 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 2. Téléchargez **`gestyloc-x.y.z-setup.exe`**
 3. Lancez-le : l'installation prend quelques secondes
 
+**Quel fichier télécharger ?** Une release contient 5 fichiers — un seul t'intéresse
+généralement :
+
+| Fichier | Pour qui |
+|---|---|
+| `gestyloc-x.y.z-setup.exe` | 👤 **Toi** — l'installateur classique (recommandé) |
+| `GestyLoc-x.y.z-portable.zip` | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
+| `GestyLoc-x.y.z-portable.exe` | Variante de la version portable, sans installation |
+| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les |
+
 Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
 versions au démarrage, vous propose de les télécharger, et installe au
 redémarrage. Vous n'avez rien à faire.

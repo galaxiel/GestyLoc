@@ -34,3 +34,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build && npx electron-builder --win nsis portable --publish always
+
+      - name: Zip portable (exe dans un dossier extrait tel quel)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory "dist/GestyLoc-portable" -Force | Out-Null
+          Copy-Item "dist/gestyloc-*-portable.exe" "dist/GestyLoc-portable/GestyLoc-portable.exe"
+          Compress-Archive -Path "dist/GestyLoc-portable" -DestinationPath "dist/GestyLoc-portable.zip" -Force
+
+      - name: Upload du zip portable vers la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: gh release upload ($env:GITHUB_REF -replace 'refs/tags/','') "dist/GestyLoc-portable.zip" --clobber

@@ -88,7 +88,21 @@ Quand il devient vert, une **draft release** (brouillon) apparaît dans
 l'onglet [Releases](https://github.com/galaxiel/GestyLoc/releases) avec
 l'installeur `gestyloc-1.4.0-setup.exe`, le `.blockmap` et le `latest.yml`.
 
-**5. ⚠️ Vérifie les assets.** Bug connu d'electron-builder : il crée parfois
+**5. ⚠️ Vérifie les assets.**
+
+Rôle des fichiers générés (conventions **non renommables** : `electron-updater`
+lit ces chemins exacts, les renommer casserait les mises à jour de toutes les
+installations existantes) :
+
+| Asset | Rôle |
+|---|---|
+| `gestyloc-x.y.z-setup.exe` | L'installateur NSIS (téléchargé par les utilisateurs) |
+| `gestyloc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé) |
+| `latest.yml` | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512 |
+| `GestyLoc-x.y.z-portable.exe` | Version portable (aucune installation) |
+| `GestyLoc-portable.zip` | La même, packagée : l'exe dans un dossier — l'utilisateur extrait et garde l'ensemble groupé |
+
+ Bug connu d'electron-builder : il crée parfois
 **deux drafts** (une avec l'exe + `latest.yml`, une avec seulement le
 `.blockmap`). Si c'est le cas : télécharger le blockmap de la draft orpheline,
 le re-uploader dans la draft complète avec son nom d'origine, supprimer la
