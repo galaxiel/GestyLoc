@@ -15,9 +15,6 @@ win:
   executableName: GestyLoc
   target:
     - nsis
-    - portable
-portable:
-  artifactName: ${name}-${version}-portable.${ext}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

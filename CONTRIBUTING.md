@@ -99,8 +99,7 @@ installations existantes) :
 | `gestyloc-x.y.z-setup.exe` | L'installateur NSIS (téléchargé par les utilisateurs) |
 | `gestyloc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé) |
 | `latest.yml` | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512 |
-| `GestyLoc-x.y.z-portable.exe` | Version portable (aucune installation) |
-| `GestyLoc-portable.zip` | La même, packagée : l'exe dans un dossier — l'utilisateur extrait et garde l'ensemble groupé |
+| `GestyLoc-portable.zip` | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
 
  Bug connu d'electron-builder : il crée parfois
 **deux drafts** (une avec l'exe + `latest.yml`, une avec seulement le

@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, nativeTheme } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initAutoUpdater, checkForUpdates, downloadUpdate, quitAndInstall } from './updater'
 import { getDb, getDbPath, closeDb } from './database/connection'
@@ -14,11 +14,19 @@ import icon from '../../resources/icon.png?asset'
 // la version est alors vraiment transportable (clé USB), sans toucher AppData.
 // En version installée, on garde le comportement standard (AppData).
 // ============================================================================
-if (process.env.PORTABLE_EXECUTABLE_DIR) {
-  app.setPath(
-    'userData',
-    join(process.env.PORTABLE_EXECUTABLE_DIR, 'donnees')
-  )
+// Version portable (zip) : le dossier extrait contient un marqueur PORTABLE
+// (ou un dossier donnees déjà présent). Les données vivent alors à côté de
+// l'exe, dans le dossier extrait — transportables avec lui.
+import { existsSync } from 'fs'
+if (app.isPackaged) {
+  const exeDir = dirname(app.getPath('exe'))
+  if (
+    process.env.PORTABLE_EXECUTABLE_DIR ||
+    existsSync(join(exeDir, 'PORTABLE')) ||
+    existsSync(join(exeDir, 'donnees'))
+  ) {
+    app.setPath('userData', join(exeDir, 'donnees'))
+  }
 }
 
 let mainWindow: BrowserWindow | null = null

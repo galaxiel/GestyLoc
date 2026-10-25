@@ -45,7 +45,7 @@ généralement :
 |---|---|
 | `gestyloc-x.y.z-setup.exe` | 👤 **Toi** — l'installateur classique (recommandé) |
 | `GestyLoc-x.y.z-portable.zip` | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
-| `GestyLoc-x.y.z-portable.exe` | Variante de la version portable, sans installation |
+| `GestyLoc-portable.zip` | 👤 **Toi** — la version portable complète (voir ci-dessus) |
 | `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les |
 
 Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
@@ -56,9 +56,8 @@ redémarrage. Vous n'avez rien à faire.
 
 > **Deux formats disponibles** : l'**installateur** (`gestyloc-x.y.z-setup.exe`,
 > recommandé : raccourci bureau, mises à jour automatiques) et la **version
-> portable** (`GestyLoc-x.y.z-portable.exe`, marquée « portable » : aucune
-> installation, et toutes vos données dans un dossier `donnees` à côté du
-> fichier — transportable sur clé USB).
+> portable** (`GestyLoc-portable.zip` : extrais le dossier où tu veux — Bureau,
+> clé USB — et toutes les données vivent dans ce dossier, à côté de l'exe).
 
 ## 🔒 Vos données
 
