@@ -136,7 +136,7 @@
   alimentation des statistiques et du récap 2044
 - [ ] 🗃️ **Régularisation annuelle des charges** : décompte par locataire (provisions
   versées vs charges réelles) avec génération d'un décompte PDF
-- [~] ~~Journal d'activité / multi-profils~~ — **abandonné** (voir V2)
+- [ ] Journal d'activité : uniquement dans l'hypothèse multi-profils ci-dessus
 
 ### Reste à faire (au réveil de l'utilisateur)
 
@@ -163,7 +163,12 @@
 - [x] **Statistiques enrichies** (v1.4.0 : graphiques recharts — encaissements 12 mois, camembert par type, comparaison annuelle ; 6 indicateurs dont taux d'occupation, charges, impayés. Reste possible : comparaison inter-annuelle fine, export des graphiques)
 - [x] **Récupération automatique des indices IRL/ICC sur INSEE.fr** (v1.4.0 : bouton dans la fiche bail, séries BDM officielles 001515333/000008630, 8 derniers trimestres, saisie manuelle conservée hors ligne)
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
-- [~] ~~Multi-profils / multi-bailleurs~~ — **abandonné** (décision 25/10/2026) : un autre bailleur installe simplement l'app sur son PC et a sa propre base isolée ; le partage multi-utilisateurs sur un même PC n'a pas de cas d'usage ici
+- [ ] **Multi-profils** — PISTE OUVERTE (non planifiée, à décider). Définition précise :
+  plusieurs personnes utilisant le **même PC** et chacune gardant sa base séparée
+  (écran de choix de profil au lancement, un fichier .db par profil). À distinguer :
+  si un autre bailleur veut gérer SES lots, il installe simplement l'app sur son
+  propre PC et a déjà sa base isolée — aucun développement nécessaire. Ne traiter
+  que si un jour tu partages physiquement la machine
 - [~] ~~Chiffrement de la base~~ — **abandonné** (décision 25/10/2026) : jugé inutile, l'app est personnelle et locale
 - [ ] Rappels par email (optionnel, nécessite connexion)
 - [ ] Version portable (.exe sans installation)
