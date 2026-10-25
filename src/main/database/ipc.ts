@@ -21,6 +21,13 @@ import {
 import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
+import {
+  getSmtpConfigPublic,
+  saveSmtpConfig,
+  testerSmtp,
+  envoyerEmail
+} from '../services/email.service'
+import type { SmtpConfig } from '@shared/types'
 import type {
   CreateBienInput,
   CreateLocataireInput,
@@ -160,4 +167,14 @@ export function registerDatabaseHandlers(): void {
 
   // ---------- Indices INSEE (IRL / ICC) ----------
   handle('indices:fetch', (type: TypeIndice) => recupererIndices(type))
+
+  // ---------- Email (SMTP configuré par l'utilisateur) ----------
+  handle('email:get-config', () => getSmtpConfigPublic())
+  handle('email:save-config', (cfg: SmtpConfig) => saveSmtpConfig(cfg))
+  handle('email:test', () => testerSmtp())
+  handle(
+    'email:send',
+    (destinataire: string, sujet: string, corps: string, pieceJointe?: { nomFichier: string; base64: string }) =>
+      envoyerEmail(destinataire, sujet, corps, pieceJointe)
+  )
 }

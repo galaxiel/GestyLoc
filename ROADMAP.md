@@ -102,9 +102,11 @@
   Quittances
 - [x] 🗃️ **Historique des quittances générées** (v1.5.0, migration 0006, upsert par bail+période) : table `quittances` (bail, période,
   date, nom de fichier) — évite les doublons et les oublis, sert de preuve d'envoi
-- [ ] 🌐 **Envoi par email** (optionnel) : générer + envoyer la quittance au locataire
-  depuis l'app (SMTP à configurer dans Paramètres, ex : Gmail/Orange avec mot de
-  passe d'application). Reste 100 % fonctionnel sans.
+- [x] 🌐 **Envoi par email** LIVRÉ v1.7.0 : SMTP configurable dans Paramètres
+  (hôte, port, STARTTLS/SSL, mot de passe d'application, nom d'expéditeur, bouton
+  Tester), bouton « Envoyer par email au locataire » dans les Quittances, et si
+  non configuré, invitation directe vers les Paramètres. L'app reste 100 %
+  fonctionnelle sans internet.
 
 ### 5. Documents
 

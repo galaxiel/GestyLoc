@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput } from 'lucide-react'
+import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send } from 'lucide-react'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
 
@@ -28,6 +28,65 @@ export function Parametres(): React.JSX.Element {
       setDataMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setDataEnCours(null)
+    }
+  }
+
+  // --- Configuration Email (SMTP) ---
+  const [smtp, setSmtp] = useState({
+    host: '', port: '587', secure: false, utilisateur: '', mot_de_passe: '', expediteur_nom: ''
+  })
+  const [smtpConfigure, setSmtpConfigure] = useState(false)
+  const [smtpMsg, setSmtpMsg] = useState<string | null>(null)
+  const [smtpEnCours, setSmtpEnCours] = useState(false)
+
+  useEffect(() => {
+    void ipc.email
+      .getConfig()
+      .then((c) => {
+        setSmtpConfigure(c.configure)
+        setSmtp((prev) => ({
+          ...prev,
+          host: c.host,
+          port: String(c.port),
+          secure: c.secure,
+          utilisateur: c.utilisateur,
+          expediteur_nom: c.expediteur_nom
+        }))
+      })
+      .catch(() => undefined)
+  }, [])
+
+  const enregistrerSmtp = async (): Promise<void> => {
+    setSmtpEnCours(true)
+    setSmtpMsg(null)
+    try {
+      await ipc.email.saveConfig({
+        host: smtp.host.trim(),
+        port: Number(smtp.port) || 587,
+        secure: smtp.secure,
+        utilisateur: smtp.utilisateur.trim(),
+        mot_de_passe: smtp.mot_de_passe,
+        expediteur_nom: smtp.expediteur_nom.trim()
+      })
+      setSmtpConfigure(true)
+      setSmtpMsg('Configuration enregistrée.')
+    } catch (err) {
+      setSmtpMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setSmtpEnCours(false)
+    }
+  }
+
+  const testerSmtp = async (): Promise<void> => {
+    setSmtpEnCours(true)
+    setSmtpMsg(null)
+    try {
+      await ipc.email.test()
+      setSmtpMsg('Connexion SMTP vérifiée avec succès.')
+    } catch (err) {
+      setSmtpMsg(`Échec de connexion : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setSmtpEnCours(false)
     }
   }
 
@@ -166,6 +225,79 @@ export function Parametres(): React.JSX.Element {
             <dd className="font-medium">Suit le thème de Windows</dd>
           </div>
         </dl>
+      </div>
+
+      {/* Email (SMTP) */}
+      <div className={cardCls}>
+        <h2 className="mb-1 flex items-center gap-2 font-semibold">
+          <Mail className="h-4 w-4 text-primary-500" /> Email — envoi des quittances
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+              smtpConfigure
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            }`}
+          >
+            {smtpConfigure ? 'Configuré' : 'Non configuré'}
+          </span>
+        </h2>
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+          Configure ton serveur SMTP pour envoyer les quittances par email depuis
+          l'application. Astuce Gmail / Orange / Outlook : utilise un{' '}
+          <strong>mot de passe d'application</strong> (jamais ton mot de passe principal).
+          Toutes les infos restent sur ton PC.
+        </p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Serveur SMTP</span>
+            <input className={inputCls} value={smtp.host} onChange={(e) => setSmtp({ ...smtp, host: e.target.value })} placeholder="smtp.gmail.com" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Port</span>
+            <input className={inputCls} value={smtp.port} onChange={(e) => setSmtp({ ...smtp, port: e.target.value })} placeholder="587" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Sécurité</span>
+            <select
+              className={inputCls}
+              value={smtp.secure ? 'ssl' : 'starttls'}
+              onChange={(e) => setSmtp({ ...smtp, secure: e.target.value === 'ssl' })}
+            >
+              <option value="starttls">STARTTLS (port 587)</option>
+              <option value="ssl">SSL/TLS direct (port 465)</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Adresse email (compte)</span>
+            <input className={inputCls} value={smtp.utilisateur} onChange={(e) => setSmtp({ ...smtp, utilisateur: e.target.value })} placeholder="moi@exemple.fr" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Mot de passe d'application</span>
+            <input className={inputCls} type="password" value={smtp.mot_de_passe} onChange={(e) => setSmtp({ ...smtp, mot_de_passe: e.target.value })} />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Nom de l'expéditeur</span>
+            <input className={inputCls} value={smtp.expediteur_nom} onChange={(e) => setSmtp({ ...smtp, expediteur_nom: e.target.value })} placeholder="Jean Martin" />
+          </label>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={() => void enregistrerSmtp()}
+            disabled={smtpEnCours}
+            className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-40"
+          >
+            Enregistrer
+          </button>
+          <button
+            onClick={() => void testerSmtp()}
+            disabled={smtpEnCours || !smtp.host.trim()}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {smtpEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            Tester la connexion
+          </button>
+        </div>
+        {smtpMsg && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{smtpMsg}</p>}
       </div>
 
       {/* Données : import / export / sauvegarde */}

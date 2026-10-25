@@ -87,6 +87,49 @@ export const ipc = {
     remove: (id: number): Promise<void> =>
       unwrap(window.api.db.deleteDepense(id) as Promise<{ ok: boolean; error?: string }>)
   },
+  email: {
+    getConfig: (): Promise<{
+      configure: boolean
+      host: string
+      port: number
+      secure: boolean
+      utilisateur: string
+      expediteur_nom: string
+    }> =>
+      unwrap(window.api.email.getConfig() as Promise<{
+        ok: boolean
+        data?: {
+          configure: boolean
+          host: string
+          port: number
+          secure: boolean
+          utilisateur: string
+          expediteur_nom: string
+        }
+        error?: string
+      }>),
+    saveConfig: (cfg: {
+      host: string
+      port: number
+      secure: boolean
+      utilisateur: string
+      mot_de_passe: string
+      expediteur_nom: string
+    }): Promise<void> =>
+      unwrap(window.api.email.saveConfig(cfg) as Promise<{ ok: boolean; error?: string }>),
+    test: (): Promise<boolean> =>
+      unwrap(window.api.email.test() as Promise<{ ok: boolean; error?: string }>),
+    send: (
+      destinataire: string,
+      sujet: string,
+      corps: string,
+      pieceJointe?: { nomFichier: string; base64: string }
+    ): Promise<void> =>
+      unwrap(window.api.email.send(destinataire, sujet, corps, pieceJointe) as Promise<{
+        ok: boolean
+        error?: string
+      }>)
+  },
   regularisations: {
     list: (): Promise<RegularisationCharges[]> =>
       unwrap(window.api.db.listRegularisations() as Promise<{

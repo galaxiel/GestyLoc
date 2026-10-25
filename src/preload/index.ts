@@ -173,6 +173,21 @@ const api = {
       ipcRenderer.invoke('indices:fetch', type)
   },
 
+  // ---- Email (SMTP) ----
+  email: {
+    getConfig: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('email:get-config'),
+    saveConfig: (cfg: unknown): Promise<IpcResult<void>> =>
+      ipcRenderer.invoke('email:save-config', cfg),
+    test: (): Promise<IpcResult<boolean>> => ipcRenderer.invoke('email:test'),
+    send: (
+      destinataire: string,
+      sujet: string,
+      corps: string,
+      pieceJointe?: { nomFichier: string; base64: string }
+    ): Promise<IpcResult<void>> =>
+      ipcRenderer.invoke('email:send', destinataire, sujet, corps, pieceJointe)
+  },
+
   // ---- Données : import / export / sauvegarde ----
   data: {
     exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),

@@ -270,3 +270,15 @@ export interface RegularisationCharges {
   charges_reelles: number
   regularise_le: string
 }
+
+// ----------------------------------------------------------------------------
+// CONFIGURATION EMAIL (SMTP) — stockée localement dans la table parametres
+// ----------------------------------------------------------------------------
+export interface SmtpConfig {
+  host: string
+  port: number
+  secure: boolean // true = TLS direct (465), false = STARTTLS (587)
+  utilisateur: string
+  mot_de_passe: string // mot de passe d'application
+  expediteur_nom: string
+}

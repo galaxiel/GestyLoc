@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { FileText, Download, Loader2, AlertTriangle, Printer, Layers } from 'lucide-react'
+import { FileText, Download, Loader2, AlertTriangle, Printer, Layers, Mail, Send } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -147,6 +147,15 @@ export function Quittances(): React.JSX.Element {
     erreurs: 0
   })
   const [historique, setHistorique] = useState<QuittanceHistorique[]>([])
+  const [smtpConfigure, setSmtpConfigure] = useState(false)
+  const [envoiEnCours, setEnvoiEnCours] = useState(false)
+
+  useEffect(() => {
+    void ipc.email
+      .getConfig()
+      .then((c) => setSmtpConfigure(c.configure))
+      .catch(() => setSmtpConfigure(false))
+  }, [])
 
   const rechargerHistorique = (): Promise<void> =>
     ipc.quittances
@@ -206,6 +215,63 @@ export function Quittances(): React.JSX.Element {
     } catch (err) {
       setMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
       setEnCours(false)
+    }
+  }
+
+  /** Génère la quittance et l'envoie par email au locataire (SMTP configuré). */
+  const envoyerAuLocataire = async (): Promise<void> => {
+    if (!row) return
+    if (!row.locataire.email) {
+      setMessage('Ce locataire n’a pas d’adresse email — complète sa fiche (Biens & Locataires → Modifier).')
+      return
+    }
+    setEnvoiEnCours(true)
+    setMessage(null)
+    try {
+      const loyerHc = row.bail.loyer_hc ?? 0
+      const charges = row.bail.charges ?? 0
+      const [annee, mois] = periode.split('-')
+      const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
+        'fr-FR',
+        { month: 'long', year: 'numeric' }
+      )
+      const doc = construireQuittance({
+        bailleur: bailleur?.nom_complet || '________________',
+        adresseBailleur: bailleur?.adresse || '________________',
+        locataire: row.locataire.nom_complet,
+        bienDesignation: row.bien.designation,
+        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
+          .filter(Boolean)
+          .join(', '),
+        periode: libellePeriode,
+        dateDebutBail: row.bail.date_debut_bail,
+        loyerHc,
+        charges
+      })
+      const nomFichier = `quittance_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${periode}.pdf`
+      const base64 = await new Promise<string>((resolve) => {
+        pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
+        setTimeout(() => resolve(''), 30000)
+      })
+      if (!base64) throw new Error('Génération PDF trop longue')
+      await ipc.email.send(
+        row.locataire.email,
+        `Votre quittance de loyer — ${libellePeriode}`,
+        `Bonjour ${row.locataire.nom_complet},
+
+Veuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.
+
+Cordialement,
+${bailleur?.nom_complet ?? ''}`,
+        { nomFichier, base64 }
+      )
+      await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
+      void rechargerHistorique()
+      setMessage(`Quittance envoyée à ${row.locataire.email}.`)
+    } catch (err) {
+      setMessage(`Erreur d'envoi : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setEnvoiEnCours(false)
     }
   }
 
@@ -417,6 +483,39 @@ export function Quittances(): React.JSX.Element {
             <Printer className="h-4 w-4" /> Imprimer
           </button>
         </div>
+
+        {/* Envoi par email */}
+        {!smtpConfigure ? (
+          <p className="flex items-start gap-2 rounded-lg border border-dashed border-slate-300 p-2 text-xs text-slate-400 dark:border-slate-700">
+            <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Pour envoyer les quittances par email, configure ton serveur SMTP dans{' '}
+              <button
+                onClick={() => (window.location.hash = '#/parametres')}
+                className="font-medium text-primary-600 underline dark:text-primary-500"
+              >
+                Paramètres → Email
+              </button>
+              . Ça prend 2 minutes et reste sur ton PC.
+            </span>
+          </p>
+        ) : (
+          <button
+            onClick={() => void envoyerAuLocataire()}
+            disabled={!row || envoiEnCours}
+            title="Générer et envoyer la quittance au locataire par email"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {envoiEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Envoyer par email au locataire
+              </>
+            )}
+          </button>
+        )}
 
         {message && (
           <p className="rounded-lg border border-emerald-300 bg-emerald-50 p-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
