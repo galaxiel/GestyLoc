@@ -136,9 +136,7 @@
   alimentation des statistiques et du récap 2044
 - [ ] 🗃️ **Régularisation annuelle des charges** : décompte par locataire (provisions
   versées vs charges réelles) avec génération d'un décompte PDF
-- [ ] 🌐 (optionnel) **Journal d'activité / multi-profils** : si l'app reste
-  strictement personnelle, inutile ; ne traiter que si une gestion à plusieurs devient
-  un besoin réel
+- [~] ~~Journal d'activité / multi-profils~~ — **abandonné** (voir V2)
 
 ### Reste à faire (au réveil de l'utilisateur)
 
@@ -165,8 +163,8 @@
 - [x] **Statistiques enrichies** (v1.4.0 : graphiques recharts — encaissements 12 mois, camembert par type, comparaison annuelle ; 6 indicateurs dont taux d'occupation, charges, impayés. Reste possible : comparaison inter-annuelle fine, export des graphiques)
 - [x] **Récupération automatique des indices IRL/ICC sur INSEE.fr** (v1.4.0 : bouton dans la fiche bail, séries BDM officielles 001515333/000008630, 8 derniers trimestres, saisie manuelle conservée hors ligne)
 - [ ] Impôts : récap annuel (formulaire 2042 cases foncières, micro-foncier vs réel)
-- [ ] Multi-profils / multi-bailleurs
-- [ ] Chiffrement de la base (mot de passe au lancement)
+- [~] ~~Multi-profils / multi-bailleurs~~ — **abandonné** (décision 25/10/2026) : un autre bailleur installe simplement l'app sur son PC et a sa propre base isolée ; le partage multi-utilisateurs sur un même PC n'a pas de cas d'usage ici
+- [~] ~~Chiffrement de la base~~ — **abandonné** (décision 25/10/2026) : jugé inutile, l'app est personnelle et locale
 - [ ] Rappels par email (optionnel, nécessite connexion)
 - [ ] Version portable (.exe sans installation)
 
