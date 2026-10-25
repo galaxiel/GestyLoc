@@ -60,8 +60,11 @@ export function Depenses(): React.JSX.Element {
     .filter((d) => d.date_depense?.startsWith(String(new Date().getFullYear())))
     .reduce((s, d) => s + d.montant, 0)
 
+  const montantNum = parseFloat(montant.replace(',', '.'))
+  const montantInvalide = montant.trim() !== '' && (isNaN(montantNum) || montantNum <= 0)
+
   const ajouter = async (): Promise<void> => {
-    const m = parseFloat(montant.replace(',', '.'))
+    const m = montantNum
     if (isNaN(m) || m <= 0) return
     setEnCours(true)
     try {
@@ -160,7 +163,9 @@ export function Depenses(): React.JSX.Element {
               <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
               <button
                 onClick={() => void ajouter()}
-                disabled={enCours || montant.trim() === ''}
+                disabled={enCours || montant.trim() === '' || montantInvalide}
+                aria-label="Ajouter la dépense"
+                title={montantInvalide ? 'Le montant doit être un nombre positif' : 'Ajouter la dépense'}
                 className="shrink-0 rounded-lg bg-primary-600 px-3 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-40"
               >
                 {enCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
@@ -168,6 +173,11 @@ export function Depenses(): React.JSX.Element {
             </div>
           </label>
         </div>
+        {montantInvalide && (
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+            Le montant doit être un nombre positif (ex : 120 ou 120,50).
+          </p>
+        )}
       </div>
 
       {/* Filtres + totaux */}

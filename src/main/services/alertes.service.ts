@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, parseISO, isValid, subYears } from 'date-fns'
+import { differenceInCalendarDays, parseISO, isValid } from 'date-fns'
 import { paiementRepository } from '../repositories/paiement.repository'
 import type { Alerte, BienLocationRow } from '@shared/types'
 
@@ -40,26 +40,32 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
       }
     }
 
-    // --- Révision IRL à faire : jamais révisée, ou dernière révision > 1 an ---
-    const derniereRevision = row.bail.date_derniere_revision
-      ? parseISO(row.bail.date_derniere_revision)
-      : null
-    const ilYaUnAn = subYears(aujourdhui, 1)
-
-    const doitReviser =
-      row.bail.irl_reference !== null &&
-      (derniereRevision === null || !isValid(derniereRevision) || derniereRevision < ilYaUnAn)
-
-    if (doitReviser && row.bail.date_debut_bail) {
+    // --- Révision IRL : uniquement à la DATE ANNIVERSAIRE du bail (art. 17-2) ---
+    // On alerte seulement si l'anniversaire de l'année en cours est déjà passé
+    // et que la dernière révision enregistrée est antérieure à cet anniversaire.
+    if (row.bail.irl_reference !== null && row.bail.date_debut_bail) {
       const debut = parseISO(row.bail.date_debut_bail)
-      // On n'alerte que si le bail a plus d'un an (première échéance annuelle).
-      if (isValid(debut) && debut < ilYaUnAn) {
-        alertes.push({
-          type: 'revision_irl',
-          severite: 'info',
-          message: `Révision IRL à effectuer pour ${row.locataire.nom_complet} (${row.bien.designation})`,
-          bail_id: row.bail.id
-        })
+      const derniereRevision = row.bail.date_derniere_revision
+        ? parseISO(row.bail.date_derniere_revision)
+        : null
+      if (isValid(debut)) {
+        // Anniversaire de cette année (même jour/mois que le début du bail).
+        const anniversaire = new Date(
+          aujourdhui.getFullYear(),
+          debut.getMonth(),
+          debut.getDate()
+        )
+        const dejaPasse = anniversaire <= aujourdhui
+        const reviseDepuisAnniversaire =
+          derniereRevision !== null && isValid(derniereRevision) && derniereRevision >= anniversaire
+        if (dejaPasse && !reviseDepuisAnniversaire) {
+          alertes.push({
+            type: 'revision_irl',
+            severite: 'info',
+            message: `Révision IRL à effectuer pour ${row.locataire.nom_complet} (${row.bien.designation}) — anniversaire du ${anniversaire.toLocaleDateString('fr-FR')}`,
+            bail_id: row.bail.id
+          })
+        }
       }
     }
   }

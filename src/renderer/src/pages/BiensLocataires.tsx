@@ -273,6 +273,23 @@ export function BiensLocataires(): React.JSX.Element {
       }
 
       if (editId === null) {
+        // Détection de doublon de locataire (nom normalisé : casse/espaces/points).
+        const normalise = (n: string): string =>
+          n.toLowerCase().replace(/[.\s-]/g, '')
+        const doublon = locations.find(
+          (r) => normalise(r.locataire.nom_complet) === normalise(form.nom_complet.trim())
+        )
+        if (
+          doublon &&
+          !confirm(
+            `Un locataire au nom proche existe déjà : « ${doublon.locataire.nom_complet} » (${doublon.bien.designation}).
+
+` +
+              'OK = créer quand même (deux personnes distinctes) — Annuler = vérifier.'
+          )
+        ) {
+          return
+        }
         // Création : bien -> locataire -> bail (avec les ids générés).
         const bien = (await ipc.biens.create(bienInput)) as { id: number }
         const locataire = (await ipc.locataires.create(locataireInput)) as { id: number }

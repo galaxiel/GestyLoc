@@ -262,8 +262,17 @@ export function Statistiques(): React.JSX.Element {
           Fiscalité — revenus fonciers {annee} (récap 2044)
         </h2>
         {(() => {
+          // Baux meublés : hors revenus fonciers (BIC/LMNP, déclaration 2031).
+          const bauxMeubles = new Set(
+            locations.filter((r) => r.bien.meuble).map((r) => r.bail.id)
+          )
           const recettes = paiements
-            .filter((p) => p.periode.startsWith(String(annee)) && (p.statut === 'paye' || p.statut === 'partiel'))
+            .filter(
+              (p) =>
+                p.periode.startsWith(String(annee)) &&
+                (p.statut === 'paye' || p.statut === 'partiel') &&
+                !bauxMeubles.has(p.bail_id)
+            )
             .reduce((s, p) => s + p.montant_paye, 0)
           // Charges déductibles : toutes les catégories du module Dépenses
           const chargesDeductibles = depensesList
@@ -284,8 +293,8 @@ export function Statistiques(): React.JSX.Element {
                 <KpiCard titre="Résultat foncier (réel)" valeur={formatEuro(resultat)}
                   detail={resultat >= 0 ? 'bénéfice imposable' : 'déficit reportable'} icon={TrendingUp}
                   couleur={resultat >= 0 ? 'text-blue-500' : 'text-amber-500'} />
-                <KpiCard titre="Régime conseillé" valeur={microFoncier ? 'Micro-foncier' : 'Réel'}
-                  detail={microFoncier ? `recettes ≤ 15 000 € — abattement 30 % : ${formatEuro(recettes - netMicro)}` : 'recettes > 15 000 € — réel obligatoire'}
+                <KpiCard titre="Régime conseillé (nu)" valeur={microFoncier ? 'Micro-foncier' : 'Réel'}
+                  detail={microFoncier ? `recettes nu ≤ 15 000 € — abattement 30 % : ${formatEuro(recettes - netMicro)}` : 'recettes > 15 000 € — réel obligatoire'}
                   icon={Percent} couleur="text-violet-500" />
               </div>
               <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-950">
@@ -306,7 +315,9 @@ export function Statistiques(): React.JSX.Element {
                   </tbody>
                 </table>
                 <p className="mt-3 text-xs text-slate-400">
-                  Estimations indicatives basées sur tes pointages et ton module Dépenses.
+                  Les biens <strong>meublés</strong> sont exclus de ce récap (ils relèvent
+                  des BIC / LMNP, déclaration 2031). Estimations indicatives basées sur tes
+                  pointages et ton module Dépenses.
                   Reporte ces montants dans la déclaration 2044 (régime réel) ou 2042
                   case 4BE (micro-foncier). Un déficit foncier est reportable sur les
                   revenus globaux jusqu'à 10 700 €/an. Vérifie avec ton comptable ou

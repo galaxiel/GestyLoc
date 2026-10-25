@@ -37,8 +37,9 @@ function GroupeAlertes({ type, alertes }: { type: Alerte['type']; alertes: Alert
         {ouvert ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span className="flex-1">
-          {style.titre} — {alertes.length} alerte{alertes.length > 1 ? 's' : ''}
-          {nbUrgentes > 0 && <span className="ml-1 font-semibold">dont {nbUrgentes} urgente(s)</span>}
+          {style.titre} — {alertes.length}{' '}
+          {alertes.length > 1 ? 'alertes' : 'alerte'}{' '}
+          {nbUrgentes > 0 && <span className="font-semibold">dont {nbUrgentes} urgente(s)</span>}
         </span>
       </button>
       {ouvert && (

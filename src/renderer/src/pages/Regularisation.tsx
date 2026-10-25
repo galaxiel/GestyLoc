@@ -275,7 +275,7 @@ export function Regularisation(): React.JSX.Element {
                     </div>
                   </td>
                   <td className={`px-4 py-2 text-right font-medium ${ecart === null ? 'text-slate-400' : ecart >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {ecart === null ? '—' : `${ecart >= 0 ? '−' : '+'}${formatEuro(Math.abs(ecart))}`}
+                    {ecart === null ? 'non saisi' : `${ecart >= 0 ? '−' : '+'}${formatEuro(Math.abs(ecart))}`}
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button

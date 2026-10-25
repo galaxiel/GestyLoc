@@ -4,7 +4,7 @@ import { FileText, Download, Loader2, AlertTriangle, Printer, Layers, Mail, Send
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
-import type { QuittanceHistorique } from '@shared/types'
+import type { QuittanceHistorique, Paiement } from '@shared/types'
 import { formatPeriode } from '../lib/format'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -126,9 +126,17 @@ function construireQuittance(params: {
 export function Quittances(): React.JSX.Element {
   const { locations } = useStore()
   const [params] = useSearchParams()
-  // Baux éligibles à une quittance : actifs ET payant un loyer.
+  // Baux éligibles à une quittance : actifs, payant un loyer, ET dont le loyer
+  // de la période choisie est POINTÉ « payé ». Une quittance atteste un
+  // paiement intégral (art. 21, loi 1989) — jamais générée à l'aveugle.
   // (occupation gratuite = pas de quittance à établir)
-  const bauxActifs = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
+  const bauxActifs = locations.filter((r) => {
+    if (!r.bail.actif || r.bail.occupation_gratuite) return false
+    const p = paiementsList.find((x) => x.bail_id === r.bail.id && x.periode === periode)
+    return p?.statut === 'paye'
+  })
+  const nbEnAttente =
+    locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite).length - bauxActifs.length
 
   // Pré-sélection depuis la fiche d'un bail (?bail=ID).
   const bailParam = params.get('bail')
@@ -149,6 +157,14 @@ export function Quittances(): React.JSX.Element {
   const [historique, setHistorique] = useState<QuittanceHistorique[]>([])
   const [smtpConfigure, setSmtpConfigure] = useState(false)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
+  const [paiementsList, setPaiementsList] = useState<Paiement[]>([])
+
+  useEffect(() => {
+    void ipc.paiements
+      .listAll()
+      .then(setPaiementsList)
+      .catch(() => setPaiementsList([]))
+  }, [locations])
 
   useEffect(() => {
     void ipc.email
@@ -376,8 +392,8 @@ ${bailleur?.nom_complet ?? ''}`,
           <div>
             <h2 className="text-sm font-semibold">Toutes les quittances du mois</h2>
             <p className="text-xs text-slate-400">
-              {bauxActifs.length} bail(s) payant(s) — un PDF par locataire dans un dossier au
-              choix
+              {bauxActifs.length} quittance(s) possible(s) pour {periode} —{' '}
+              {nbEnAttente} bail(s) en attente de pointage « payé »
             </p>
           </div>
           <button
@@ -429,6 +445,17 @@ ${bailleur?.nom_complet ?? ''}`,
             className={inputCls}
           />
         </label>
+
+        {row && !row.bien.adresse && (
+          <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              L'adresse du logement n'est pas renseignée : la quittance doit identifier
+              le logement loué. Complète-la dans la fiche du bien (Biens &amp; Locataires →
+              modifier).
+            </span>
+          </p>
+        )}
 
         {row && (
           <div className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800/60">

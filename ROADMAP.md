@@ -160,6 +160,55 @@
 6. **Documents par bien + historique quittances** (5+4) — backend en grande part prêt
 7. Email quittances et multi-profils — seulement si besoin réel
 
+## 🔜 V3.5 — Audit externe (25/10/2026) : triage et backlog
+
+> Audit LLM indépendant (test réel UI + vérification base). Triage fait dans le code :
+> la plupart des points sont réels, **deux affirmations sont fausses** (voir bas).
+
+### ✅ Corrigé immédiatement (v1.8.0)
+- **P1-1** Quittances en lot filtrées sur les loyers POINTÉS « payé » de la période
+  (une quittance atteste un paiement intégral — art. 21) + compteur « en attente de pointage »
+- **P1-6** Avertissement si l'adresse du logement est absente avant génération de quittance
+- **P1-3** Alerte IRL à la DATE ANNIVERSAIRE du bail (art. 17-2) — plus de bruit permanent
+- **P2-7** Dépenses : validation visible (« le montant doit être positif ») + bouton désactivé
+- **P2-8** Paiements : KPI renommé « Reste à encaisser — dont X retard(s) à relancer »
+- **P2-9** Espace manquant dans les groupes d'alertes corrigé
+- **P2-10** aria-labels distincts sur les 3 boutons de pointage + bouton dépenses
+- **P2-12** Détection de doublons de locataires (nom normalisé, confirmation)
+- **P2-15** Fiscalité : biens meublés exclus du récap 2044 (BIC/LMNP) + note explicative
+- **P2-16** Régularisation : écart « non saisi » distingué de zéro
+- **P2-17** Tri stable de la matrice (bien puis locataire)
+
+### ❌ Affirmations fausses de l'audit (vérifiées dans le code)
+- « paiements sans clé primaire ni unicité » : **FAUX** — `PRIMARY KEY (bail_id, periode)`
+  + `ON CONFLICT DO UPDATE`, testé anti-doublon dès l'étape BDD (et re-testé)
+- « Sauvegarde sans checkpoint WAL » : **FAUX** — `wal_checkpoint(TRUNCATE)` avant copie
+
+### 📋 À planifier (issues de l'audit, validées)
+- [ ] 🗃️ **Table IRL embarquée** (hexagone/Corse/COM, trimestres 2005→) + choix du
+  trimestre par liste + validation « même trimestre un an plus tard » + revalidation
+  des valeurs importées (144,51→145,78 n'est pas une paire annuelle légale)
+- [ ] 🖥️ **Reçu pour paiement partiel** (distinct de la quittance, art. 21)
+- [ ] 🖥️ **Contrôle d'intégrité des données** (« Auditer mes données ») : adresses vides,
+  doublons, IRL suspects, loyers annuels incohérents avec le mensuel — transforme les
+  bugs de données importées en diagnostic
+- [ ] 🗃️ **Recalcul/normalisation des loyers annuels importés** (une seule base :
+  annuel = mensuel × 12, arrondi 2 décimales) + contrôle au chargement
+- [ ] Trimestre de référence en liste déroulante (trimestre + année) au lieu du texte libre
+- [ ] 🖥️ Compteurs cohérents « X biens loués + Y occupation gratuite » (surface/nombre)
+- [ ] Formulaire Nouveau bail : footer d'action fixe (hauteur fenêtre)
+- [ ] P3 : décimales sur « % du mois », slug ASCII des fichiers de quittance,
+  recherche globale, chemin des données affiché + bouton « Ouvrir le dossier »
+
+### 🔮 Vagues futures (issues de l'audit — nécessitent une décision produit)
+- **Vague 2 « table stakes » concurrents** : bail pré-rempli généré (loi 1989), état des
+  lieux numérique avec photos, relances d'impayés (J+1/J+10/mise en demeure), modèles de
+  lettres, module Documents avancé, prélèvement SEPA / portail locataire, sync bancaire
+- **Vague 3 « local souverain »** : chiffrement SQLCipher (écarté pour l'instant),
+  sync chiffrée multi-PC, assistant IA local (Ollama), multi-bailleur/SCI, TRI/prévisionnel
+
+---
+
 ## 🔮 V2 — pistes (démarré, non planifié)
 
 - [x] **Statistiques enrichies** (v1.4.0 : graphiques recharts — encaissements 12 mois, camembert par type, comparaison annuelle ; 6 indicateurs dont taux d'occupation, charges, impayés. Reste possible : comparaison inter-annuelle fine, export des graphiques)

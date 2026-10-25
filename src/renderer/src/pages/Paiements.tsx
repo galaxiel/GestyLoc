@@ -90,6 +90,13 @@ export function Paiements(): React.JSX.Element {
     }
   }
 
+  const LIBELLES: Record<StatutPaiement, { pointer: string; annuler: string }> = {
+    paye: { pointer: 'Marquer payé', annuler: 'Annuler le pointage payé' },
+    retard: { pointer: 'Marquer en retard', annuler: 'Annuler le pointage retard' },
+    impaye: { pointer: 'Marquer impayé', annuler: 'Annuler le pointage impayé' },
+    partiel: { pointer: 'Marquer partiel', annuler: 'Annuler le pointage partiel' }
+  }
+
   const boutonStatut = (
     r: { bail: { id: number } },
     statut: StatutPaiement,
@@ -102,7 +109,8 @@ export function Paiements(): React.JSX.Element {
     return (
       <button
         onClick={() => void (actif ? depointer(r.bail.id) : pointer(r.bail.id, statut))}
-        title={actif ? 'Annuler le pointage' : 'Pointer'}
+        title={actif ? LIBELLES[statut].annuler : LIBELLES[statut].pointer}
+        aria-label={actif ? LIBELLES[statut].annuler : LIBELLES[statut].pointer}
         className={`rounded-lg p-1.5 transition-colors ${
           actif ? cls : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
         }`}
@@ -140,7 +148,7 @@ export function Paiements(): React.JSX.Element {
         </div>
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-center dark:border-amber-500/40 dark:bg-amber-500/10">
           <div className="text-xs text-amber-600 dark:text-amber-400">
-            À relancer ({totaux.nbRetards} retard(s))
+            Reste à encaisser — dont {totaux.nbRetards} retard(s) à relancer
           </div>
           <div className="text-lg font-bold text-amber-700 dark:text-amber-300">
             {formatEuro(totaux.attendu - totaux.encaisse)}
@@ -149,7 +157,7 @@ export function Paiements(): React.JSX.Element {
       </div>
 
       {/* Matrice */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800" data-tri="bien puis locataire">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
@@ -161,7 +169,13 @@ export function Paiements(): React.JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {bauxPayants.map((r) => {
+            {[...bauxPayants]
+              .sort(
+                (a, b) =>
+                  a.bien.designation.localeCompare(b.bien.designation) ||
+                  a.locataire.nom_complet.localeCompare(b.locataire.nom_complet)
+              )
+              .map((r) => {
               const existant = statutDe(r.bail.id)
               const styleStatut: Record<StatutPaiement, string> = {
                 paye: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300',
