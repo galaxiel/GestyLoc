@@ -126,17 +126,6 @@ function construireQuittance(params: {
 export function Quittances(): React.JSX.Element {
   const { locations } = useStore()
   const [params] = useSearchParams()
-  // Baux éligibles à une quittance : actifs, payant un loyer, ET dont le loyer
-  // de la période choisie est POINTÉ « payé ». Une quittance atteste un
-  // paiement intégral (art. 21, loi 1989) — jamais générée à l'aveugle.
-  // (occupation gratuite = pas de quittance à établir)
-  const bauxActifs = locations.filter((r) => {
-    if (!r.bail.actif || r.bail.occupation_gratuite) return false
-    const p = paiementsList.find((x) => x.bail_id === r.bail.id && x.periode === periode)
-    return p?.statut === 'paye'
-  })
-  const nbEnAttente =
-    locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite).length - bauxActifs.length
 
   // Pré-sélection depuis la fiche d'un bail (?bail=ID).
   const bailParam = params.get('bail')
@@ -190,6 +179,18 @@ export function Quittances(): React.JSX.Element {
       .then(setBailleur)
       .catch(() => setBailleur(null))
   }, [])
+
+  // Baux éligibles à une quittance : actifs, payant un loyer, ET dont le loyer
+  // de la période choisie est POINTÉ « payé ». Une quittance atteste un
+  // paiement intégral (art. 21, loi 1989) — jamais générée à l'aveugle.
+  // (occupation gratuite = pas de quittance à établir)
+  const bauxActifs = locations.filter((r) => {
+    if (!r.bail.actif || r.bail.occupation_gratuite) return false
+    const p = paiementsList.find((x) => x.bail_id === r.bail.id && x.periode === periode)
+    return p?.statut === 'paye'
+  })
+  const nbEnAttente =
+    locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite).length - bauxActifs.length
 
   const row = locations.find((r) => r.bail.id === Number(bailId))
 
