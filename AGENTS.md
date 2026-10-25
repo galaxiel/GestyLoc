@@ -15,7 +15,7 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.3.0 publiée** et fonctionnelle (voir
+État actuel : **v1.9.0 publiée** et fonctionnelle (voir
 https://github.com/galaxiel/GestyLoc/releases). Les données réelles de
 l'utilisateur (16 baux) sont déjà importées dans sa base locale. Les versions
 V1.1, V1.2 et V1.3 sont livrées — considère toute case cochée de `ROADMAP.md`
@@ -167,7 +167,7 @@ supprimer la draft orpheline. Une release valide = **exactement 3 assets** :
 généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
 échec updater « ENOENT app-update.yml » sur un build `--dir` est donc normal.
 
-## 8. Fonctionnalités livrées (v1.0.0 -> v1.3.0) — ne pas refaire
+## 8. Fonctionnalités livrées (v1.0.0 -> v1.9.0) — ne pas refaire
 
 - CRUD complet biens/locataires/baux (formulaire unifié « ligne tableur »),
   avec statut **occupation gratuite** (badge, exclus des loyers/quittances/
@@ -200,12 +200,49 @@ généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
 - Icône : logo utilisateur converti en `build/icon.ico` (16-256 px, entrées
   PNG) + `resources/icon.png` (256 px, importé par main/index.ts)
 
+### Ajouts v1.4 -> v1.9 (ne pas refaire)
+- **Statistiques recharts** (encaissements 12 mois, camembert, comparaison
+  annuelle, 6 KPI dont taux d'occupation/impayés/charges) + section
+  **Patrimoine & rentabilité** (valeur vénale par bien, rentabilité brute/nette,
+  cash-flow, gains IRL estimés)
+- **Indices IRL/ICC depuis INSEE** (`services/indices.service.ts`, SDMX public
+  001515333/000008630, bouton dans la fiche bail)
+- **Module Dépenses** (page + `depense.repository.ts`, catégories
+  travaux/PNO/taxe foncière/...) et **Régularisation des charges**
+  (migration 0007, décompte PDF art. 23)
+- **Récap fiscal 2044** (Statistiques) : recettes/charges déductibles/résultat,
+  micro-foncier vs réel — **biens meublés exclus** (BIC/LMNP)
+- **Matrice de pointage** Mois × Biens avec 4 statuts (payé/partiel avec montant
+  saisi/retard/impayé) + mode de règlement + tri stable
+- **Fiche Bien** (`/biens/:id`) : caractéristiques fixes, historique des
+  locataires passés, documents rattachés au bien (`bien_id` déjà en base)
+- **DPE** (badge couleur), dépôt de garantie, type de charges (migration 0005),
+  filtres rapides du tableau
+- **Historique des quittances** (migration 0006, upsert bail+période)
+- **Email** : SMTP configurable dans Paramètres (stocké dans `parametres`, mot
+  de passe jamais envoyé au renderer via `getSmtpConfigPublic()`), bouton
+  « Envoyer au locataire » + invitation si non configuré (nodemailer)
+- **Conformité quittances (v1.8)** : génération en lot filtrée sur les loyers
+  POINTÉS « payé » de la période (art. 21), avertissement adresse manquante
+- **Alerte IRL à l'anniversaire du bail** (art. 17-2), doublons locataires
+  détectés à la création, formulaire : trimestre IRL en LISTE + taux IRL
+  VERROUILLÉ (recalculé de la paire)
+- **Import CSV durci** (v1.9) : champs dérivés TOUJOURS recalculés (annuels,
+  loyer/m², CC, taux), adresse/ville déduites de la désignation si n° de rue
+- **Version portable** (cible electron-builder `portable`)
+
 ## 9. Prochaines étapes
 
-Lire `ROADMAP.md` (source de vérité) : V2 démarré (statistiques de base
-livrées). Reste en pistes V2 : taux d'occupation détaillé, récap impôts 2042,
-multi-profils, chiffrement, version portable. Dettes techniques : tests
-repositories (voir section « Problématique du harnais de test » de ROADMAP.md).
+Lire `ROADMAP.md` (source de vérité), en particulier la section
+« V3.5 — Audit externe » (triage complet). Restants :
+- Table IRL embarquée avec validation de la paire annuelle (les IRL importées
+  de l'utilisateur ne forment pas une paire légale — à corriger bail par bail
+  via le bouton INSEE)
+- Décompte « reçu » distinct pour paiements partiels
+- Bouton « Auditer mes données » (contrôle d'intégrité)
+- Vagues produit optionnelles : bail pré-rempli, relances, état des lieux,
+  SEPA/portail — nécessitent une décision sur la cible
+- Chiffrement : abandonné ; multi-profils : piste ouverte
 
 ## 10. Environnement humain
 
