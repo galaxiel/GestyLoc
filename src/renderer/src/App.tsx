@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Component, useEffect } from 'react'
 import { Sidebar } from './components/layout/Sidebar'
 import { StoreProvider } from './hooks/useStore'
 import { Dashboard } from './pages/Dashboard'
@@ -19,6 +19,44 @@ import { BienDetail } from './pages/BienDetail'
  * Raccourcis clavier de navigation :
  * Ctrl+1..6 = pages principales, Ctrl+N = nouveau bail.
  */
+/**
+ * Pare-chocs : une erreur de rendu affiche le message au lieu d'une page
+ * blanche silencieuse (bug signalé : « l'onglet Quittances ne s'affiche pas »).
+ */
+class ErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { erreur: Error | null }
+> {
+  state = { erreur: null as Error | null }
+  static getDerivedStateFromError(erreur: Error): { erreur: Error } {
+    return { erreur }
+  }
+  render(): React.ReactNode {
+    if (this.state.erreur) {
+      return (
+        <div className="m-8 rounded-xl border border-red-300 bg-red-50 p-6 dark:border-red-500/40 dark:bg-red-500/10">
+          <h2 className="mb-2 font-bold text-red-700 dark:text-red-300">
+            Une erreur est survenue dans cette page
+          </h2>
+          <p className="mb-3 text-sm text-red-700 dark:text-red-300">
+            {this.state.erreur.message}
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ erreur: null })
+              window.location.hash = '#/'
+            }}
+            className="rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function RaccourcisClavier(): null {
   const navigate = useNavigate()
   useEffect(() => {
@@ -48,6 +86,7 @@ function App(): React.JSX.Element {
         <div className="flex h-full">
           <Sidebar />
           <main className="flex-1 overflow-y-auto p-6">
+            <ErrorBoundary>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/biens" element={<BiensLocataires />} />
@@ -63,6 +102,7 @@ function App(): React.JSX.Element {
               <Route path="/parametres" element={<Parametres />} />
               <Route path="*" element={<Dashboard />} />
             </Routes>
+            </ErrorBoundary>
           </main>
         </div>
       </StoreProvider>

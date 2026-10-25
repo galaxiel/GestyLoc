@@ -266,7 +266,7 @@ export function Dashboard(): React.JSX.Element {
                         <span
                           className={`ml-2 text-xs ${(r.jours_avant_fin_bail ?? 0) < 90 ? 'text-red-500 font-semibold' : 'text-slate-400'}`}
                         >
-                          ({r.jours_avant_fin_bail} j)
+                          (dans {r.jours_avant_fin_bail} j)
                         </span>
                       )}
                     </td>

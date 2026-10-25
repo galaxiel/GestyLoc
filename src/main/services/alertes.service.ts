@@ -26,14 +26,14 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
           alertes.push({
             type: 'fin_bail',
             severite: 'urgent',
-            message: `Bail de ${row.locataire.nom_complet} (${row.bien.designation}) EXPIRÉ depuis ${Math.abs(jours)} jours`,
+            message: `Bail EXPIRÉ depuis ${Math.abs(jours)} jours — ${row.bien.type_bien} « ${row.bien.designation} » (${row.locataire.nom_complet})`,
             bail_id: row.bail.id
           })
         } else if (jours < 90) {
           alertes.push({
             type: 'fin_bail',
             severite: jours < 30 ? 'urgent' : 'warning',
-            message: `Fin de bail de ${row.locataire.nom_complet} (${row.bien.designation}) dans ${jours} jours`,
+            message: `Fin de bail dans ${jours} jours — ${row.bien.type_bien} « ${row.bien.designation} » (${row.locataire.nom_complet})`,
             bail_id: row.bail.id
           })
         }
