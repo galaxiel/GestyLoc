@@ -86,7 +86,6 @@ export function Dashboard(): React.JSX.Element {
     (s, r) => s + (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)),
     0
   )
-  const surfaceTotale = locations.reduce((sum, r) => sum + (r.bien.surface_m2 ?? 0), 0)
 
   // --- Alertes groupées par type ---
   const alertesGroupees = useMemo(() => {
@@ -153,7 +152,7 @@ export function Dashboard(): React.JSX.Element {
               {formatEuro(encaisseCeMois)}
             </div>
             <div className="mt-1 text-xs text-emerald-600/70 dark:text-emerald-400/70">
-              {Math.round((encaisseCeMois / Math.max(attenduCeMois, 1)) * 100)} % du mois
+              {Math.round((encaisseCeMois / Math.max(attenduCeMois, 1)) * 10000) / 100} % du mois
             </div>
           </div>
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
@@ -200,7 +199,15 @@ export function Dashboard(): React.JSX.Element {
           </div>
           <div className="mt-2 text-2xl font-bold">{locations.length}</div>
           <div className="mt-1 text-xs text-slate-400">
-            {surfaceTotale.toLocaleString('fr-FR')} m² au total
+            {bauxPayants.length} loué(s)
+            {locations.filter((r) => r.bail.actif && r.bail.occupation_gratuite).length >
+              0 && ` + ${locations.filter((r) => r.bail.actif && r.bail.occupation_gratuite).length} gratuit(s)`}
+            {' · '}
+            {locations
+              .filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
+              .reduce((sum, r) => sum + (r.bien.surface_m2 ?? 0), 0)
+              .toLocaleString('fr-FR')}{' '}
+            m² loués
           </div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">

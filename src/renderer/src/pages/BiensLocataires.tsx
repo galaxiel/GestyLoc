@@ -807,7 +807,7 @@ export function BiensLocataires(): React.JSX.Element {
               </Field>
             </fieldset>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end gap-2 border-t border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-slate-900">
               <button
                 onClick={() => setFormOuvert(false)}
                 className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"

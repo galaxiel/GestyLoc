@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send } from 'lucide-react'
+import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send, FolderOpen } from 'lucide-react'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
 
@@ -30,6 +30,15 @@ export function Parametres(): React.JSX.Element {
       setDataEnCours(null)
     }
   }
+
+  // --- Chemin de la base ---
+  const [cheminBdd, setCheminBdd] = useState<string | null>(null)
+  useEffect(() => {
+    void window.api.app
+      .getDbPath()
+      .then((r) => setCheminBdd(r.data ?? null))
+      .catch(() => setCheminBdd(null))
+  }, [])
 
   // --- Configuration Email (SMTP) ---
   const [smtp, setSmtp] = useState({
@@ -216,9 +225,21 @@ export function Parametres(): React.JSX.Element {
             <dt className="text-slate-500 dark:text-slate-400">Version</dt>
             <dd className="font-medium">{version}</dd>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center gap-2">
             <dt className="text-slate-500 dark:text-slate-400">Stockage des données</dt>
             <dd className="font-medium">Local (AppData) — aucun internet requis</dd>
+          </div>
+          <div className="pt-2">
+            <button
+              onClick={() => void window.api.app.openDataFolder()}
+              className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            >
+              <FolderOpen className="h-4 w-4" />
+              Ouvrir le dossier des données
+            </button>
+            <p className="mt-1 truncate text-[11px] text-slate-400" title="Chemin de la base">
+              {cheminBdd ?? '…'}
+            </p>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500 dark:text-slate-400">Thème</dt>

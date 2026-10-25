@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Scale, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Loader2, Scale, TrendingUp } from 'lucide-react'
 import { simulerRattrapageIrl, type BailPourSimulation } from '@shared/stats'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -53,6 +53,8 @@ export function Simulateur(): React.JSX.Element {
           bailId: r.bail.id,
           designation: r.bien.designation,
           locataire: r.locataire.nom_complet,
+          typeBien: r.bien.type_bien,
+          adresse: [r.bien.adresse, r.bien.ville].filter(Boolean).join(', '),
           loyerHcActuel: r.bail.loyer_hc ?? 0,
           dateDebutBail: r.bail.date_debut_bail!,
           trimestreRef: r.bail.trimestre_reference
@@ -70,6 +72,16 @@ export function Simulateur(): React.JSX.Element {
         tauxFixeNum > 0 ? tauxFixeNum : null
       ),
     [bauxSimulables, anneeDepart, irlHistory, tauxFixeNum]
+  )
+
+  const typesParBail = new Map(
+    locations.map((r) => [r.bail.id, r.bien.type_bien])
+  )
+  const adressesParBail = new Map(
+    locations.map((r) => [
+      r.bail.id,
+      [r.bien.adresse, r.bien.ville].filter(Boolean).join(', ')
+    ])
   )
 
   const totalDeltaAn = Math.round(
@@ -95,17 +107,11 @@ export function Simulateur(): React.JSX.Element {
           A. Rattrapage IRL — « et si j'avais révisé chaque année ? »
         </h2>
 
-        {/* Garde-fou légal : en GRAND, pas en petits caractères */}
-        <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-          <span>
-            <strong>Important :</strong> la révision du loyer n'est{' '}
-            <strong>pas rétroactive</strong>. Ce scénario mesure une{' '}
-            <strong>renonciation passée</strong>, pas une créance récupérable. Pour
-            appliquer une révision, utilise la fiche du bail — elle ne propose que
-            la prochaine échéance annuelle légale.
-          </span>
-        </div>
+        <p className="text-xs text-slate-400">
+          ⚠ Simulation à titre indicatif : la révision du loyer n'est pas rétroactive —
+          ce scénario mesure une renonciation passée, pas une créance. Pour appliquer
+          une révision : fiche du bail (prochaine échéance annuelle légale).
+        </p>
 
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
@@ -184,8 +190,15 @@ export function Simulateur(): React.JSX.Element {
               {tries.map((r) => (
                 <tr key={r.bailId} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2">
-                    <div className="font-medium">{r.designation}</div>
-                    <div className="text-xs text-slate-400">{r.locataire}</div>
+                    <div className="font-medium">
+                      <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        {typesParBail.get(r.bailId)}
+                      </span>
+                      {r.designation}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {r.locataire} · {adressesParBail.get(r.bailId) ?? '—'}
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-right">{formatEuro(r.loyerActuel)}</td>
                   <td className="px-4 py-2 text-right font-medium">{formatEuro(r.loyerSimule)}</td>

@@ -29,11 +29,12 @@
   identité à taux nul, monotonicité, arrondi légal, IRL manquant
 
 ### Correctifs techniques (issue de l'audit externe, causes racines traitées)
-- [ ] 🗃️ **Table IRL embarquée** (hexagone/Corse/COM, trimestres 2005→) :
-  choix du trimestre par liste dans la révision, validation « même trimestre un
-  an plus tard », et revalidation des valeurs importées. ⚠️ Les IRL actuelles
-  (144,51 → 145,78) ne forment pas une paire annuelle légale — à corriger bail
-  par bail via le bouton INSEE.
+- [x] 🗃️ **Table IRL embarquée** (v1.11.0, en attente de publication) : 91
+  trimestres INSEE (2004-T1 → 2026-T3) dans . L'outil de
+  révision de la fiche bail est piloté par le trimestre : listes déroulantes
+  pour la référence et le nouveau, valeurs auto, taux verrouillé, avertissement
+  si la paire n'est pas annuelle. ⚠️ Les IRL importées (144,51 → 145,78)
+  restent illégales : à corriger bail par bail (2 minutes chacune via l'outil).
 - [ ] 🖥️ **Décompte « reçu » distinct de la quittance** pour paiements partiels
   (une quittance atteste un paiement intégral — art. 21, loi de 1989)
 - [ ] 🗃️ **Table `baux_revisions`** (historique des révisions : date, ancien
@@ -50,16 +51,14 @@
   l'a, diffrenciant
 - [ ] 🖥️ Compteurs cohérents : « X biens loués + Y occupation gratuite »
   (surface et nombre actuellement sur des périmètres différents)
-- [ ] 🖥️ Formulaire Nouveau bail : footer d'actions fixe (bouton coupé sur les
-  petits écrans, signalement P1-18 de l'audit)
+- [x] 🖥️ Formulaire Nouveau bail : footer d'actions fixe (P1-18)
 
 ### Finition (P3 de l'audit)
-- [ ] Décimales sur le « % du mois » du dashboard
-- [ ] Slug ASCII des noms de fichiers de quittance (les virgules/accents des
-  noms passent mal en pièce jointe)
+- [x] Décimales sur le « % du mois » du dashboard
+- [x] Slug ASCII des noms de fichiers de quittance
 - [ ] Recherche globale (retrouver un locataire depuis n'importe quelle page)
-- [ ] Afficher le chemin réel des données + bouton « Ouvrir le dossier »
-- [ ] « Marquer tout le mois payé », duplication d'un bail
+- [x] Afficher le chemin réel des données + bouton « Ouvrir le dossier »
+- [x] « Marquer tout le mois payé » — reste : duplication d'un bail
 
 ### Dette technique
 - [ ] Étendre les tests aux repositories et au service d'alertes. **Contrainte

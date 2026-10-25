@@ -13,6 +13,11 @@ import type { Depense } from '@shared/types'
 import { formatEuro, formatPeriode } from '../lib/format'
 import { segmentsParType, suspects, type BienPourRatio } from '@shared/stats'
 
+/** Affiche un nombre avec 2 décimales max, format fr-FR. */
+function num2(v: number): string {
+  return v.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+}
+
 /** Génère les N dernières périodes 'yyyy-mm', la plus ancienne en premier. */
 function periodesPassees(n: number): string[] {
   const out: string[] = []
@@ -138,6 +143,7 @@ export function Statistiques(): React.JSX.Element {
   // --- Segmentation (R1 : jamais de ratio sur un mélange) ---
   const entrees: BienPourRatio[] = bauxPayants.map((r) => ({
     designation: r.bien.designation,
+    locataire: r.locataire.nom_complet,
     type_bien: r.bien.type_bien,
     meuble: r.bien.meuble,
     surface_m2: r.bien.surface_m2,
@@ -241,10 +247,10 @@ export function Statistiques(): React.JSX.Element {
               ) : (
                 <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
                   <span>
-                    Médiane : <strong>{seg.med} {seg.unite === 'm2' ? '€/m²' : '€'}</strong>
+                    Médiane : <strong>{num2(seg.med ?? 0)} {seg.unite === 'm2' ? '€/m²' : '€'}</strong>
                   </span>
-                  <span>Q1–Q3 : {seg.q1} – {seg.q3}</span>
-                  <span>Min–Max : {seg.ratios[seg.ratios.length - 1].valeur} – {seg.ratios[0].valeur}</span>
+                  <span>Q1–Q3 : {num2(seg.q1 ?? 0)} – {num2(seg.q3 ?? 0)}</span>
+                  <span>Min–Max : {num2(seg.ratios[seg.ratios.length - 1].valeur)} – {num2(seg.ratios[0].valeur)}</span>
                 </div>
               )}
               {seg.n >= 3 && (
@@ -253,7 +259,10 @@ export function Statistiques(): React.JSX.Element {
                     const ecart = seg.med ? Math.round((r.valeur / seg.med - 1) * 100) : 0
                     return (
                       <div key={r.bailId} className="flex items-center gap-2 text-xs">
-                        <span className="w-48 shrink-0 truncate">{r.designation}</span>
+                        <span className="w-48 shrink-0 truncate">
+                          {r.designation}
+                          <span className="text-slate-400"> — {r.locataire}</span>
+                        </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
                             className={`h-full rounded-full ${ecart < 0 ? 'bg-amber-400' : 'bg-emerald-500'}`}
@@ -288,9 +297,10 @@ export function Statistiques(): React.JSX.Element {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-sm dark:border-amber-500/40 dark:bg-amber-500/10"
               >
                 <span>
-                  <strong>{x.designation}</strong>{' '}
+                  <strong>{x.designation}</strong>
+                  <span className="text-slate-400"> — {x.locataire}</span>{' '}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    ({x.typeBien}) — {x.valeur} vs médiane {x.medianeSegment} ({x.ecartPct} %)
+                    ({x.typeBien}) — {num2(x.valeur)} vs médiane {num2(x.medianeSegment)} ({num2(x.ecartPct)} %)
                   </span>
                 </span>
                 <span className="font-semibold text-amber-700 dark:text-amber-300">

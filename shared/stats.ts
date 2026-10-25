@@ -33,6 +33,7 @@ export function uniteReference(typeBien: string): 'm2' | 'emplacement' {
 
 export interface BienPourRatio {
   designation: string
+  locataire: string
   type_bien: string
   meuble: boolean
   surface_m2: number | null
@@ -48,7 +49,7 @@ export interface Segment {
   n: number
   loyersCc: number
   surface: number
-  ratios: { designation: string; bailId: number; valeur: number; base: number }[]
+  ratios: { designation: string; locataire: string; bailId: number; valeur: number; base: number }[]
   med: number | null
   q1: number | null
   q3: number | null
@@ -69,7 +70,7 @@ export function segmentsParType(biens: BienPourRatio[]): Segment[] {
       .map((b) => {
         const denom = unite === 'm2' ? (b.surface_m2 ?? 0) : 1
         const valeur = denom > 0 && b.baseMensuelle !== null ? Math.round((b.baseMensuelle / denom) * 100) / 100 : 0
-        return { designation: b.designation, bailId: b.bailId, valeur, base: b.baseMensuelle ?? 0 }
+        return { designation: b.designation, locataire: b.locataire, bailId: b.bailId, valeur, base: b.baseMensuelle ?? 0 }
       })
       .sort((a, b) => b.valeur - a.valeur)
     const qs = quartiles(ratios.map((r) => r.valeur))
@@ -96,6 +97,7 @@ export function segmentsParType(biens: BienPourRatio[]): Segment[] {
 
 export interface Suspect {
   designation: string
+  locataire: string
   bailId: number
   typeBien: string
   valeur: number
@@ -114,6 +116,7 @@ export function suspects(sgs: Segment[], seuilPct = 15): Suspect[] {
       if (ecart <= -seuilPct) {
         out.push({
           designation: r.designation,
+          locataire: r.locataire,
           bailId: r.bailId,
           typeBien: seg.type,
           valeur: r.valeur,

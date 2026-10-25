@@ -103,6 +103,34 @@ export function Paiements(): React.JSX.Element {
     await pointer(bailId, montant >= attendu ? 'paye' : 'partiel', Math.round(montant * 100) / 100)
   }
 
+  const toutMarquerPaye = async (): Promise<void> => {
+    const nonPayes = bauxPayants.filter((r) => statutDe(r.bail.id)?.statut !== 'paye')
+    if (nonPayes.length === 0) return
+    if (
+      !confirm(
+        `Marquer les loyers de ${nonPayes.length} bail(s) comme PAYÉS pour ${periode} ?`
+      )
+    ) {
+      return
+    }
+    for (const r of nonPayes) {
+      setSaving(r.bail.id)
+      const loyerCc = r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)
+      const existant = statutDe(r.bail.id)
+      await ipc.paiements.upsert({
+        bail_id: r.bail.id,
+        periode,
+        montant_paye: loyerCc,
+        statut: 'paye',
+        date_paiement: new Date().toISOString().slice(0, 10),
+        mode_paiement: modes[r.bail.id] ?? existant?.mode_paiement ?? 'Virement'
+      })
+    }
+    await recharger()
+    await refresh()
+    setSaving(null)
+  }
+
   const depointer = async (bailId: number): Promise<void> => {
     setSaving(bailId)
     try {
@@ -148,12 +176,21 @@ export function Paiements(): React.JSX.Element {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold tracking-tight">Suivi des paiements</h1>
-        <input
-          type="month"
-          value={periode}
-          onChange={(e) => setPeriode(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="month"
+            value={periode}
+            onChange={(e) => setPeriode(e.target.value)}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+          <button
+            onClick={() => void toutMarquerPaye()}
+            title="Pointer d'un coup tous les baux non payés du mois"
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+          >
+            ✓ Tout marquer payé
+          </button>
+        </div>
       </div>
 
       {/* Totaux du mois */}

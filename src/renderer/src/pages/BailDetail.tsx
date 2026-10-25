@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Home, User, Wallet, TrendingUp, Printer, FileUp,
-  ExternalLink, Trash2, Loader2, CheckCircle2, Globe
+  ExternalLink, Trash2, Loader2, CheckCircle2
 } from 'lucide-react'
 import type { Paiement, DocumentRow } from '@shared/types'
-import type { ValeurIndice } from '@shared/indices'
+import { IRL_INSEE, IRL_TRIMESTRES, valeurIrl } from '@shared/irl-insee'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface, libelleStatut, formatPeriode } from '../lib/format'
@@ -31,38 +31,28 @@ export function BailDetail(): React.JSX.Element {
 
   const row = locations.find((r) => r.bail.id === Number(id))
 
-  // --- Révision IRL ---
+  // --- Révision IRL : pilotée par le TRIMESTRE DE RÉFÉRENCE (table embarquée) ---
+  const [tRef, setTRef] = useState<string>('')
+  const [anneeRef, setAnneeRef] = useState<string>('')
+  const [nouveauTrim, setNouveauTrim] = useState<string>('')
   const [irlNouveau, setIrlNouveau] = useState<string>('')
   const [revisionMsg, setRevisionMsg] = useState<string | null>(null)
   const [revisant, setRevisant] = useState(false)
 
+  // Pré-remplissage depuis le bail : trimestre de référence parsé du texte libre
   useEffect(() => {
-    if (row?.bail.irl_nouveau) setIrlNouveau(String(row.bail.irl_nouveau))
-  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // --- Récupération des indices IRL/ICC depuis l'INSEE ---
-  const [typeIndice, setTypeIndice] = useState<'IRL' | 'ICC'>('IRL')
-  const [indicesRecuperes, setIndicesRecuperes] = useState<ValeurIndice[] | null>(null)
-  const [indicesEnCours, setIndicesEnCours] = useState(false)
-  const [indicesErreur, setIndicesErreur] = useState<string | null>(null)
-
-  const recupererIndices = async (): Promise<void> => {
-    setIndicesEnCours(true)
-    setIndicesErreur(null)
-    try {
-      const res = await ipc.indices.fetch(typeIndice)
-      if (res.erreur) {
-        setIndicesErreur(res.erreur)
-        setIndicesRecuperes(null)
-      } else {
-        setIndicesRecuperes(res.valeurs)
-      }
-    } catch (err) {
-      setIndicesErreur(err instanceof Error ? err.message : String(err))
-    } finally {
-      setIndicesEnCours(false)
+    if (!row) return
+    const trimTxt = row.bail.trimestre_reference ?? ''
+    const t = trimTxt.match(/[1234]/)
+    const a = trimTxt.match(/(19|20)\d{2}/)
+    setTRef(t ? t[0] : '')
+    setAnneeRef(a ? a[0] : '')
+    if (t && a) {
+      const v = valeurIrl(`${a[0]}-Q${t[0]}`)
+      if (v !== null) setIrlReferenceDisplay(v)
     }
-  }
+    if (row.bail.irl_nouveau) setIrlNouveau(String(row.bail.irl_nouveau))
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Historique paiements + documents ---
   const [paiements, setPaiements] = useState<Paiement[]>([])
@@ -93,8 +83,11 @@ export function BailDetail(): React.JSX.Element {
 
   const { bail, bien, locataire } = row
 
-  // --- Calcul de la révision IRL (formulaire guidé) ---
-  const irlRef = bail.irl_reference
+  // --- Calcul de la révision IRL (piloté par les trimestres) ---
+  const [irlReferenceDisplay, setIrlReferenceDisplay] = useState<number | null>(null)
+  void setIrlReferenceDisplay // initialisé via les selects pré-remplis ci-dessus
+
+  const irlRef = irlReferenceDisplay ?? bail.irl_reference
   const irlNouv = Number(irlNouveau.replace(',', '.'))
   const loyerHcActuel = bail.loyer_hc
   const revisionPossible =
@@ -112,7 +105,14 @@ export function BailDetail(): React.JSX.Element {
   const tauxPct =
     revisionPossible ? Math.round((irlNouv / (irlRef as number) - 1) * 100000) / 1000 : null
 
-  /** Applique la révision : met à jour le loyer et l'historique IRL. */
+  // Validation de la paire : même trimestre, un an d'écart (révision annuelle légale)
+  const pairIllégale =
+    nouveauTrim !== '' &&
+    tRef !== '' &&
+    anneeRef !== '' &&
+    nouveauTrim !== `${anneeRef}-Q${tRef}`.replace(String(Number(anneeRef)), String(Number(anneeRef) + 1))
+
+    /** Applique la révision : met à jour le loyer et l'historique IRL. */
   const appliquerRevision = async (): Promise<void> => {
     if (nouveauLoyerHc === null || tauxPct === null) return
     setRevisant(true)
@@ -126,6 +126,7 @@ export function BailDetail(): React.JSX.Element {
         loyer_annuel_cc: Math.round((nouveauLoyerHc + (bail.charges ?? 0)) * 12 * 100) / 100,
         irl_reference: irlNouv,
         irl_nouveau: irlNouv,
+        trimestre_reference: nouveauTrim.replace('-Q', ' '),
         taux_irl: tauxPct,
         nouveau_loyer_hc: nouveauLoyerHc,
         date_derniere_revision: new Date().toISOString().slice(0, 10)
@@ -226,93 +227,83 @@ export function BailDetail(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Révision IRL guidée */}
+      {/* Révision IRL guidée — pilotée par le trimestre de référence */}
       {!bail.occupation_gratuite && (
         <div className={cardCls}>
           <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">
             <TrendingUp className="h-4 w-4 text-primary-500" /> Révision annuelle du loyer (IRL)
           </h2>
           <p className="mb-4 text-xs text-slate-400">
-            Nouveau loyer = loyer HC × (IRL nouveau ÷ IRL de référence), arrondi au centime.
+            Choisis le trimestre de référence (celui du bail, souvent le trimestre de
+            signature), puis le trimestre IRL à appliquer. Les valeurs officielles INSEE
+            sont embarquées dans l'application — aucun internet requis.
             {bail.date_derniere_revision &&
               ` Dernière révision : ${formatDate(bail.date_derniere_revision)}.`}
           </p>
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
-                IRL de référence {bail.trimestre_reference ? `(${bail.trimestre_reference})` : ''}
+                Trimestre de référence
               </span>
-              <input className={`${inputCls} w-32`} value={irlRef ?? ''} disabled />
+              <div className="flex gap-1">
+                <select
+                  value={tRef}
+                  onChange={(e) => {
+                    setTRef(e.target.value)
+                    const v = valeurIrl(`${anneeRef}-Q${e.target.value}`)
+                    if (v !== null) setIrlReferenceDisplay(v)
+                  }}
+                  className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="">T…</option>
+                  {['1', '2', '3', '4'].map((t) => (
+                    <option key={t} value={t}>T{t}</option>
+                  ))}
+                </select>
+                <select
+                  value={anneeRef}
+                  onChange={(e) => {
+                    setAnneeRef(e.target.value)
+                    const v = valeurIrl(`${e.target.value}-Q${tRef}`)
+                    if (v !== null) setIrlReferenceDisplay(v)
+                  }}
+                  className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="">Année…</option>
+                  {IRL_TRIMESTRES.map((q) => (
+                    <option key={q} value={q.slice(0, 4)}>
+                      {q.slice(0, 4)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div>
               <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
-                IRL nouveau (du trimestre voulu)
+                IRL de référence (INSEE)
               </span>
-              <input
-                className={`${inputCls} w-32`}
-                value={irlNouveau}
-                onChange={(e) => setIrlNouveau(e.target.value)}
-                placeholder="ex : 145.78"
-              />
+              <input className={`${inputCls} w-28`} value={irlReferenceDisplay ?? ''} readOnly />
             </div>
-            {/* Récupération automatique des indices sur INSEE.fr (internet) */}
-            <div className="w-full rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
-              <div className="flex flex-wrap items-center gap-2">
-                <Globe className="h-4 w-4 text-slate-400" />
-                <select
-                  value={typeIndice}
-                  onChange={(e) => {
-                    setTypeIndice(e.target.value as 'IRL' | 'ICC')
-                    setIndicesRecuperes(null)
-                    setIndicesErreur(null)
-                  }}
-                  className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
-                >
-                  <option value="IRL">IRL (habitation)</option>
-                  <option value="ICC">ICC (construction)</option>
-                </select>
-                <button
-                  onClick={() => void recupererIndices()}
-                  disabled={indicesEnCours}
-                  className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
-                  title="Récupérer les derniers indices publiés sur INSEE.fr"
-                >
-                  {indicesEnCours ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>Récupérer sur INSEE.fr</>
-                  )}
-                </button>
-                <span className="text-xs text-slate-400">
-                  puis cliquez sur un trimestre pour remplir le champ ci-dessus
-                </span>
-              </div>
-              {indicesErreur && (
-                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                  Connexion impossible : {indicesErreur} — saisie manuelle toujours possible.
-                </p>
-              )}
-              {indicesRecuperes && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {indicesRecuperes.map((v) => (
-                    <button
-                      key={v.periode}
-                      onClick={() => setIrlNouveau(String(v.valeur))}
-                      title="Remplir le champ IRL nouveau avec cette valeur"
-                      className={`rounded-lg border px-2 py-1 text-xs transition-colors ${
-                        String(v.valeur) === irlNouveau
-                          ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-500'
-                          : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <strong>{v.periode}</strong> : {v.valeur}
-                    </button>
-                  ))}
-                  <span className="w-full text-[11px] text-slate-400">
-                    Source : INSEE (bdm.insee.fr), données officielles. {indicesRecuperes[0]?.periode} est le dernier publié.
-                  </span>
-                </div>
-              )}
+            <div>
+              <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                IRL nouveau (trimestre à appliquer)
+              </span>
+              <select
+                value={nouveauTrim}
+                onChange={(e) => {
+                  setNouveauTrim(e.target.value)
+                  const v = valeurIrl(e.target.value)
+                  if (v !== null) setIrlNouveau(String(v))
+                }}
+                className={`${inputCls} w-44`}
+              >
+                <option value="">— Choisir —</option>
+                {IRL_TRIMESTRES.map((q) => (
+                  <option key={q} value={q}>
+                    {q.replace('-Q', ' ')} : {IRL_INSEE[q]}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-800/60">
               <div>
@@ -334,11 +325,18 @@ export function BailDetail(): React.JSX.Element {
               Appliquer la révision
             </button>
           </div>
+          {pairIllégale && (
+            <p className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+              ⚠ {nouveauTrim} n'est pas le même trimestre que la référence un an plus tard
+              ({tRef ? `T${tRef} ${Number(anneeRef) + 1}` : '—'}) : ce n'est pas une paire de
+              révision annuelle légale.
+            </p>
+          )}
           {revisionMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{revisionMsg}</p>}
         </div>
       )}
 
-      {/* Historique des paiements */}
+            {/* Historique des paiements */}
       {!bail.occupation_gratuite && (
         <div>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">

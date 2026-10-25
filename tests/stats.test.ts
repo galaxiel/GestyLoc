@@ -24,11 +24,11 @@ describe('uniteReference (R2)', () => {
 
 describe('segmentsParType (R1 : pas de ratio sur un mélange)', () => {
   const biens = [
-    { designation: 'A1', type_bien: 'Appartement', meuble: false, surface_m2: 50, valeur_venale: null, baseMensuelle: 650, bailId: 1 },   // 13 €/m²
-    { designation: 'A2', type_bien: 'Appartement', meuble: false, surface_m2: 55, valeur_venale: null, baseMensuelle: 427, bailId: 2 },   // 7,76
-    { designation: 'A3', type_bien: 'Appartement', meuble: false, surface_m2: 34, valeur_venale: null, baseMensuelle: 650, bailId: 3 },   // 19,12
-    { designation: 'G1', type_bien: 'Garage', meuble: false, surface_m2: 13, valeur_venale: null, baseMensuelle: 65, bailId: 4 },          // 65 €/empl
-    { designation: 'G2', type_bien: 'Garage', meuble: false, surface_m2: 30, valeur_venale: null, baseMensuelle: 91, bailId: 5 }           // 91 €/empl
+    { designation: 'A1', locataire: 'X',type_bien: 'Appartement', meuble: false, surface_m2: 50, valeur_venale: null, baseMensuelle: 650, bailId: 1 },   // 13 €/m²
+    { designation: 'A2', locataire: 'X',type_bien: 'Appartement', meuble: false, surface_m2: 55, valeur_venale: null, baseMensuelle: 427, bailId: 2 },   // 7,76
+    { designation: 'A3', locataire: 'X',type_bien: 'Appartement', meuble: false, surface_m2: 34, valeur_venale: null, baseMensuelle: 650, bailId: 3 },   // 19,12
+    { designation: 'G1', locataire: 'X',type_bien: 'Garage', meuble: false, surface_m2: 13, valeur_venale: null, baseMensuelle: 65, bailId: 4 },          // 65 €/empl
+    { designation: 'G2', locataire: 'X',type_bien: 'Garage', meuble: false, surface_m2: 30, valeur_venale: null, baseMensuelle: 91, bailId: 5 }           // 91 €/empl
   ]
   it('sépare les segments et calcule les unités propres', () => {
     const sgs = segmentsParType(biens)
@@ -42,6 +42,7 @@ describe('segmentsParType (R1 : pas de ratio sur un mélange)', () => {
   })
   it('le suspect A2 (-40 % sous la médiane) est détecté', () => {
     const sus = suspects(segmentsParType(biens))
+    // R3 : le segment garage (n=2) est exclu ; seul A2 (segment de 3+) est suspect
     expect(sus.length).toBe(1)
     expect(sus[0].designation).toBe('A2')
     expect(sus[0].manqueAGagnerAnnuel).toBe(Math.round((13 - 7.76) * 12 * 100) / 100)

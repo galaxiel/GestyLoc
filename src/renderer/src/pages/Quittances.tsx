@@ -194,6 +194,14 @@ export function Quittances(): React.JSX.Element {
 
   const row = locations.find((r) => r.bail.id === Number(bailId))
 
+  /** Nom de fichier sûr : sans accents, virgules ou espaces exotiques. */
+  const slug = (nom: string): string =>
+    nom
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+
   const generer = async (): Promise<void> => {
     if (!row) return
     setEnCours(true)
@@ -223,7 +231,7 @@ export function Quittances(): React.JSX.Element {
       })
 
       pdfMake.createPdf(doc).getBase64(async (base64: string) => {
-        const nomFichier = `quittance_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${periode}.pdf`
+        const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${periode}.pdf`
         const chemin = await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
         setMessage(chemin ? `Quittance enregistrée : ${chemin}` : 'Enregistrement annulé.')
         void rechargerHistorique()
@@ -265,7 +273,7 @@ export function Quittances(): React.JSX.Element {
         loyerHc,
         charges
       })
-      const nomFichier = `quittance_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${periode}.pdf`
+      const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${periode}.pdf`
       const base64 = await new Promise<string>((resolve) => {
         pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
         setTimeout(() => resolve(''), 30000)
@@ -366,7 +374,7 @@ ${bailleur?.nom_complet ?? ''}`,
           pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
           setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
         })
-        const nom = `quittance_${r.locataire.nom_complet.replace(/\s+/g, '_')}_${suffixe}.pdf`
+        const nom = `quittance_${slug(r.locataire.nom_complet)}_${suffixe}.pdf`
         await ipc.quittances.saveTo(base64, dossier, nom, r.bail.id, periode)
       } catch {
         erreurs++

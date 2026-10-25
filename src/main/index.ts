@@ -80,6 +80,11 @@ app.whenReady().then(() => {
 
   // ---- Registre IPC : infos app ----
   ipcMain.handle('app:get-version', () => app.getVersion())
+  ipcMain.handle('app:get-db-path', () => getDbPath())
+  ipcMain.handle('app:open-data-folder', async () => {
+    const { shell } = await import('electron')
+    return (await shell.showItemInFolder(getDbPath())) === undefined
+  })
 
   // ---- Base de données ----
   // Ouverture SQLite (AppData) + migrations versionnées, AVANT tout handler IPC.

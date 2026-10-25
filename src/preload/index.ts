@@ -190,6 +190,14 @@ const api = {
       ipcRenderer.invoke('email:send', destinataire, sujet, corps, pieceJointe)
   },
 
+  // ---- Infos app ----
+  app: {
+    getDbPath: (): Promise<IpcResult<string>> =>
+      ipcRenderer.invoke('app:get-db-path'),
+    openDataFolder: (): Promise<IpcResult<boolean>> =>
+      ipcRenderer.invoke('app:open-data-folder')
+  },
+
   // ---- Données : import / export / sauvegarde ----
   data: {
     exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),
