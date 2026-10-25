@@ -21,6 +21,7 @@ import {
 import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
+import { fetchIndices } from '../services/indices.service'
 import {
   getSmtpConfigPublic,
   saveSmtpConfig,
@@ -167,6 +168,7 @@ export function registerDatabaseHandlers(): void {
 
   // ---------- Indices INSEE (IRL / ICC) ----------
   handle('indices:fetch', (type: TypeIndice) => recupererIndices(type))
+  handle('indices:history', (type: TypeIndice) => fetchIndices(type, '2004-Q1'))
 
   // ---------- Email (SMTP configuré par l'utilisateur) ----------
   handle('email:get-config', () => getSmtpConfigPublic())

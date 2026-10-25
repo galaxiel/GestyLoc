@@ -11,6 +11,7 @@ import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import type { Depense } from '@shared/types'
 import { formatEuro, formatPeriode } from '../lib/format'
+import { segmentsParType, suspects, type BienPourRatio } from '@shared/stats'
 
 /** Génère les N dernières périodes 'yyyy-mm', la plus ancienne en premier. */
 function periodesPassees(n: number): string[] {
@@ -133,7 +134,19 @@ export function Statistiques(): React.JSX.Element {
   const impayes = paiements.filter((p) => p.statut === 'retard' || p.statut === 'impaye')
   const montantImpaye = impayes.reduce((s, p) => s + p.montant_paye, 0)
   const surfaceLouee = bauxPayants.reduce((s, r) => s + (r.bien.surface_m2 ?? 0), 0)
-  const loyerM2Moyen = surfaceLouee > 0 ? loyerMensuelCc / surfaceLouee : 0
+
+  // --- Segmentation (R1 : jamais de ratio sur un mélange) ---
+  const entrees: BienPourRatio[] = bauxPayants.map((r) => ({
+    designation: r.bien.designation,
+    type_bien: r.bien.type_bien,
+    meuble: r.bien.meuble,
+    surface_m2: r.bien.surface_m2,
+    valeur_venale: r.bien.valeur_venale,
+    baseMensuelle: r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0),
+    bailId: r.bail.id
+  }))
+  const segments = segmentsParType(entrees)
+  const suspectsList = suspects(segments)
   // Taux d'occupation : biens occupés (bail actif, payant ou gratuit) / total des biens
   const biensOccupes = locations.filter((r) => r.bail.actif).length
   const tauxOccupation = locations.length > 0 ? Math.round((biensOccupes / locations.length) * 100) : 0
@@ -186,13 +199,108 @@ export function Statistiques(): React.JSX.Element {
           couleur="text-amber-500"
         />
         <KpiCard
-          titre="Loyer moyen / m²"
-          valeur={formatEuro(Math.round(loyerM2Moyen * 100) / 100)}
-          detail="loyer CC ÷ surface louée"
+          titre="Baux loués"
+          valeur={String(bauxPayants.length)}
+          detail={`${surfaceLouee.toLocaleString('fr-FR')} m² loués — la moyenne €/m² globale est trompeuse, voir les segments`}
           icon={Ruler}
           couleur="text-teal-500"
         />
       </div>
+
+      {/* Segmentation par type (unités propres, médiane, dispersion) */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Loyers par segment (unités comparables)
+        </h2>
+        <div className="space-y-3">
+          {segments.map((seg) => (
+            <div
+              key={seg.type}
+              className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="font-semibold">
+                  {seg.type}{' '}
+                  <span className="text-xs font-normal text-slate-400">
+                    ({seg.n} bien{seg.n > 1 ? 's' : ''} ·{' '}
+                    {seg.unite === 'm2' ? '€/m²' : '€/emplacement'})
+                  </span>
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">
+                  {formatEuro(seg.loyersCc)}/mois · {seg.surface.toLocaleString('fr-FR')} m²
+                  {seg.rendementBrut !== null && (
+                    <span className="ml-2">· rendement brut {seg.rendementBrut} %</span>
+                  )}
+                </div>
+              </div>
+              {seg.n < 3 ? (
+                <p className="mt-2 text-xs text-slate-400">
+                  Trop peu de biens ({seg.n}) pour une moyenne fiable — comparer
+                  individuellement.
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
+                  <span>
+                    Médiane : <strong>{seg.med} {seg.unite === 'm2' ? '€/m²' : '€'}</strong>
+                  </span>
+                  <span>Q1–Q3 : {seg.q1} – {seg.q3}</span>
+                  <span>Min–Max : {seg.ratios[seg.ratios.length - 1].valeur} – {seg.ratios[0].valeur}</span>
+                </div>
+              )}
+              {seg.n >= 3 && (
+                <div className="mt-2 space-y-1">
+                  {seg.ratios.map((r) => {
+                    const ecart = seg.med ? Math.round((r.valeur / seg.med - 1) * 100) : 0
+                    return (
+                      <div key={r.bailId} className="flex items-center gap-2 text-xs">
+                        <span className="w-48 shrink-0 truncate">{r.designation}</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div
+                            className={`h-full rounded-full ${ecart < 0 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                            style={{ width: `${Math.min((r.valeur / (seg.ratios[0].valeur || 1)) * 100, 100)}%` }}
+                          />
+                        </div>
+                        <span
+                          className={`w-16 shrink-0 text-right ${ecart <= -15 ? 'font-semibold text-red-500' : 'text-slate-400'}`}
+                        >
+                          {ecart > 0 ? '+' : ''}{ecart} %
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Suspects : biens > 15 % sous la médiane de leur segment */}
+      {suspectsList.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+            Suspects — sous la médiane de leur segment de plus de 15 %
+          </h2>
+          <ul className="space-y-1.5">
+            {suspectsList.map((x) => (
+              <li
+                key={x.bailId}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-sm dark:border-amber-500/40 dark:bg-amber-500/10"
+              >
+                <span>
+                  <strong>{x.designation}</strong>{' '}
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    ({x.typeBien}) — {x.valeur} vs médiane {x.medianeSegment} ({x.ecartPct} %)
+                  </span>
+                </span>
+                <span className="font-semibold text-amber-700 dark:text-amber-300">
+                  manque à gagner : {formatEuro(x.manqueAGagnerAnnuel)}/an
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Patrimoine & rentabilité */}
       <section>

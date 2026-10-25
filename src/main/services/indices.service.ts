@@ -27,9 +27,17 @@ const TITRES: Record<TypeIndice, string> = {
  * Endpoint SDMX public : https://bdm.insee.fr/series/sdmx/data/SERIES_BDM/<id>
  */
 export async function recupererIndices(type: TypeIndice): Promise<IndicesResult> {
+  return fetchIndices(type, `${new Date().getFullYear() - 3}-Q1`)
+}
+
+/** Historique complet depuis 2004 (pour le simulateur de rattrapage IRL). */
+export async function fetchIndices(
+  type: TypeIndice,
+  startPeriod: string
+): Promise<IndicesResult> {
   const url =
     `https://bdm.insee.fr/series/sdmx/data/SERIES_BDM/${SERIES[type]}` +
-    `?startPeriod=${new Date().getFullYear() - 3}-Q1`
+    `?startPeriod=${startPeriod}`
 
   try {
     const controller = new AbortController()

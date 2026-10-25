@@ -170,7 +170,9 @@ const api = {
   // ---- Indices INSEE (IRL / ICC) ----
   indices: {
     fetch: (type: string): Promise<IpcResult<unknown>> =>
-      ipcRenderer.invoke('indices:fetch', type)
+      ipcRenderer.invoke('indices:fetch', type),
+    history: (type: string): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('indices:history', type)
   },
 
   // ---- Email (SMTP) ----

@@ -11,6 +11,23 @@
 
 ## 🔜 À faire — priorisé
 
+### ✅ Livré en v1.10.0 — « Statistiques 2.0 & Simulateur » (spec du 25/10/2026)
+- **Segmentation par type** avec unités propres (€/m² logements, €/emplacement
+  garages), médiane/Q1-Q3/min-max par segment, effectifs affichés, et
+  « trop peu de biens » si n < 3 (principes R1/R2/R3 de la spec) — le KPI
+  trompeur « loyer moyen / m² global » (6,37 €) a été supprimé
+- **Liste des suspects** : biens > 15 % sous la médiane de leur segment, triés
+  par manque à gagner annuel
+- **Simulateur A — rattrapage IRL** : « et si j'avais révisé chaque année
+  depuis X » avec IRL réelle INSEE (historique complet depuis 2004) ou taux
+  fixe, arrondi au centime à chaque révision, garde-fou juridique affiché en
+  grand (renonciation passée, pas une créance)
+- **Seuil micro-BIC vs réel (LMNP)** : pour chaque bien meublé, charges
+  déductibles vs seuil de bascule 50 % des recettes, avec note sur
+  l'amortissement (hors périmètre : rend le réel encore plus favorable)
+- Moteur de scénario **pur et testé** (`shared/stats.ts`) : 19 tests, dont
+  identité à taux nul, monotonicité, arrondi légal, IRL manquant
+
 ### Correctifs techniques (issue de l'audit externe, causes racines traitées)
 - [ ] 🗃️ **Table IRL embarquée** (hexagone/Corse/COM, trimestres 2005→) :
   choix du trimestre par liste dans la révision, validation « même trimestre un
@@ -19,6 +36,15 @@
   par bail via le bouton INSEE.
 - [ ] 🖥️ **Décompte « reçu » distinct de la quittance** pour paiements partiels
   (une quittance atteste un paiement intégral — art. 21, loi de 1989)
+- [ ] 🗃️ **Table `baux_revisions`** (historique des révisions : date, ancien
+  loyer, IRL ref/nouveau, taux) — prérequis pour comparer théorique vs réellement
+  appliqué dans le simulateur (cf. spec « Statistiques 2.0 » §6, point le plus
+  structurant)
+- [ ] 🗃️ **Table `emprunts`** (capital, taux, échéance) — prérequis d'un
+  cash-flow/TRI honnête si tu as des crédits (modèle C de la spec, à traiter
+  seulement quand ce sera réel)
+- [ ] 🖥️ **Modèle B complet de la spec** : clé de répartition de charges
+  (surface/tantièmes), impact du passage provisionnel ↔ forfaitaire
 - [ ] 🖥️ **Bouton « Auditer mes données »** : adresses vides, doublons de
   locataires, IRL suspects, loyers annuels incohérents — aucune concurrent ne
   l'a, diffrenciant

@@ -6,6 +6,7 @@ import {
   Wallet,
   FolderOpen,
   BarChart3,
+  Calculator,
   Coins,
   Scale,
   Settings
@@ -19,6 +20,7 @@ const liens = [
   { to: '/quittances', label: 'Quittances', icon: Receipt },
   { to: '/documents', label: 'Documents', icon: FolderOpen },
   { to: '/statistiques', label: 'Statistiques', icon: BarChart3 },
+  { to: '/simulateur', label: 'Simulateur', icon: Calculator },
   { to: '/depenses', label: 'Dépenses', icon: Coins },
   { to: '/regularisation', label: 'Régularisation', icon: Scale },
   { to: '/parametres', label: 'Paramètres', icon: Settings }

@@ -144,6 +144,14 @@ export const ipc = {
       }>)
   },
   indices: {
+    fetchHistory: (
+      type: 'IRL' | 'ICC'
+    ): Promise<{ valeurs: { periode: string; valeur: number }[]; erreur: string | null }> =>
+      unwrap(window.api.indices.history(type) as Promise<{
+        ok: boolean
+        data?: { valeurs: { periode: string; valeur: number }[]; erreur: string | null }
+        error?: string
+      }>),
     fetch: (
       type: 'IRL' | 'ICC'
     ): Promise<{
