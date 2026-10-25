@@ -149,6 +149,15 @@ export function Paiements(): React.JSX.Element {
     partiel: { pointer: 'Marquer partiel', annuler: 'Annuler le pointage partiel' }
   }
 
+  const adressesUniquesParBail = new Map(
+    locations.map((r) => {
+      const parties = [r.bien.adresse, r.bien.code_postal, r.bien.ville]
+        .filter((x, i, tab) => x && x !== r.bien.designation && tab.indexOf(x) === i)
+      const valeur = parties.join(', ')
+      return [r.bail.id, valeur !== '' && valeur !== r.bien.designation ? valeur : null]
+    })
+  )
+
   const boutonStatut = (
     r: { bail: { id: number } },
     statut: StatutPaiement,
@@ -247,13 +256,22 @@ export function Paiements(): React.JSX.Element {
               return (
                 <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2">
-                    <div className="font-medium">
-                      <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                        {r.bien.type_bien}
-                      </span>
-                      {r.bien.designation}
+                    <div className="flex items-baseline justify-between gap-3">
+                      <div className="font-medium">
+                        <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          {r.bien.type_bien}
+                        </span>
+                        {r.bien.designation}
+                      </div>
+                      <div className="shrink-0 text-sm font-medium text-slate-300 dark:text-slate-200">
+                        {r.locataire.nom_complet}
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-400">{r.locataire.nom_complet}</div>
+                    {adressesUniquesParBail.get(r.bail.id) && (
+                      <div className="text-xs text-slate-400">
+                        {adressesUniquesParBail.get(r.bail.id)}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-right font-medium">
                     {formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}

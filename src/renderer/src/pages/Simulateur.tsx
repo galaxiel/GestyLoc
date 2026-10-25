@@ -77,11 +77,14 @@ export function Simulateur(): React.JSX.Element {
   const typesParBail = new Map(
     locations.map((r) => [r.bail.id, r.bien.type_bien])
   )
-  const adressesParBail = new Map(
-    locations.map((r) => [
-      r.bail.id,
-      [r.bien.adresse, r.bien.ville].filter(Boolean).join(', ')
-    ])
+  const adressesUniquesParBail = new Map(
+    locations.map((r) => {
+      // On dédoublonne : adresse/ville identiques à la désignation = redondants
+      const parties = [r.bien.adresse, r.bien.code_postal, r.bien.ville]
+        .filter((x, i, tab) => x && x !== r.bien.designation && tab.indexOf(x) === i)
+      const valeur = parties.join(', ')
+      return [r.bail.id, valeur !== '' && valeur !== r.bien.designation ? valeur : null]
+    })
   )
 
   const totalDeltaAn = Math.round(
@@ -190,15 +193,22 @@ export function Simulateur(): React.JSX.Element {
               {tries.map((r) => (
                 <tr key={r.bailId} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2">
-                    <div className="font-medium">
-                      <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                        {typesParBail.get(r.bailId)}
-                      </span>
-                      {r.designation}
+                    <div className="flex items-baseline justify-between gap-3">
+                      <div className="font-medium">
+                        <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          {typesParBail.get(r.bailId)}
+                        </span>
+                        {r.designation}
+                      </div>
+                      <div className="shrink-0 text-sm font-medium text-slate-300 dark:text-slate-200">
+                        {r.locataire}
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-400">
-                      {r.locataire} · {adressesParBail.get(r.bailId) ?? '—'}
-                    </div>
+                    {adressesUniquesParBail.get(r.bailId) && (
+                      <div className="text-xs text-slate-400">
+                        {adressesUniquesParBail.get(r.bailId)}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-right">{formatEuro(r.loyerActuel)}</td>
                   <td className="px-4 py-2 text-right font-medium">{formatEuro(r.loyerSimule)}</td>
