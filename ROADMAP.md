@@ -184,17 +184,27 @@
   + `ON CONFLICT DO UPDATE`, testé anti-doublon dès l'étape BDD (et re-testé)
 - « Sauvegarde sans checkpoint WAL » : **FAUX** — `wal_checkpoint(TRUNCATE)` avant copie
 
+### ✅ Corrigé aussi en v1.9.0 (audit relui avec accès au dépôt — causes racines)
+- **Import** : champs DÉRIVÉS recalculés (loyer_cc, annuels = mensuel × 12 arrondi
+  au centime, loyer/m², taux IRL = paire) au lieu de recopier le tableur (P1-4)
+- **Import** : adresse + ville déduites de la désignation quand elle contient un
+  n° de rue (P1-5/P1-6, cause racine des quittances sans adresse)
+- **Formulaire** : trimestre de référence en LISTE (T1-T4 + année) au lieu du texte
+  libre qui donnait « 3emetrimestre 2012 » (P2-13) ; taux IRL VERROUILLÉ, toujours
+  recalculé de la paire référence/nouveau (P1-2)
+- **Paiements** : statut « Partiel » exposé avec saisie du montant reçu (P2-11) —
+  le statut existait en base mais l'UI ne le proposait pas
+- **Rattrapage des données existantes** (avec sauvegarde préalable) : 15 loyers
+  annuels recalculés, 15 adresses remplies — vérifié : bail 452 € → 5 424/5 616 €
+
 ### 📋 À planifier (issues de l'audit, validées)
-- [ ] 🗃️ **Table IRL embarquée** (hexagone/Corse/COM, trimestres 2005→) + choix du
-  trimestre par liste + validation « même trimestre un an plus tard » + revalidation
-  des valeurs importées (144,51→145,78 n'est pas une paire annuelle légale)
-- [ ] 🖥️ **Reçu pour paiement partiel** (distinct de la quittance, art. 21)
-- [ ] 🖥️ **Contrôle d'intégrité des données** (« Auditer mes données ») : adresses vides,
-  doublons, IRL suspects, loyers annuels incohérents avec le mensuel — transforme les
-  bugs de données importées en diagnostic
-- [ ] 🗃️ **Recalcul/normalisation des loyers annuels importés** (une seule base :
-  annuel = mensuel × 12, arrondi 2 décimales) + contrôle au chargement
-- [ ] Trimestre de référence en liste déroulante (trimestre + année) au lieu du texte libre
+- [ ] 🗃️ **Table IRL embarquée** (hexagone/Corse/COM, trimestres 2005→) avec
+  validation « même trimestre un an plus tard » et revalidation des valeurs
+  importées (144,51→145,78 n'est pas une paire annuelle légale — à corriger dans
+  chaque fiche bail via l'outil INSEE)
+- [ ] 🖥️ **Décompte PDF « reçu » distinct de la quittance** pour paiements partiels
+- [ ] 🖥️ **Contrôle d'intégrité des données** (« Auditer mes données ») : adresses
+  vides, doublons, IRL suspects, loyers annuels incohérents
 - [ ] 🖥️ Compteurs cohérents « X biens loués + Y occupation gratuite » (surface/nombre)
 - [ ] Formulaire Nouveau bail : footer d'action fixe (hauteur fenêtre)
 - [ ] P3 : décimales sur « % du mois », slug ASCII des fichiers de quittance,

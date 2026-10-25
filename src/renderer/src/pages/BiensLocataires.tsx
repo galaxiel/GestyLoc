@@ -27,7 +27,8 @@ interface FormState {
   // Bail
   date_debut_bail: string
   date_fin_bail: string
-  trimestre_reference: string
+  trimestre_ref_num: string
+  trimestre_ref_annee: string
   loyer_hc: string
   charges: string
   loyer_metre_carre_hc: string
@@ -57,7 +58,8 @@ const FORM_VIDE: FormState = {
   telephone: '',
   date_debut_bail: '',
   date_fin_bail: '',
-  trimestre_reference: '',
+  trimestre_ref_num: '',
+  trimestre_ref_annee: '',
   loyer_hc: '',
   charges: '',
   loyer_metre_carre_hc: '',
@@ -187,7 +189,14 @@ export function BiensLocataires(): React.JSX.Element {
       telephone: row.locataire.telephone ?? '',
       date_debut_bail: row.bail.date_debut_bail ?? '',
       date_fin_bail: row.bail.date_fin_bail ?? '',
-      trimestre_reference: row.bail.trimestre_reference ?? '',
+      trimestre_ref_num: (() => {
+        const m = (row.bail.trimestre_reference ?? '').match(/[1234]/)
+        return m ? m[0] : ''
+      })(),
+      trimestre_ref_annee: (() => {
+        const m = (row.bail.trimestre_reference ?? '').match(/(19|20)\d{2}/)
+        return m ? m[0] : ''
+      })(),
       loyer_hc: row.bail.loyer_hc?.toString() ?? '',
       charges: row.bail.charges?.toString() ?? '',
       loyer_metre_carre_hc: row.bail.loyer_metre_carre_hc?.toString() ?? '',
@@ -234,7 +243,10 @@ export function BiensLocataires(): React.JSX.Element {
         locataire_id: 0,
         date_debut_bail: str(form.date_debut_bail),
         date_fin_bail: str(form.date_fin_bail),
-        trimestre_reference: str(form.trimestre_reference),
+        trimestre_reference:
+          form.trimestre_ref_num && form.trimestre_ref_annee
+            ? `T${form.trimestre_ref_num} ${form.trimestre_ref_annee}`
+            : null,
         loyer_hc: num(form.loyer_hc),
         charges: num(form.charges),
         loyer_cc:
@@ -249,7 +261,14 @@ export function BiensLocataires(): React.JSX.Element {
             : null,
         irl_reference: num(form.irl_reference),
         irl_nouveau: num(form.irl_nouveau),
-        taux_irl: num(form.taux_irl),
+        // Taux TOUJOURS recalculé de la paire (jamais saisi) :
+        taux_irl: (() => {
+          const ref = num(form.irl_reference)
+          const nouv = num(form.irl_nouveau)
+          return ref && nouv && ref > 0
+            ? Math.round((nouv / ref - 1) * 100000) / 1000
+            : null
+        })(),
         nouveau_loyer_hc: num(form.nouveau_loyer_hc),
         frais_agence: num(form.frais_agence),
         actif: form.actif,
@@ -643,13 +662,33 @@ export function BiensLocataires(): React.JSX.Element {
                   onChange={(e) => setForm({ ...form, date_fin_bail: e.target.value })}
                 />
               </Field>
-              <Field label="Trimestre référence">
-                <input
-                  className={inputCls}
-                  value={form.trimestre_reference}
-                  onChange={(e) => setForm({ ...form, trimestre_reference: e.target.value })}
-                  placeholder="ex : T3 2023"
-                />
+              <Field label="Trimestre de référence IRL">
+                <div className="flex gap-1">
+                  <select
+                    value={form.trimestre_ref_num}
+                    onChange={(e) => setForm({ ...form, trimestre_ref_num: e.target.value })}
+                    className={inputCls}
+                  >
+                    <option value="">T…</option>
+                    {['1', '2', '3', '4'].map((t) => (
+                      <option key={t} value={t}>
+                        T{t}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={form.trimestre_ref_annee}
+                    onChange={(e) => setForm({ ...form, trimestre_ref_annee: e.target.value })}
+                    className={inputCls}
+                  >
+                    <option value="">Année…</option>
+                    {Array.from({ length: 22 }, (_, i) => String(2026 - i)).map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </Field>
               <Field label="Bail actif">
                 <label className="flex h-[34px] items-center gap-2 text-sm">
@@ -747,13 +786,14 @@ export function BiensLocataires(): React.JSX.Element {
                   onChange={(e) => setForm({ ...form, irl_nouveau: e.target.value })}
                 />
               </Field>
-              <Field label="Taux IRL (%)">
+              <Field label="Taux IRL (%) — calculé">
                 <input
-                  className={inputCls}
+                  className={`${inputCls} bg-slate-50 dark:bg-slate-800`}
                   type="number"
-                  step="0.01"
+                  step="0.001"
                   value={form.taux_irl}
-                  onChange={(e) => setForm({ ...form, taux_irl: e.target.value })}
+                  disabled
+                  title="Recalculé automatiquement à partir des IRL de référence et nouveau"
                 />
               </Field>
               <Field label="Nouveau loyer HC (€)">

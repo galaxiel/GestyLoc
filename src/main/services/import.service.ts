@@ -96,7 +96,7 @@ export async function commitImport(): Promise<ImportResult> {
   const lignes = parseCsv(contenu)
 
   const insBien = db.prepare(
-    'INSERT INTO biens (type_bien, designation, surface_m2, meuble) VALUES (?,?,?,?)'
+    'INSERT INTO biens (type_bien, designation, surface_m2, meuble, adresse, ville) VALUES (?,?,?,?,?,?)'
   )
   const insLoc = db.prepare('INSERT INTO locataires (nom_complet) VALUES (?)')
   const insBail = db.prepare(
@@ -125,11 +125,16 @@ export async function commitImport(): Promise<ImportResult> {
         (t) => t.toLowerCase() === typeBrut.toLowerCase()
       ) ?? 'Autre') as TypeBien
 
+      // Heuristique adresse : si la désignation contient un chiffre (n° de rue),
+      // on la réutilise comme adresse (le tableur confondait souvent les deux).
+      const contientNumero = /\d/.test(id)
       const bienId = insBien.run(
         type,
         id,
         frNombre(l[8]),
-        /true/i.test(l[7] ?? '') ? 1 : 0
+        /true/i.test(l[7] ?? '') ? 1 : 0,
+        contientNumero ? id : null,
+        contientNumero ? id : null
       ).lastInsertRowid as number
 
       let locId = locatairesIds.get(locataire)
@@ -140,6 +145,14 @@ export async function commitImport(): Promise<ImportResult> {
 
       const hc = frNombre(l[10])
       const charges = frNombre(l[11])
+      const surface = frNombre(l[8])
+      const cc = hc !== null ? Math.round((hc + (charges ?? 0)) * 100) / 100 : null
+      // Champs DÉRIVÉS recalculés (jamais recopiés du tableur) :
+      const arrondi = (v: number | null): number | null =>
+        v !== null ? Math.round(v * 100) / 100 : null
+      const annuelHc = arrondi(hc !== null ? hc * 12 : null)
+      const annuelCc = arrondi(cc !== null ? cc * 12 : null)
+      const loyerM2 = arrondi(hc !== null && surface ? hc / surface : null)
       insBail.run(
         bienId,
         locId,
@@ -148,13 +161,20 @@ export async function commitImport(): Promise<ImportResult> {
         (l[6] ?? '').trim() || null,
         hc,
         charges,
-        frNombre(l[12]) ?? (hc !== null ? hc + (charges ?? 0) : null),
-        frNombre(l[9]),
-        frNombre(l[18]),
-        frNombre(l[19]),
+        cc,
+        loyerM2,
+        annuelHc,
+        annuelCc,
         frNombre(l[13]),
         frNombre(l[14]),
-        frNombre(l[15]),
+        // Taux recalculé de la paire IRL (jamais recopié)
+        (() => {
+          const ref = frNombre(l[13])
+          const nouv = frNombre(l[14])
+          return ref && nouv && ref > 0
+            ? Math.round((nouv / ref - 1) * 100000) / 1000
+            : null
+        })(),
         frNombre(l[16]),
         frNombre(l[20]),
         1,

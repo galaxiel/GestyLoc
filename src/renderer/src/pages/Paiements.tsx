@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Check, X, Clock, Loader2 } from 'lucide-react'
+import { Check, X, Clock, Loader2, Coins } from 'lucide-react'
 import type { StatutPaiement, Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -57,12 +57,19 @@ export function Paiements(): React.JSX.Element {
     return { attendu, encaisse, nbPayes, nbRetards }
   }, [bauxPayants, paiements, periode])
 
-  const pointer = async (bailId: number, statut: StatutPaiement): Promise<void> => {
+  const pointer = async (
+    bailId: number,
+    statut: StatutPaiement,
+    montantForce?: number
+  ): Promise<void> => {
     const row = bauxPayants.find((r) => r.bail.id === bailId)
     if (!row) return
     setSaving(bailId)
     try {
-      const loyerCc = row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
+      const loyerCc =
+        montantForce ??
+        row.bail.loyer_cc ??
+        (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
       const existant = statutDe(bailId)
       await ipc.paiements.upsert({
         bail_id: bailId,
@@ -77,6 +84,23 @@ export function Paiements(): React.JSX.Element {
     } finally {
       setSaving(null)
     }
+  }
+
+  const pointerPartiel = async (bailId: number): Promise<void> => {
+    const row = bauxPayants.find((r) => r.bail.id === bailId)
+    if (!row) return
+    const attendu = row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
+    const saisie = prompt(
+      `Montant reçu de ${row.locataire.nom_complet} pour ${periode} (attendu : ${attendu.toFixed(2)} €) :`,
+      ''
+    )
+    if (saisie === null) return
+    const montant = parseFloat(saisie.replace(',', '.'))
+    if (isNaN(montant) || montant <= 0) {
+      alert('Montant invalide — pointage annulé.')
+      return
+    }
+    await pointer(bailId, montant >= attendu ? 'paye' : 'partiel', Math.round(montant * 100) / 100)
   }
 
   const depointer = async (bailId: number): Promise<void> => {
@@ -227,6 +251,18 @@ export function Paiements(): React.JSX.Element {
                   <td className="px-4 py-2">
                     <div className="flex justify-end gap-1">
                       {boutonStatut(r, 'paye', Check, 'bg-emerald-600 text-white hover:bg-emerald-700')}
+                      <button
+                        onClick={() => void pointerPartiel(r.bail.id)}
+                        title="Marquer partiel (saisir le montant reçu)"
+                        aria-label="Marquer partiel (saisir le montant reçu)"
+                        className={`rounded-lg p-1.5 transition-colors ${
+                          existant?.statut === 'partiel'
+                            ? 'bg-sky-600 text-white'
+                            : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <Coins className="h-4 w-4" />
+                      </button>
                       {boutonStatut(r, 'retard', Clock, 'bg-amber-500 text-white hover:bg-amber-600')}
                       {boutonStatut(r, 'impaye', X, 'bg-red-600 text-white hover:bg-red-700')}
                     </div>
@@ -246,8 +282,9 @@ export function Paiements(): React.JSX.Element {
       </div>
 
       <p className="text-xs text-slate-400">
-        Clique sur ✓ (payé), ⏱ (en retard) ou ✕ (impayé) pour pointer chaque bail du
-        mois choisi. Re-cliquer sur le même bouton annule le pointage. Les occupations
+        Clique sur ✓ (payé), 💶 (partiel — saisir le montant reçu), ⏱ (en retard) ou
+        ✕ (impayé) pour pointer chaque bail du mois choisi. Re-cliquer sur le même
+        bouton annule le pointage. Les occupations
         gratuites n'apparaissent pas. L'historique complet de chaque bail est dans sa
         fiche détaillée.
       </p>
