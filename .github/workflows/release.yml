@@ -1,12 +1,10 @@
 # Publication automatique d'une release GitHub à chaque push de tag v*.
 # L'updater de l'app installée lira alors latest.yml + le .exe de la release.
 #
-# Usage :
-#   git tag v1.0.1
-#   git push origin v1.0.1
-# -> le workflow build l'installeur NSIS et crée une DRAFT release
-#    (releaseType: draft dans electron-builder.yml) : va sur GitHub, relis-la,
-#    ajoute les notes de version, puis "Publish".
+# NB : on n'utilise PAS electron-builder --publish — son éditeur GitHub crée
+# parfois deux drafts en parallèle (bug connu) et perd le .blockmap. À la
+# place : build local, puis création de la draft + upload déterministes
+# (4 fichiers vérifiés, sinon le workflow échoue).
 name: Release
 
 on:
@@ -30,12 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build & publish draft release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build && npx electron-builder --win nsis --publish always
+      - name: Build
+        run: npm run build && npx electron-builder --win nsis
 
-      - name: Zip portable (exe dans un dossier extrait tel quel)
+      - name: Zip portable (app complète + marqueur, extrait tel quel)
         shell: pwsh
         run: |
           New-Item -ItemType Directory "dist/GestyLoc-portable" -Force | Out-Null
@@ -43,8 +39,27 @@ jobs:
           New-Item -ItemType File "dist/GestyLoc-portable/PORTABLE" -Force | Out-Null
           Compress-Archive -Path "dist/GestyLoc-portable" -DestinationPath "dist/GestyLoc-portable.zip" -Force
 
-      - name: Upload du zip portable vers la release
+      - name: Créer la draft release et uploader les 4 fichiers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
-        run: gh release upload ($env:GITHUB_REF -replace 'refs/tags/','') "dist/GestyLoc-portable.zip" --clobber
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:GITHUB_REF -replace 'refs/tags/',''
+          $ver = $tag.TrimStart('v')
+
+          if (-not (gh release view $tag 2>$null)) {
+            gh release create $tag --draft --title $ver --generate-notes
+          }
+
+          $fichiers = @(
+            "dist/gestyloc-$ver-setup.exe",
+            "dist/gestyloc-$ver-setup.exe.blockmap",
+            "dist/GestyLoc-portable.zip",
+            "dist/latest.yml"
+          )
+          foreach ($f in $fichiers) {
+            if (-not (Test-Path $f)) { throw "FICHIER MANQUANT : $f" }
+          }
+          gh release upload $tag $fichiers --clobber
+          Write-Host "4 fichiers uploadés sur la draft $tag"
