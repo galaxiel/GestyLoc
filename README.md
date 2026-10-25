@@ -44,6 +44,12 @@ redémarrage. Vous n'avez rien à faire.
 
 **Configuration requise** : Windows 10/11 (64 bits). Aucune autre dépendance.
 
+> **Deux formats disponibles** : l'**installateur** (`gestyloc-x.y.z-setup.exe`,
+> recommandé : raccourci bureau, mises à jour automatiques) et la **version
+> portable** (`GestyLoc-x.y.z-portable.exe`, marquée « portable » : aucune
+> installation, et toutes vos données dans un dossier `donnees` à côté du
+> fichier — transportable sur clé USB).
+
 ## 🔒 Vos données
 
 Les données sont stockées dans `%APPDATA%\gestyloc\data\app.db` sur votre PC.

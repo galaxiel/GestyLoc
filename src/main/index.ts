@@ -7,6 +7,20 @@ import { runMigrations } from './database/migrate'
 import { registerDatabaseHandlers } from './database/ipc'
 import icon from '../../resources/icon.png?asset'
 
+// ============================================================================
+// MODE PORTABLE : quand l'app est lancée depuis le .exe portable, Electron
+// définit PORTABLE_EXECUTABLE_DIR. Dans ce cas, toutes les données (BDD,
+// documents, sauvegardes) vivent dans un dossier "donnees" À CÔTÉ du .exe —
+// la version est alors vraiment transportable (clé USB), sans toucher AppData.
+// En version installée, on garde le comportement standard (AppData).
+// ============================================================================
+if (process.env.PORTABLE_EXECUTABLE_DIR) {
+  app.setPath(
+    'userData',
+    join(process.env.PORTABLE_EXECUTABLE_DIR, 'donnees')
+  )
+}
+
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): BrowserWindow {
