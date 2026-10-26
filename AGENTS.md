@@ -53,15 +53,19 @@ src/main/          Processus principal Node.js (jamais de React ici)
     migrate.ts     Runner de migrations (imports ?raw des .sql, ordre strict)
     migrations/    Fichiers SQL numérotés 0001_init.sql, ...
     ipc.ts         Registre central de TOUS les handlers IPC
-  repositories/    1 fichier par entité (bien, locataire, bail, paiement)
-  services/        Logique métier (alertes, documents, quittances)
+  repositories/    1 fichier par entité (bien, locataire, bail, paiement,
+                   dépense, régularisation, paramètres)
+  services/        Logique métier : alertes, documents, quittances,
+                   indices (INSEE), email (SMTP/nodemailer), reçu (partiel),
+                   audit (contrôle d'intégrité), import, données
 
 src/preload/       Pont contextBridge : définit window.api (l'unique surface
                    d'appel renderer → main). Typé via index.d.ts.
 
 src/renderer/      Application React (HashRouter)
   pages/           1 page = 1 module (Dashboard, BiensLocataires, BailDetail,
-                   Paiements, Quittances, Documents, Statistiques, Parametres)
+                   BienDetail, Paiements, Quittances, Documents, Statistiques,
+                   Simulateur, Depenses, Regularisation, Parametres)
   hooks/useStore.tsx  Store central : locations + alertes + refresh()
   lib/ipc.ts       Client typé : déballe {ok, data|error} en exceptions
   lib/format.ts    Formatage fr-FR (euros, dates, périodes)
@@ -128,7 +132,7 @@ npm run db:generate  # génère une migration depuis schema.ts (drizzle-kit)
 ```
 
 Les tests vitest (`npm test`, dossier `tests/`) couvrent les utilitaires purs
-de `shared/csv.ts` (parsers CSV / formats français) — 11 tests. Ils tournent
+de `shared/csv.ts` et `shared/stats.ts` — 19 tests. Ils tournent
 sur Node pur : ne les fais PAS importer des modules qui chargent
 better-sqlite3 (incompatibilité de moteur, voir §2 et la section
 « Problématique du harnais de test » de ROADMAP.md). Pour fumer-tester un
@@ -152,14 +156,15 @@ Electron), puis supprimer le script.
   drafts dupliquées : script générique documenté dans CONTRIBUTING §« Vérifie
   les assets » (télécharger blockmap orphelin, re-uploader, supprimer).
 
-### Bug connu d'electron-builder (v26.15.3)
+### Publication (depuis v1.12.1 : déterministe, plus de bug de drafts)
 
-Lors de la publication via Actions, il arrive qu'il crée **deux draft
-releases** (course à l'upload) : une avec l'exe + `latest.yml`, une avec
-seulement le `.blockmap`. Correction : déplacer le blockmap dans la release
-complète (download + re-upload via API GitHub avec le bon nom de fichier) et
-supprimer la draft orpheline. Une release valide = **exactement 3 assets** :
-`gestyloc-X.Y.Z-setup.exe`, `gestyloc-X.Y.Z-setup.exe.blockmap`, `latest.yml`.
+Le workflow ne passe PLUS par `electron-builder --publish` (bug : créait deux
+drafts et perdait le blockmap). Il build avec `--publish never`, zippe
+l'app complète + un marqueur PORTABLE (le zip portable détecte ce marqueur
+au démarrage : données dans un dossier `donnees` à côté de l'exe), puis
+crée UN draft et upload 4 fichiers vérifiés (échec explicite si un manque) :
+`GestyLoc-X.Y.Z-setup.exe` + `.blockmap` + `GestyLoc-X.Y.Z-portable.zip` +
+`latest.yml`. L'exe portable autonome a été supprimé (décision utilisateur).
 
 ### Autre piège
 
@@ -242,20 +247,42 @@ payload d'UPDATE → `FOREIGN KEY constraint failed`. Règle : **les clés
 étrangères ne changent jamais en édition** — les exclure du payload
 (`const { bien_id, locataire_id, ...champs } = input`). Idem pour toute
 nouvelle table avec FK.
-- **Version portable** (cible electron-builder `portable`)
+- **Statistiques 2.0 + Simulateur** (v1.10-1.11) : segmentation par type
+  avec unités propres (€/m² logements, €/emplacement garages), médiane/
+  quartiles, liste des suspects (> 15 % sous la médiane), simulateur de
+  rattrapage IRL (INSEE réel ou taux fixe), seuil micro-BIC vs réel (LMNP)
+- **Quittance refondue** (v1.14) : adresses complètes bailleur (profil
+  structuré rue/CP/ville) et locataire (migration 0009), « bien » au lieu de
+  « logement », formulation non genrée, « Fait à » prérempli, sans signature
+- **Références de quittances** (v1.15) : QUITT-{AAAA}{MM}-{ID_BAIL}
+  (`shared/quittance-ref.ts`), sur le PDF (haut droite), colonne historique,
+  objet des emails, export quittances.csv (migration 0010 rétro-appliquée)
+- **Emails** : envoi individuel + EN GROUPE des quittances (bouton Envoyer
+  tout), email de demande d'attestation d'assurance (fiche bail)
+- **Menu quittances complet** : tous les baux listés (marqueur ✓ payé /
+  loyer non pointé) + confirmation art. 21 si génération sans pointage
+- **Alertes** : assurance à demander (30 j avant l'anniversaire du bail)
+
+### 🚨 Pièges runtime à connaître
+- **`window.prompt()` n'existe PAS dans Electron** — toute saisie se fait
+  par un modal React (le bug « marquer partiel » venait de là)
+- **Clés étrangères** : jamais envoyées dans un UPDATE (le formulaire de
+  bail envoyait `bien_id: 0` → FOREIGN KEY constraint failed, bug v1.0-v1.12)
+- **Anti-ré-application IRL** : après application, la sélection est
+  réinitialisée ; un IRL nouveau déjà enregistré est refusé (sinon chaque
+  clic ré-incrémentait la révision)
 
 ## 9. Prochaines étapes
 
-Lire `ROADMAP.md` (source de vérité), en particulier la section
-« V3.5 — Audit externe » (triage complet). Restants :
-- Table IRL embarquée avec validation de la paire annuelle (les IRL importées
-  de l'utilisateur ne forment pas une paire légale — à corriger bail par bail
-  via le bouton INSEE)
-- Décompte « reçu » distinct pour paiements partiels
-- Bouton « Auditer mes données » (contrôle d'intégrité)
-- Vagues produit optionnelles : bail pré-rempli, relances, état des lieux,
-  SEPA/portail — nécessitent une décision sur la cible
-- Chiffrement : abandonné ; multi-profils : piste ouverte
+Lire `ROADMAP.md` (source de vérité). Restants :
+- Corriger les IRL des 15-16 baux importés (paires non légales héritées du
+  tableur — l'outil embarqué de la fiche bail le fait en 2 min chacun)
+- Avis d'échéance (document distinct, souhait de l'UIA)
+- Traçage des demandes d'assurance envoyées
+- Compteurs cohérents loués/gratuits, recherche globale, duplication de bail
+- Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing)
+- Vagues produit : bail pré-rempli, relances, état des lieux, SEPA/portail
+- Licence : PolyForm Noncommercial (usage commercial réservé au SAS projet)
 
 ## 10. Environnement humain
 

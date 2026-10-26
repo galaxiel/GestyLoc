@@ -131,6 +131,16 @@ Nécessite un token GitHub avec droit `repo` (voir `.env.example`) :
 GH_TOKEN=ton_token npx electron-builder --win --publish always
 ```
 
+## Points spécifiques
+
+- **Tests** : `npm test` (vitest) — 19 tests sur les utilitaires partagés
+- **Table IRL** : `shared/irl-insee.ts` est régénérée automatiquement chaque
+  trimestre par le workflow `update-irl.yml` (script : `scripts/update-irl.py`)
+- **Migrations** : fichiers SQL numérotés `0001` → `0010`, appliqués au
+  démarrage de l'app (détails : `AGENTS.md` §5)
+- **Pièges runtime** : `window.prompt()` inexistant dans Electron ; clés
+  étrangères jamais envoyées en UPDATE (détails : `AGENTS.md` §8)
+
 ## Base de données
 
 Emplacement utilisateur : `%APPDATA%/gestyloc/data/app.db` (mode WAL).
