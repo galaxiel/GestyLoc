@@ -185,13 +185,29 @@ export function Quittances(): React.JSX.Element {
   // de la période choisie est POINTÉ « payé ». Une quittance atteste un
   // paiement intégral (art. 21, loi 1989) — jamais générée à l'aveugle.
   // (occupation gratuite = pas de quittance à établir)
-  const bauxActifs = locations.filter((r) => {
-    if (!r.bail.actif || r.bail.occupation_gratuite) return false
+  // Tous les baux actifs payants (dropdown individuel)
+  const bauxEligibles = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
+  // Ceux dont le loyer de la période est pointé « payé » (génération en lot)
+  const bauxPayes = bauxEligibles.filter((r) => {
     const p = paiementsList.find((x) => x.bail_id === r.bail.id && x.periode === periode)
     return p?.statut === 'paye'
   })
-  const nbEnAttente =
-    locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite).length - bauxActifs.length
+  const nbEnAttente = bauxEligibles.length - bauxPayes.length
+  /** Le bail sélectionné est-il pointé « payé » pour la période ? */
+  const estPaye = (bailId: number): boolean =>
+    bauxPayes.some((r) => r.bail.id === bailId)
+  /**
+   * Garde-fou art. 21 : une quittance atteste un paiement intégral.
+   * Si le loyer n'est pas pointé « payé », on prévient et on demande confirmation.
+   */
+  const confirmerSiNonPaye = (r: (typeof bauxEligibles)[number]): boolean => {
+    if (estPaye(r.bail.id)) return true
+    return confirm(
+      `Le loyer de ${r.locataire.nom_complet} pour ${periode} n'est pas pointé « payé ».\n\n` +
+        'Une quittance atteste un paiement intégral (art. 21 de la loi de 1989) — pour un paiement partiel, délivrez un reçu.\n\n' +
+        'Générer quand même ?'
+    )
+  }
 
   const row = locations.find((r) => r.bail.id === Number(bailId))
 
@@ -204,7 +220,7 @@ export function Quittances(): React.JSX.Element {
       .replace(/^_|_$/g, '')
 
   const generer = async (): Promise<void> => {
-    if (!row) return
+    if (!row || !confirmerSiNonPaye(row)) return
     setEnCours(true)
     setMessage(null)
     try {
@@ -246,7 +262,7 @@ export function Quittances(): React.JSX.Element {
 
   /** Génère la quittance et l'envoie par email au locataire (SMTP configuré). */
   const envoyerAuLocataire = async (): Promise<void> => {
-    if (!row) return
+    if (!row || !confirmerSiNonPaye(row)) return
     if (!row.locataire.email) {
       setMessage('Ce locataire n’a pas d’adresse email — complète sa fiche (Biens & Locataires → Modifier).')
       return
@@ -303,7 +319,7 @@ ${bailleur?.nom_complet ?? ''}`,
 
   /** Ouvre le dialogue d'impression du système avec la quittance. */
   const imprimer = async (): Promise<void> => {
-    if (!row) return
+    if (!row || !confirmerSiNonPaye(row)) return
     setEnCours(true)
     try {
       const loyerHc = row.bail.loyer_hc ?? 0
@@ -340,11 +356,16 @@ ${bailleur?.nom_complet ?? ''}`,
 
   /** Génère les quittances de TOUS les baux payants pour le mois choisi. */
   const genererTout = async (): Promise<void> => {
-    if (bauxActifs.length === 0) return
+    if (bauxPayes.length === 0) {
+      setMessage(
+        `Aucun loyer pointé « payé » pour ${periode} — pointe d'abord les loyers dans Paiements.`
+      )
+      return
+    }
     const dossier = await ipc.quittances.chooseFolder()
     if (!dossier) return
 
-    setLot({ enCours: true, fait: 0, total: bauxActifs.length, erreurs: 0 })
+    setLot({ enCours: true, fait: 0, total: bauxPayes.length, erreurs: 0 })
     setMessage(null)
 
     const [annee, mois] = periode.split('-')
@@ -355,8 +376,8 @@ ${bailleur?.nom_complet ?? ''}`,
     const suffixe = `${annee}-${mois}`
 
     let erreurs = 0
-    for (let i = 0; i < bauxActifs.length; i++) {
-      const r = bauxActifs[i]
+    for (let i = 0; i < bauxPayes.length; i++) {
+      const r = bauxPayes[i]
       try {
         const doc = construireQuittance({
           bailleur: bailleur?.nom_complet || '________________',
@@ -380,15 +401,15 @@ ${bailleur?.nom_complet ?? ''}`,
       } catch {
         erreurs++
       }
-      setLot({ enCours: true, fait: i + 1, total: bauxActifs.length, erreurs })
+      setLot({ enCours: true, fait: i + 1, total: bauxPayes.length, erreurs })
     }
 
-    setLot({ enCours: false, fait: bauxActifs.length, total: bauxActifs.length, erreurs })
+    setLot({ enCours: false, fait: bauxPayes.length, total: bauxPayes.length, erreurs })
     void rechargerHistorique()
     setMessage(
       erreurs === 0
-        ? `${bauxActifs.length} quittances générées dans : ${dossier}`
-        : `${bauxActifs.length - erreurs}/${bauxActifs.length} quittances générées (${erreurs} erreur(s)) — dossier : ${dossier}`
+        ? `${bauxPayes.length} quittances générées dans : ${dossier}`
+        : `${bauxPayes.length - erreurs}/${bauxPayes.length} quittances générées (${erreurs} erreur(s)) — dossier : ${dossier}`
     )
   }
 
@@ -398,14 +419,14 @@ ${bailleur?.nom_complet ?? ''}`,
    * (non bloquants) dans le résumé.
    */
   const envoyerTout = async (): Promise<void> => {
-    if (bauxActifs.length === 0) return
+    if (bauxPayes.length === 0) return
 
     // Pré-vérification : qui a une adresse email ?
-    const avecEmail = bauxActifs.filter((r) => r.locataire.email)
-    const sansEmail = bauxActifs.filter((r) => !r.locataire.email)
+    const avecEmail = bauxPayes.filter((r) => r.locataire.email)
+    const sansEmail = bauxPayes.filter((r) => !r.locataire.email)
     if (avecEmail.length === 0) {
       setMessage(
-        `Aucun des ${bauxActifs.length} locataire(s) concerné(s) n'a d'adresse email renseignée — complète les fiches (Biens & Locataires).`
+        `Aucun des ${bauxPayes.length} locataire(s) concerné(s) n'a d'adresse email renseignée — complète les fiches (Biens & Locataires).`
       )
       return
     }
@@ -498,14 +519,14 @@ ${bailleur?.nom_complet ?? ''}`,
           <div>
             <h2 className="text-sm font-semibold">Toutes les quittances du mois</h2>
             <p className="text-xs text-slate-400">
-              {bauxActifs.length} quittance(s) possible(s) pour {periode} —{' '}
-              {nbEnAttente} bail(s) en attente de pointage « payé »
+              {bauxPayes.length} quittance(s) prête(s) pour {periode} (loyers pointés « payé ») —{' '}
+              {nbEnAttente} bail(s) en attente de pointage
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
             <button
               onClick={() => void genererTout()}
-              disabled={bauxActifs.length === 0 || lot.enCours}
+              disabled={bauxPayes.length === 0 || lot.enCours}
               title="Générer les PDF dans un dossier au choix"
               className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
             >
@@ -523,7 +544,7 @@ ${bailleur?.nom_complet ?? ''}`,
             {smtpConfigure && (
               <button
                 onClick={() => void envoyerTout()}
-                disabled={bauxActifs.length === 0 || lot.enCours}
+                disabled={bauxPayes.length === 0 || lot.enCours}
                 title="Générer et envoyer chaque quittance par email au locataire"
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -554,13 +575,14 @@ ${bailleur?.nom_complet ?? ''}`,
             className={inputCls}
           >
             <option value="">— Sélectionner un bail —</option>
-            {triParLibelle(bauxActifs, (r) => r.locataire.nom_complet).map((r) => (
+            {triParLibelle(bauxEligibles, (r) => r.locataire.nom_complet).map((r) => (
               <option key={r.bail.id} value={r.bail.id}>
                 {libelleBien({
                   type_bien: r.bien.type_bien,
                   designation: r.bien.designation,
                   locataire: r.locataire.nom_complet
                 })}
+                {estPaye(r.bail.id) ? ' — ✓ payé' : ' — loyer non pointé'}
               </option>
             ))}
           </select>
