@@ -392,6 +392,102 @@ ${bailleur?.nom_complet ?? ''}`,
     )
   }
 
+  /**
+   * Envoi en groupe : génère la quittance de chaque bail pointé « payé » et
+   * l'envoie par email au locataire. Les baux sans adresse email sont listés
+   * (non bloquants) dans le résumé.
+   */
+  const envoyerTout = async (): Promise<void> => {
+    if (bauxActifs.length === 0) return
+
+    // Pré-vérification : qui a une adresse email ?
+    const avecEmail = bauxActifs.filter((r) => r.locataire.email)
+    const sansEmail = bauxActifs.filter((r) => !r.locataire.email)
+    if (avecEmail.length === 0) {
+      setMessage(
+        `Aucun des ${bauxActifs.length} locataire(s) concerné(s) n'a d'adresse email renseignée — complète les fiches (Biens & Locataires).`
+      )
+      return
+    }
+    if (
+      !confirm(
+        `Envoyer ${avecEmail.length} quittance(s) par email pour ${periode} ?` +
+          (sansEmail.length > 0
+            ? `
+
+⚠ ${sansEmail.length} locataire(s) sans email seront ignorés : ${sansEmail
+                .map((r) => r.locataire.nom_complet)
+                .join(', ')}`
+            : '')
+      )
+    ) {
+      return
+    }
+
+    setLot({ enCours: true, fait: 0, total: avecEmail.length, erreurs: 0 })
+    setMessage(null)
+
+    const [annee, mois] = periode.split('-')
+    const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
+      'fr-FR',
+      { month: 'long', year: 'numeric' }
+    )
+    const suffixe = `${annee}-${mois}`
+
+    let erreurs = 0
+    for (let i = 0; i < avecEmail.length; i++) {
+      const r = avecEmail[i]
+      try {
+        const doc = construireQuittance({
+          bailleur: bailleur?.nom_complet || '________________',
+          adresseBailleur: bailleur?.adresse || '________________',
+          locataire: r.locataire.nom_complet,
+          bienDesignation: r.bien.designation,
+          bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
+            .filter(Boolean)
+            .join(', '),
+          periode: libellePeriode,
+          dateDebutBail: r.bail.date_debut_bail,
+          loyerHc: r.bail.loyer_hc ?? 0,
+          charges: r.bail.charges ?? 0
+        })
+        const base64 = await new Promise<string>((resolve, reject) => {
+          pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
+          setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
+        })
+        const nomFichier = `quittance_${slug(r.locataire.nom_complet)}_${suffixe}.pdf`
+        await ipc.email.send(
+          r.locataire.email as string,
+          `Votre quittance de loyer — ${libellePeriode}`,
+          `Bonjour ${r.locataire.nom_complet},
+
+Veuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.
+
+Cordialement,
+${bailleur?.nom_complet ?? ''}`,
+          { nomFichier, base64 }
+        )
+        // Trace dans l'historique (comme un envoi individuel)
+        await ipc.quittances.save(base64, nomFichier, r.bail.id, periode)
+      } catch {
+        erreurs++
+      }
+      setLot({ enCours: true, fait: i + 1, total: avecEmail.length, erreurs })
+    }
+
+    setLot({ enCours: false, fait: avecEmail.length, total: avecEmail.length, erreurs })
+    void rechargerHistorique()
+    const sansEmailNote =
+      sansEmail.length > 0
+        ? ` — non envoyé(s), sans email : ${sansEmail.map((r) => r.locataire.nom_complet).join(', ')}`
+        : ''
+    setMessage(
+      erreurs === 0
+        ? `${avecEmail.length} quittance(s) envoyée(s) par email${sansEmailNote}`
+        : `${avecEmail.length - erreurs}/${avecEmail.length} envoyée(s) (${erreurs} échec(s))${sansEmailNote}`
+    )
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Quittances de loyer</h1>
@@ -406,22 +502,44 @@ ${bailleur?.nom_complet ?? ''}`,
               {nbEnAttente} bail(s) en attente de pointage « payé »
             </p>
           </div>
-          <button
-            onClick={() => void genererTout()}
-            disabled={bauxActifs.length === 0 || lot.enCours}
-            className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
-          >
-            {lot.enCours ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {lot.fait}/{lot.total}
-              </>
-            ) : (
-              <>
-                <Layers className="h-4 w-4" /> Générer tout
-              </>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={() => void genererTout()}
+              disabled={bauxActifs.length === 0 || lot.enCours}
+              title="Générer les PDF dans un dossier au choix"
+              className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+            >
+              {lot.enCours ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {lot.fait}/{lot.total}
+                </>
+              ) : (
+                <>
+                  <Layers className="h-4 w-4" /> Générer tout
+                </>
+              )}
+            </button>
+            {smtpConfigure && (
+              <button
+                onClick={() => void envoyerTout()}
+                disabled={bauxActifs.length === 0 || lot.enCours}
+                title="Générer et envoyer chaque quittance par email au locataire"
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {lot.enCours ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {lot.fait}/{lot.total}
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" /> Envoyer tout
+                  </>
+                )}
+              </button>
             )}
-          </button>
+          </div>
         </div>
       </div>
 
