@@ -260,8 +260,8 @@ export function Statistiques(): React.JSX.Element {
                     return (
                       <div key={r.bailId} className="flex items-center gap-2 text-xs">
                         <span className="w-48 shrink-0 truncate">
-                          {r.designation}
-                          <span className="text-slate-400"> — {r.locataire}</span>
+                          <span className="font-semibold">{r.locataire}</span>
+                          <span className="text-slate-400"> — {r.designation}</span>
                         </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
@@ -297,8 +297,8 @@ export function Statistiques(): React.JSX.Element {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-sm dark:border-amber-500/40 dark:bg-amber-500/10"
               >
                 <span>
-                  <strong>{x.designation}</strong>
-                  <span className="text-slate-400"> — {x.locataire}</span>{' '}
+                  <strong>{x.locataire}</strong>
+                  <span className="text-slate-400"> — {x.designation}</span>{' '}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     ({x.typeBien}) — {num2(x.valeur)} vs médiane {num2(x.medianeSegment)} ({num2(x.ecartPct)} %)
                   </span>
