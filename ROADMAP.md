@@ -1,205 +1,93 @@
 # Roadmap — GestyLoc
 
-> Ce qui est livré, en bref : V1.0 → V1.9.2 — MVP complet (biens, locataires,
-> baux, quittances PDF/impression/email, paiements, alertes), patrimoine
-> (dépenses, rentabilité, 2044, régularisation des charges), IRL/ICC INSEE,
-> statistiques recharts, matrice de pointage, fiche Bien/historique, documents
-> par bien et par bail, DPE/dépôt de garantie, sauvegarde/restauration,
-> import/export CSV, version portable, distribution automatique par GitHub
-> Releases. Historique détaillé des livraisons : voir les releases GitHub et
-> l'historique git.
-
-## ✅ Corrigé en attente de release (v1.12.0)
-
-- [x] 🚨 **Bug d'édition de bail** (`FOREIGN KEY constraint failed`) : le
-  formulaire envoyait `bien_id: 0` dans l'UPDATE — existedepuis la v1.0,
-  diagnostiqué par la capture d'écran de l'utilisateur
-- [x] Affichage demandé : **3 colonnes partout** (Type | Nom | Adresse) dans
-  Paiements, Simulateur, Régularisation et les échéances du Dashboard — le
-  locataire reste affiché en petit sous le nom. Format simple, sans badge
-  fusionné (décision utilisateur après un essai badge+nom).
-- [x] Reçu PDF pour paiement partiel (généré depuis le pointage 💶)
-- [x] Bouton « Auditer mes données » (Paramètres) : adresses vides, doublons,
-  IRL non officielles, loyers annuels incohérents, baux sans date de fin
+> **Version courante : v1.15.0** (26/10/2026). Tout ce qui est livré depuis
+> V1.0 : MVP complet (biens, locataires, baux, quittances PDF/impression/email
+> individuel et en groupe, paiements, alertes), patrimoine (dépenses,
+> rentabilité, 2044, régularisation des charges avec décompte PDF), IRL/ICC
+> INSEE embarquées + mise à jour automatique, statistiques segmentées +
+> simulateur, matrice de pointage, fiches Bien/Bail avec historique, documents,
+> DPE/dépôt de garantie, sauvegarde/restauration, import/export CSV, version
+> portable (zip), distribution automatique GitHub Releases, références uniques
+> QUITT sur les quittances, audit de données, reçu pour paiement partiel.
+> Historique détaillé : voir les releases GitHub et l'historique git.
 
 ## 🔜 À faire — priorisé
 
-### ✅ Livré en v1.10.0 — « Statistiques 2.0 & Simulateur » (spec du 25/10/2026)
-- **Segmentation par type** avec unités propres (€/m² logements, €/emplacement
-  garages), médiane/Q1-Q3/min-max par segment, effectifs affichés, et
-  « trop peu de biens » si n < 3 (principes R1/R2/R3 de la spec) — le KPI
-  trompeur « loyer moyen / m² global » (6,37 €) a été supprimé
-- **Liste des suspects** : biens > 15 % sous la médiane de leur segment, triés
-  par manque à gagner annuel
-- **Simulateur A — rattrapage IRL** : « et si j'avais révisé chaque année
-  depuis X » avec IRL réelle INSEE (historique complet depuis 2004) ou taux
-  fixe, arrondi au centime à chaque révision, garde-fou juridique affiché en
-  grand (renonciation passée, pas une créance)
-- **Seuil micro-BIC vs réel (LMNP)** : pour chaque bien meublé, charges
-  déductibles vs seuil de bascule 50 % des recettes, avec note sur
-  l'amortissement (hors périmètre : rend le réel encore plus favorable)
-- Moteur de scénario **pur et testé** (`shared/stats.ts`) : 19 tests, dont
-  identité à taux nul, monotonicité, arrondi légal, IRL manquant
+### Chantier « 💰 Échéancier réel » (besoin remonté par le bailleur, 26/10/2026)
 
-### Correctifs techniques (issue de l'audit externe — livraison v1.12-v1.15 : quittances conditionnées ✓, IRL embarquée ✓, audit de données ✓, reçu partiel ✓ ; reste :)
-- [x] 🗃️ **Table IRL embarquée** (v1.11.0, en attente de publication) : 91
-  trimestres INSEE (2004-T1 → 2026-T3) dans . L'outil de
-  révision de la fiche bail est piloté par le trimestre : listes déroulantes
-  pour la référence et le nouveau, valeurs auto, taux verrouillé, avertissement
-  si la paire n'est pas annuelle. ⚠️ Les IRL importées (144,51 → 145,78)
-  restent illégales : à corriger bail par bail (2 minutes chacune via l'outil).
-- [ ] 🖥️ **Décompte « reçu » distinct de la quittance** pour paiements partiels
-  (une quittance atteste un paiement intégral — art. 21, loi de 1989)
+> Situation réelle : les locataires paient **au début du mois** (jusqu'au 5-6,
+> quand les aides sociales tombent), et à l'**entrée dans les lieux** ils
+> paient un **prorata** jusqu'à la fin du mois en cours. GestyLoc suppose
+> aujourd'hui implicitement « période = mois calendaire, début du bail = début
+> de période ». Pour coller à la réalité :
+
+- [ ] 🖥️ **Champ « jour de paiement » sur le bail** (ex : 5) — par défaut 1 ;
+  sert de référence au pointage et aux alertes de retard (retard si non payé
+  au jour de paiement + marge configurable)
+- [ ] 🗃️ **Prorata à l'entrée** : au premier mois, montant attendu = loyer CC ×
+  (jours restants du mois ÷ jours du mois) — le pointage du premier mois
+  accepte ce montant réduit sans crier « partiel »
+- [ ] 🖥️ **Calendrier des échéances** : pour chaque bail, quand le loyer est dû
+  et si le mois courant est à jour
+- [ ] 🖥️ **Fiche bail** : afficher « Paiement le 5 de chaque mois » à côté des
+  dates du bail
+- 📝 À trancher au moment de l'implémentation : prorata en jours civils ou en
+  dixièmes (méthode courtier) ? Le jour de paiement est-il décalé par les aides
+  ou juste tolérant ?
+
+### Correctifs techniques (reste de l'audit externe)
+
+- [ ] 🖥️ **Décompte « reçu » distinct de la quittance** en PDF autonome pour
+  paiements partiels (le reçu est aujourd'hui généré au pointage 💶 mais sans
+  les adresses complètes refondues de la v1.15)
 - [ ] 🗃️ **Table `baux_revisions`** (historique des révisions : date, ancien
-  loyer, IRL ref/nouveau, taux) — prérequis pour comparer théorique vs réellement
-  appliqué dans le simulateur (cf. spec « Statistiques 2.0 » §6, point le plus
-  structurant)
+  loyer, IRL ref/nouveau, taux) — prérequis pour comparer théorique vs
+  réellement appliqué dans le simulateur
 - [ ] 🗃️ **Table `emprunts`** (capital, taux, échéance) — prérequis d'un
-  cash-flow/TRI honnête si tu as des crédits (modèle C de la spec, à traiter
-  seulement quand ce sera réel)
-- [ ] 🖥️ **Modèle B complet de la spec** : clé de répartition de charges
+  cash-flow/TRI honnête (seulement si tu as des crédits)
+- [ ] 🖥️ **Modèle B de la spec** : clé de répartition de charges
   (surface/tantièmes), impact du passage provisionnel ↔ forfaitaire
-- [ ] 🖥️ **Bouton « Auditer mes données »** : adresses vides, doublons de
-  locataires, IRL suspects, loyers annuels incohérents — aucune concurrent ne
-  l'a, diffrenciant
 - [ ] 🖥️ Compteurs cohérents : « X biens loués + Y occupation gratuite »
-  (surface et nombre actuellement sur des périmètres différents)
-- [x] 🖥️ Formulaire Nouveau bail : footer d'actions fixe (P1-18)
 
 ### Finition (P3 de l'audit)
-- [x] Décimales sur le « % du mois » du dashboard
-- [x] Slug ASCII des noms de fichiers de quittance
+
 - [ ] Recherche globale (retrouver un locataire depuis n'importe quelle page)
-- [x] Afficher le chemin réel des données + bouton « Ouvrir le dossier »
-- [x] « Marquer tout le mois payé » — reste : duplication d'un bail
+- [ ] Duplication d'un bail
+- [ ] Sauvegarde automatique hebdomadaire (rotation des 5 dernières)
+- [ ] Notifications Windows au démarrage pour les alertes urgentes
+- [ ] Décomptes de régularisation en lot (un PDF par bail d'un coup)
+- [ ] Export PDF du récap 2044 (mode « comptable »)
 
 ### Dette technique
+
 - [ ] Étendre les tests aux repositories et au service d'alertes. **Contrainte
   connue** : better-sqlite3 est compilé pour Electron, vitest tourne sur Node
-  pur → incompatibilité (détail complet dans AGENTS.md §2). Voie identifiée :
-  pilote libsql (pur JS) compatible vitest. Priorité quand le projet gagnera
-  en complexité.
-
-## ✅ Ajouté en attente de release (v1.13.0)
-
-- [x] 🌐 **Envoi des quittances en groupe par email** : bouton « Envoyer tout »
-  à côté de « Générer tout » — génère et envoie la quittance de chaque bail
-  pointé « payé », trace chaque envoi dans l'historique, confirme avant envoi
-  et liste les locataires sans adresse email (non bloquants). Prérequis :
-  SMTP configuré dans Paramètres (sinon le bouton n'apparaît pas et l'invitation
-  de configuration s'affiche).
-- [x] Rappel : l'envoi **individuel** existe depuis la v1.7.0 (bouton
-  « Envoyer par email au locataire » sous le formulaire).
-
-## ✅ Livré (v1.15.0 publiée le 26/10/2026)
-
-- [x] 🖥️ **Quittance refondue** (demandes du 26/10) : adresses complètes
-  bailleur (rue/CP/ville, profil structuré) et locataire (migration 0009 :
-  champs adresse/CP/ville sur locataires), « logement » remplacé par « bien »
-  partout, formulation non genrée (« Le bailleur du bien désigné ci-dessus
-  donne quittance à... »), « Fait à » prérempli avec la ville du bailleur,
-  mention légale remplacée par « Cette quittance de loyer n'est pas une preuve
-  de paiement » (⚠ formulation demandée par l'utilisateur — à faire valider
-  par un juriste, art. 21 dit l'inverse), signature du bailleur retirée
-- [x] 🖥️ **Fix « marquer partiel »** : window.prompt n'existe pas dans
-  Electron → remplacé par un modal de saisie du montant reçu
-- [x] 🖥️ **Clic sur une ligne de Paiements** → fiche du bail
-- [x] 🖥️ **Fix IRL** : années dédupliquées dans le select, anti-ré-application
-  (choisir un trimestre différent avant de pouvoir ré-appliquer)
-- [x] 🖥️ **Alerte « assurance »** : demander l'attestation d'assurance au
-  locataire dans les 30 jours avant l'anniversaire du bail (groupe dédié du
-  dashboard)
-
-## 💰 Échéancier réel (besoin remonté par le bailleur, 26/10/2026)
-
-> Situation actuelle de l'utilisateur : ses locataires paient **au début du
-> mois** (jusqu'au 5 ou 6, quand les aides sociales tombent), et à
-> l'**entrée dans les lieux** ils paient un **prorata** (du jour d'entrée à
-> la fin du mois en cours). Aujourd'hui GestyLoc suppose implicitement que
-> « période = mois calendaire » et le début du bail = début de période.
-> Cette fonctionnalité permettrait de coller à la réalité :
-
-- [ ] 🖥️ **Champ « jour de paiement » sur le bail** (ex : 5) — par défaut 1
-  ; sert de référence au pointage (un loyer pointé « payé » le 3 pour
-  l'échéance du 5 est à l'heure) et aux alertes de retard (retard si non
-  payé au jour de paiement + marge configurable)
-- [ ] 🗃️ **Prorata à l'entrée** : au premier mois, montant attendu =
-  loyer CC × (jours restants du mois ÷ jours du mois) — le pointage du
-  premier mois accepte ce montant réduit sans crier « partiel »
-- [ ] 🖥️ **Calendrier des échéances** : vue qui montre pour chaque bail
-  quand le loyer est dû (jour de paiement) et si le mois courant est OK
-- [ ] 🖥️ **Fiche bail** : afficher « Paiement le 5 de chaque mois » à côté
-  des dates du bail
-- 📝 Question ouverte à trancher au moment de l'implémentation : le prorata
-  se calcule en jours civils ou en dixièmes (méthode courtier) ? Les aides
-  sociales décalées (le 5) décalent-elles le jour de paiement ou juste la
-  tolérance de pointage ?
+  pur → incompatibilité (détail dans AGENTS.md §2). Voie identifiée : pilote
+  libsql (pur JS). Priorité quand le projet gagnera en complexité.
 
 ## 🔮 Pistes produit (nécessitent une décision, pas des bugs)
 
 - **Bail pré-rempli généré** (nu/meublé, loi 1989) — tous les concurrents l'ont
 - **Relances d'impayés** (J+1, J+10, mise en demeure — PDF + email)
+- **Avis d'échéance** : document distinct de la quittance (rappel du loyer à
+  venir AVANT paiement, même référence QUITT) — souhait de l'UIA
 - **État des lieux numérique** (photos + PDF) — gros chantier
 - **Modèles de lettres** (congé, augmentation, EDL) — petit
-- **Module Documents avancé** (partage, archivage)
-- **Prélèvement SEPA / portail locataire / sync bancaire** — gros, oriente vers le SaaS
+- **Prélèvement SEPA / portail locataire / sync bancaire** — gros, oriente vers
+  le SaaS
 - **IA locale (Ollama)** pour lecture de factures / questions sur le parc —
   l'axe « local souverain », différenciant
-- [x] **Numéros de référence des quittances** (v1.15.0) : format
-  QUITT-{AAAA}{MM}-{ID_BAIL} (option déterministe conseillée par l'UIA —
-  unique grâce à la clé composite bail+période), affiché en haut à droite du
-  PDF, colonne dans l'historique, inclus dans l'objet des emails
-  (« Votre quittance de loyer n° QUITT-202610-015 ») et dans l'export CSV.
-  Migration 0010 (rétro-appliquée aux quittances existantes).
-- [ ] **Avis d'échéance** : document distinct de la quittance (rappel du loyer
-  à venir AVANT paiement, avec la même référence) — le souhait de l'UIA
-  mentionnait les deux documents ; à concevoir (gabarit + échéancier)
-- **Assurances : email de demande** : au-delà de l'alerte dashboard (livrée),
-  générer/envoyer l'email de demande d'attestation au locataire via le SMTP
-  configuré ; nécessite de tracer « demande envoyée » pour ne pas relancer
-- **Signature de code (SmartScreen)** : les installs affichent l'avertissement
-  « Windows a protégé votre ordinateur » car l'app n'est pas signée. Contournement
-  immédiat : « Informations complémentaires → Exécuter quand même ». Solutions :
-  Azure Trusted Signing (~10 €/mois, moderne), certificat OV (~100-250 €/an),
-  EV (~300-500 €/an, réputation immédiate). À intégrer dans le workflow de build
-  le jour de la diffusion publique (SAS)
+- **Assurances : traçage des demandes envoyées** (l'email prérempli est livré
+  v1.15 ; reste à enregistrer la date de dernière demande pour ne pas relancer)
+- **Signature de code (SmartScreen)** : les installs affichent « Windows a
+  protégé votre ordinateur » (app non signée). Contournement immédiat :
+  « Informations complémentaires → Exécuter quand même ». Solutions : Azure
+  Trusted Signing (~10 €/mois), certificat OV (~100-250 €/an), EV (~300-500
+  €/an). À intégrer au workflow le jour de la diffusion publique (SAS)
 - **Multi-bailleur / SCI**, sync chiffrée multi-PC, TRI/prévisionnel
-- **Email** : rappels automatiques (nécessite la config SMTP, livrée)
-
-## 💡 Idées récentes (issues des retours d'usage du 25/10/2026)
-
-- [x] 🗃️ **Champ « Nom » distinct** (v1.12.0, migration 0008) : la désignation
-  héritée du tableur était une adresse ; le bien a maintenant un champ `nom`
-  lisible et unique (« Garage renoir n°1 »), affiché partout (helper
-  `nomBien()` dans `shared/labels.ts` : nom si présent, sinon désignation).
-  Les 16 biens existants ont nom = désignation initiale — à personnaliser
-  dans le formulaire (champ « Nom du bien » en tête).
-- [x] 🗃️ **Mise à jour automatique de la table IRL** : GitHub Action
-  trimestriel `update-irl.yml` (16 jan/avr/juil/oct) qui recharge la série
-  INSEE et commite `shared/irl-insee.ts` si elle a changé. À préciser : l'app
-  utilise DEUX sources — la table embarquée (fiche bail, hors ligne) et
-  l'interrogation live INSEE (simulateur).
-- [ ] 🖥️ **Sauvegarde automatique périodique** (hebdo dans
-  AppData/backups, rotation des 5 dernières) en plus de la sauvegarde manuelle
-- [ ] 🖥️ **Notifications Windows au démarrage** pour les alertes urgentes
-  (fin de bail < 30 j, loyer impayé) — la notif existe déjà pour les mises à jour
-- [ ] 🖥️ **Décomptes de régularisation en lot** : générer d'un coup le décompte
-  PDF de TOUS les baux régularisés (comme « Générer tout » des quittances —
-  aujourd'hui il faut cliquer bail par bail dans la page Régularisation)
-- [ ] 🖥️ **Export PDF du récap 2044** (mode « comptable » de l'audit)
-## 🐛 Signaler un bug (comment faire)
-
-Rapport via les [Issues GitHub](https://github.com/galaxiel/GestyLoc/issues) :
-1. **Titre** : une phrase claire (« La page X affiche Y au lieu de Z »)
-2. **Étapes pour reproduire** : exactement ce que tu as cliqué, dans l'ordre
-3. **Attendu vs obtenu**
-4. **Version** : affichée dans la barre latérale (ex : v1.11.2)
-5. **Pièce jointe utile** : le fichier `logs/main.log` (%APPDATA%\gestyloc\logs\main.log)
-   — il contient les migrations, les erreurs de mise à jour et les exceptions.
-   ⚠️ **N'inclus jamais app.db** (données personnelles des locataires) ni une
-   capture d'écran avec des noms de locataires visibles — masque-les.
-6. Les rapports avec le message exact du pare-chocs d'erreurs (capture ou copie)
-   sont diagnostiqués quasi immédiatement — cf. le bug Quittances résolu ainsi.
+- **Rappels automatiques** (nécessite la config SMTP, livrée)
+- **Version anglaise** : react-i18next + ~300 chaînes + PDF bilingues,
+  1-2 sessions — voir l'analyse complète plus bas
 
 ## 🌐 Internationalisation (anglais)
 
@@ -211,15 +99,29 @@ Faisabilité : **simple mais non trivial**. Le bon outil est `react-i18next` :
 - Effort estimé : 1 à 2 sessions complètes. Recommandé seulement si une
   demande réelle existe (toi ou des utilisateurs anglophones).
 
+## 🐛 Signaler un bug (comment faire)
+
+Rapport via les [Issues GitHub](https://github.com/galaxiel/GestyLoc/issues) :
+1. **Titre** : une phrase claire (« La page X affiche Y au lieu de Z »)
+2. **Étapes pour reproduire** : exactement ce que tu as cliqué, dans l'ordre
+3. **Attendu vs obtenu**
+4. **Version** : affichée dans la barre latérale (ex : v1.15.0)
+5. **Pièce jointe utile** : le fichier `logs/main.log`
+   (%APPDATA%\gestyloc\logs\main.log) — il contient les migrations, les
+   erreurs de mise à jour et les exceptions.
+   ⚠️ **N'inclus jamais app.db** (données personnelles des locataires) ni une
+   capture d'écran avec des noms de locataires visibles — masque-les.
+6. Les rapports avec le message exact du pare-chocs d'erreurs (capture ou
+   copie) sont diagnostiqués quasi immédiatement — cf. le bug Quittances
+   résolu ainsi.
+
 ## 📄 Licence — PolyForm Noncommercial (décision 25/10/2026)
 
-Changement de MIT → **PolyForm Noncommercial 1.0.0** : le code reste visible
-et utilisable gratuitement par tout particulier pour ses propres locations,
-mais **aucune exploitation commerciale** n'est autorisée sans accord écrit —
-ce qui réserve l'usage commercial au projet de SAS de l'auteur. Si le jour
-venu tu veux libérer certaines parties (ou tout) : il suffira de re-mettre à
-jour LICENSE. NB : les instructions de revente/commercialisation ne font pas
-partie de ce dépôt.
+Le code reste visible et utilisable gratuitement par tout particulier pour
+ses propres locations, mais **aucune exploitation commerciale** n'est autorisée
+sans accord écrit — ce qui réserve l'usage commercial au projet de SAS de
+l'auteur. Si le jour venu tu veux libérer certaines parties (ou tout) : il
+suffira de re-mettre à jour LICENSE.
 
 ## ❌ Abandonnés (décision 25/10/2026)
 
@@ -228,4 +130,4 @@ partie de ce dépôt.
   PC est partagé (un autre bailleur = il installe l'app sur son propre PC)
 
 ---
-*Dernière mise à jour : 25/10/2026 — version courante v1.9.2*
+*Dernière mise à jour : 26/10/2026 — version courante v1.15.0*
