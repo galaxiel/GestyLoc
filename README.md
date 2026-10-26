@@ -85,4 +85,7 @@ du temps, un café fait toujours plaisir :
 
 ## 📄 Licence
 
-[MIT](LICENSE) — utilisez, modifiez et redistribuez librement.
+[PolyForm Noncommercial 1.0.0](LICENSE) — **gratuit pour un usage personnel et
+non commercial** : utilisez GestyLoc librement pour gérer vos locations.
+Toute exploitation commerciale du code (SaaS, produit payant dérivé, revente)
+nécessite l'accord écrit de l'auteur.

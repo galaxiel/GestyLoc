@@ -123,6 +123,16 @@ Faisabilité : **simple mais non trivial**. Le bon outil est `react-i18next` :
 - Effort estimé : 1 à 2 sessions complètes. Recommandé seulement si une
   demande réelle existe (toi ou des utilisateurs anglophones).
 
+## 📄 Licence — PolyForm Noncommercial (décision 25/10/2026)
+
+Changement de MIT → **PolyForm Noncommercial 1.0.0** : le code reste visible
+et utilisable gratuitement par tout particulier pour ses propres locations,
+mais **aucune exploitation commerciale** n'est autorisée sans accord écrit —
+ce qui réserve l'usage commercial au projet de SAS de l'auteur. Si le jour
+venu tu veux libérer certaines parties (ou tout) : il suffira de re-mettre à
+jour LICENSE. NB : les instructions de revente/commercialisation ne font pas
+partie de ce dépôt.
+
 ## ❌ Abandonnés (décision 25/10/2026)
 
 - **Chiffrement de la base** — jugé inutile pour l'usage actuel
