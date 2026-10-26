@@ -101,11 +101,11 @@ installations existantes) :
 | `latest.yml` | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512 |
 | `GestyLoc-portable.zip` | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
 
- Bug connu d'electron-builder : il crée parfois
-**deux drafts** (une avec l'exe + `latest.yml`, une avec seulement le
-`.blockmap`). Si c'est le cas : télécharger le blockmap de la draft orpheline,
-le re-uploader dans la draft complète avec son nom d'origine, supprimer la
-draft orpheline. Une release valide = **exactement 3 assets**.
+ Depuis la v1.11.3, le workflow publie lui-même les fichiers (le publish
+d'electron-builder, buggé — il créait deux drafts et perdait le blockmap —
+a été remplacé par un upload déterministe) et **échoue explicitement si un
+fichier manque**. Une release valide = **exactement 4 assets** : la liste du
+tableau ci-dessus.
 
 **6. Publie le brouillon** : clique sur la release, complète les notes de
 version, puis **Publish release**. La version devient téléchargeable
