@@ -249,8 +249,9 @@ export function Dashboard(): React.JSX.Element {
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
-                <th className="px-4 py-2">Bien</th>
-                <th className="px-4 py-2">Locataire</th>
+                <th className="px-4 py-2">Type</th>
+                <th className="px-4 py-2">Nom</th>
+                <th className="px-4 py-2">Adresse</th>
                 <th className="px-4 py-2">Fin de bail</th>
                 <th className="px-4 py-2 text-right">Loyer CC</th>
               </tr>
@@ -265,8 +266,16 @@ export function Dashboard(): React.JSX.Element {
                     className="cursor-pointer border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"
                     onClick={() => navigate(`/baux/${r.bail.id}`)}
                   >
-                    <td className="px-4 py-2">{r.bien.designation}</td>
-                    <td className="px-4 py-2">{r.locataire.nom_complet}</td>
+                    <td className="px-4 py-2 text-sm">{r.bien.type_bien}</td>
+                    <td className="px-4 py-2">
+                      <div className="font-medium">{r.bien.designation}</div>
+                      <div className="text-xs text-slate-400">{r.locataire.nom_complet}</div>
+                    </td>
+                    <td className="px-4 py-2 text-sm text-slate-400">
+                      {[r.bien.adresse, r.bien.ville]
+                        .filter((x, i, tab) => x && tab.indexOf(x) === i && x !== r.bien.designation)
+                        .join(', ') || '—'}
+                    </td>
                     <td className="px-4 py-2">
                       {formatDate(r.bail.date_fin_bail)}
                       {r.jours_avant_fin_bail !== null && (
@@ -284,7 +293,7 @@ export function Dashboard(): React.JSX.Element {
                 ))}
               {bauxActifs.filter((r) => r.jours_avant_fin_bail !== null).length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
                     Aucun bail avec date de fin définie.
                   </td>
                 </tr>

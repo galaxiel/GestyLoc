@@ -14,8 +14,10 @@
 - [x] 🚨 **Bug d'édition de bail** (`FOREIGN KEY constraint failed`) : le
   formulaire envoyait `bien_id: 0` dans l'UPDATE — existedepuis la v1.0,
   diagnostiqué par la capture d'écran de l'utilisateur
-- [x] Affichage demandé : badge type + nom du bien, puis colonnes **Adresse**
-  et **Locataire** dédiées (Paiements, Simulateur)
+- [x] Affichage demandé : **3 colonnes partout** (Type | Nom | Adresse) dans
+  Paiements, Simulateur, Régularisation et les échéances du Dashboard — le
+  locataire reste affiché en petit sous le nom. Format simple, sans badge
+  fusionné (décision utilisateur après un essai badge+nom).
 - [x] Reçu PDF pour paiement partiel (généré depuis le pointage 💶)
 - [x] Bouton « Auditer mes données » (Paramètres) : adresses vides, doublons,
   IRL non officielles, loyers annuels incohérents, baux sans date de fin

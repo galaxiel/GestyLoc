@@ -301,19 +301,13 @@ export function Paiements(): React.JSX.Element {
               }
               return (
                 <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
+                  <td className="px-4 py-2 text-sm">{r.bien.type_bien}</td>
                   <td className="px-4 py-2">
-                    <div className="font-medium">
-                      <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                        {r.bien.type_bien}
-                      </span>
-                      {r.bien.designation}
-                    </div>
+                    <div className="font-medium">{r.bien.designation}</div>
+                    <div className="text-xs text-slate-400">{r.locataire.nom_complet}</div>
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">
                     {adressesUniquesParBail.get(r.bail.id) ?? '—'}
-                  </td>
-                  <td className="px-4 py-2 text-sm font-medium text-slate-300 dark:text-slate-200">
-                    {r.locataire.nom_complet}
                   </td>
                   <td className="px-4 py-2 text-right font-medium">
                     {formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}
@@ -374,7 +368,7 @@ export function Paiements(): React.JSX.Element {
             })}
             {bauxPayants.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
                   Aucun bail payant actif.
                 </td>
               </tr>
