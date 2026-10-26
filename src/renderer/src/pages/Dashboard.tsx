@@ -279,9 +279,8 @@ export function Dashboard(): React.JSX.Element {
                       {r.locataire.nom_complet}
                     </td>
                     <td className="px-4 py-2 text-sm text-slate-400">
-                      {[r.bien.adresse, r.bien.ville]
-                        .filter((x, i, tab) => x && tab.indexOf(x) === i && x !== r.bien.designation)
-                        .join(', ') || '—'}
+                      {[r.bien.adresse, r.bien.code_postal, r.bien.ville]
+                        .filter(Boolean).join(', ') || '—'}
                     </td>
                     <td className="px-4 py-2">
                       {formatDate(r.bail.date_fin_bail)}

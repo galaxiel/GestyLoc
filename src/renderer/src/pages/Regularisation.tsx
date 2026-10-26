@@ -168,13 +168,11 @@ export function Regularisation(): React.JSX.Element {
     }
   }
 
-  const adressesUniquesParBail = new Map(
-    locations.map((r) => {
-      const parties = [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-        .filter((x, i, tab) => x && x !== r.bien.designation && tab.indexOf(x) === i)
-      const valeur = parties.join(', ')
-      return [r.bail.id, valeur !== '' && valeur !== r.bien.designation ? valeur : null]
-    })
+  const adressesParBail = new Map(
+    locations.map((r) => [
+      r.bail.id,
+      [r.bien.adresse, r.bien.code_postal, r.bien.ville].filter(Boolean).join(', ') || null
+    ])
   )
 
   const stats = useMemo(() => {
@@ -269,7 +267,7 @@ export function Regularisation(): React.JSX.Element {
                     {r.locataire.nom_complet}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">
-                    {adressesUniquesParBail.get(r.bail.id) ?? '—'}
+                    {adressesParBail.get(r.bail.id) ?? '—'}
                   </td>
                   <td className="px-4 py-2 text-right">{formatEuro(provisions)}</td>
                   <td className="px-4 py-2">

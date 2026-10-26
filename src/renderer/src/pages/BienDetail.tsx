@@ -122,7 +122,7 @@ export function BienDetail(): React.JSX.Element {
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Home className="h-4 w-4 text-primary-500" /> Le bien (immobilier fixe)
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-12 md:grid-cols-2">
           <Info label="Type" valeur={bien.type_bien} />
           <Info label="Surface" valeur={formatSurface(bien.surface_m2)} />
           <Info label="Meublé" valeur={bien.meuble ? 'Oui' : 'Non'} />

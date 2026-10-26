@@ -196,13 +196,12 @@ export function Paiements(): React.JSX.Element {
       .replace(/[^a-zA-Z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
 
-  const adressesUniquesParBail = new Map(
-    locations.map((r) => {
-      const parties = [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-        .filter((x, i, tab) => x && x !== r.bien.designation && tab.indexOf(x) === i)
-      const valeur = parties.join(', ')
-      return [r.bail.id, valeur !== '' && valeur !== r.bien.designation ? valeur : null]
-    })
+  // Adresse complète du bien (colonne dédiée : on affiche tout, sans filtrage)
+  const adressesParBail = new Map(
+    locations.map((r) => [
+      r.bail.id,
+      [r.bien.adresse, r.bien.code_postal, r.bien.ville].filter(Boolean).join(', ') || null
+    ])
   )
 
   const boutonStatut = (
@@ -278,7 +277,9 @@ export function Paiements(): React.JSX.Element {
         <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
-              <th className="px-4 py-2">Bien / Locataire</th>
+              <th className="px-4 py-2">Bien</th>
+              <th className="px-4 py-2">Locataire</th>
+              <th className="px-4 py-2">Adresse</th>
               <th className="px-4 py-2 text-right">Loyer CC</th>
               <th className="px-4 py-2">Règlement</th>
               <th className="px-4 py-2">Statut {formatPeriode(periode)}</th>
@@ -314,7 +315,7 @@ export function Paiements(): React.JSX.Element {
                     {r.locataire.nom_complet}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">
-                    {adressesUniquesParBail.get(r.bail.id) ?? '—'}
+                    {adressesParBail.get(r.bail.id) ?? '—'}
                   </td>
                   <td className="px-4 py-2 text-right font-medium">
                     {formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}

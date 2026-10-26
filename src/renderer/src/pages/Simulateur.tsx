@@ -79,14 +79,11 @@ export function Simulateur(): React.JSX.Element {
     locations.map((r) => [r.bail.id, r.bien.type_bien])
   )
   const nomsParBail = new Map(locations.map((r) => [r.bail.id, nomBien(r.bien)]))
-  const adressesUniquesParBail = new Map(
-    locations.map((r) => {
-      // On dédoublonne : adresse/ville identiques à la désignation = redondants
-      const parties = [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-        .filter((x, i, tab) => x && x !== r.bien.designation && tab.indexOf(x) === i)
-      const valeur = parties.join(', ')
-      return [r.bail.id, valeur !== '' && valeur !== r.bien.designation ? valeur : null]
-    })
+  const adressesParBail = new Map(
+    locations.map((r) => [
+      r.bail.id,
+      [r.bien.adresse, r.bien.code_postal, r.bien.ville].filter(Boolean).join(', ') || null
+    ])
   )
 
   const totalDeltaAn = Math.round(
@@ -208,7 +205,7 @@ export function Simulateur(): React.JSX.Element {
                     {r.locataire}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">
-                    {adressesUniquesParBail.get(r.bailId) ?? '—'}
+                    {adressesParBail.get(r.bailId) ?? '—'}
                   </td>
                   <td className="px-4 py-2 text-right">{formatEuro(r.loyerActuel)}</td>
                   <td className="px-4 py-2 text-right font-medium">{formatEuro(r.loyerSimule)}</td>
