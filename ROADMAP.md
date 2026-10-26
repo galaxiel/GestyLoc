@@ -99,6 +99,30 @@
   PDF de TOUS les baux régularisés (comme « Générer tout » des quittances —
   aujourd'hui il faut cliquer bail par bail dans la page Régularisation)
 - [ ] 🖥️ **Export PDF du récap 2044** (mode « comptable » de l'audit)
+## 🐛 Signaler un bug (comment faire)
+
+Rapport via les [Issues GitHub](https://github.com/galaxiel/GestyLoc/issues) :
+1. **Titre** : une phrase claire (« La page X affiche Y au lieu de Z »)
+2. **Étapes pour reproduire** : exactement ce que tu as cliqué, dans l'ordre
+3. **Attendu vs obtenu**
+4. **Version** : affichée dans la barre latérale (ex : v1.11.2)
+5. **Pièce jointe utile** : le fichier `logs/main.log` (%APPDATA%\gestyloc\logs\main.log)
+   — il contient les migrations, les erreurs de mise à jour et les exceptions.
+   ⚠️ **N'inclus jamais app.db** (données personnelles des locataires) ni une
+   capture d'écran avec des noms de locataires visibles — masque-les.
+6. Les rapports avec le message exact du pare-chocs d'erreurs (capture ou copie)
+   sont diagnostiqués quasi immédiatement — cf. le bug Quittances résolu ainsi.
+
+## 🌐 Internationalisation (anglais)
+
+Faisabilité : **simple mais non trivial**. Le bon outil est `react-i18next` :
+- Toutes les chaînes de l'UI (~300 aujourd'hui) passent dans `t('clé')`
+- Un fichier `locales/fr.json` + `locales/en.json`
+- Détection de la langue de l'OS, sélecteur dans Paramètres
+- Les PDF (quittance, régularisation) ont leur gabarit bilingue à part
+- Effort estimé : 1 à 2 sessions complètes. Recommandé seulement si une
+  demande réelle existe (toi ou des utilisateurs anglophones).
+
 ## ❌ Abandonnés (décision 25/10/2026)
 
 - **Chiffrement de la base** — jugé inutile pour l'usage actuel

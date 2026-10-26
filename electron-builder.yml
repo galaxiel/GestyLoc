@@ -16,7 +16,7 @@ win:
   target:
     - nsis
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: GestyLoc-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always

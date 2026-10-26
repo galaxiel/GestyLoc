@@ -77,6 +77,12 @@ GestyLoc est construit avec Electron, React, TypeScript et SQLite
 - `ROADMAP.md` : ce qui est fait et ce qui est prévu
 - `AGENTS.md` : note de passation technique (pour développeurs et agents LLM)
 
+## ☕ Soutenir le projet
+
+GestyLoc est gratuit et open source. Si tu l'utilises et qu'il te fait gagner
+du temps, un café fait toujours plaisir :
+[Buy Me a Coffee](https://buymeacoffee.com/gestyloc)
+
 ## 📄 Licence
 
-Projet personnel open source — utilisez librement.
+[MIT](LICENSE) — utilisez, modifiez et redistribuez librement.

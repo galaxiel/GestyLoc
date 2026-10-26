@@ -1,0 +1,6 @@
+# Bouton « Sponsor » affiché sur la page du dépôt GitHub.
+# Remplace les valeurs par celles que tu utilises réellement.
+# github: galaxiel            # Sponsor GitHub (si activé sur ton compte)
+# ko-fi: gestyloc             # ko-fi.com/gestyloc
+# buy_me_a_coffee: gestyloc   # buymeacoffee.com/gestyloc
+custom: ['https://buymeacoffee.com/gestyloc']

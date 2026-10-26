@@ -96,8 +96,8 @@ installations existantes) :
 
 | Asset | Rôle |
 |---|---|
-| `gestyloc-x.y.z-setup.exe` | L'installateur NSIS (téléchargé par les utilisateurs) |
-| `gestyloc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé) |
+| `GestyLoc-x.y.z-setup.exe` | L'installateur NSIS (téléchargé par les utilisateurs) |
+| `GestyLoc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé) |
 | `latest.yml` | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512 |
 | `GestyLoc-portable.zip` | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
 

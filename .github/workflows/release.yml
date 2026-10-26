@@ -34,10 +34,12 @@ jobs:
       - name: Zip portable (app complète + marqueur, extrait tel quel)
         shell: pwsh
         run: |
+          $tag = $env:GITHUB_REF -replace 'refs/tags/',''
+          $ver = $tag.TrimStart('v')
           New-Item -ItemType Directory "dist/GestyLoc-portable" -Force | Out-Null
           Copy-Item "dist/win-unpacked/*" "dist/GestyLoc-portable/" -Recurse -Force
           New-Item -ItemType File "dist/GestyLoc-portable/PORTABLE" -Force | Out-Null
-          Compress-Archive -Path "dist/GestyLoc-portable" -DestinationPath "dist/GestyLoc-portable.zip" -Force
+          Compress-Archive -Path "dist/GestyLoc-portable" -DestinationPath "dist/GestyLoc-$ver-portable.zip" -Force
 
       - name: Créer la draft release et uploader les 4 fichiers
         env:
@@ -53,9 +55,9 @@ jobs:
           }
 
           $fichiers = @(
-            "dist/gestyloc-$ver-setup.exe",
-            "dist/gestyloc-$ver-setup.exe.blockmap",
-            "dist/GestyLoc-portable.zip",
+            "dist/GestyLoc-$ver-setup.exe",
+            "dist/GestyLoc-$ver-setup.exe.blockmap",
+            "dist/GestyLoc-$ver-portable.zip",
             "dist/latest.yml"
           )
           foreach ($f in $fichiers) {
