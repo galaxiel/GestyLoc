@@ -120,9 +120,15 @@
 - **Prélèvement SEPA / portail locataire / sync bancaire** — gros, oriente vers le SaaS
 - **IA locale (Ollama)** pour lecture de factures / questions sur le parc —
   l'axe « local souverain », différenciant
-- **Numéros de quittance / facture** : séquence visible sur le document
-  (certains bailleurs numérotent leurs quittances comme des factures) — à
-  concevoir avec une règle de format (ex : Q-2026-001) et compteur par année
+- [x] **Numéros de référence des quittances** (v1.15.0) : format
+  QUITT-{AAAA}{MM}-{ID_BAIL} (option déterministe conseillée par l'UIA —
+  unique grâce à la clé composite bail+période), affiché en haut à droite du
+  PDF, colonne dans l'historique, inclus dans l'objet des emails
+  (« Votre quittance de loyer n° QUITT-202610-015 ») et dans l'export CSV.
+  Migration 0010 (rétro-appliquée aux quittances existantes).
+- [ ] **Avis d'échéance** : document distinct de la quittance (rappel du loyer
+  à venir AVANT paiement, avec la même référence) — le souhait de l'UIA
+  mentionnait les deux documents ; à concevoir (gabarit + échéancier)
 - **Assurances : email de demande** : au-delà de l'alerte dashboard (livrée),
   générer/envoyer l'email de demande d'attestation au locataire via le SMTP
   configuré ; nécessite de tracer « demande envoyée » pour ne pas relancer

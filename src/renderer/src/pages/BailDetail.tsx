@@ -7,6 +7,7 @@ import {
 import type { Paiement, DocumentRow } from '@shared/types'
 import { IRL_INSEE, IRL_TRIMESTRES, valeurIrl } from '@shared/irl-insee'
 import { nomBien } from '@shared/labels'
+import { Mail } from 'lucide-react'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface, libelleStatut, formatPeriode } from '../lib/format'
@@ -31,6 +32,60 @@ export function BailDetail(): React.JSX.Element {
   const { locations, refresh } = useStore()
 
   const row = locations.find((r) => r.bail.id === Number(id))
+
+  // --- Email d'assurance (SMTP configuré ?) ---
+  const [smtpOk, setSmtpOk] = useState(false)
+  const [bailleurNom, setBailleurNom] = useState('')
+  const [assuranceEnCours, setAssuranceEnCours] = useState(false)
+  const [assuranceMsg, setAssuranceMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    void ipc.email
+      .getConfig()
+      .then((c) => setSmtpOk(c.configure))
+      .catch(() => setSmtpOk(false))
+    void ipc.parametres
+      .getBailleur()
+      .then((b) => setBailleurNom(b?.nom_complet ?? ''))
+      .catch(() => setBailleurNom(''))
+  }, [])
+
+  /** Envoie l'email de demande d'attestation d'assurance au locataire. */
+  const demanderAssurance = async (): Promise<void> => {
+    if (!row) return
+    if (!row.locataire.email) {
+      setAssuranceMsg('Ce locataire n’a pas d’adresse email — complète sa fiche.')
+      return
+    }
+    setAssuranceEnCours(true)
+    setAssuranceMsg(null)
+    try {
+      const [annee, mois, jour] = (bail.date_debut_bail ?? '').split('-')
+      const anniversaire =
+        annee && mois && jour
+          ? `${jour}/${mois} de chaque année`
+          : 'à la date anniversaire du bail'
+      await ipc.email.send(
+        row.locataire.email,
+        `Attestation d'assurance locative — ${nomBien(bien)}`,
+        `Bonjour ${row.locataire.nom_complet},
+
+` +
+          `Dans le cadre du bail du bien situé « ${[bien.adresse, bien.code_postal, bien.ville].filter(Boolean).join(', ')} », ` +
+          `dont l'échéance anniversaire intervient le ${anniversaire}, merci de bien vouloir me transmettre ` +
+          `l'attestation d'assurance locative (habitation) en cours de validité couvrant le bien loué.
+
+` +
+          `Cordialement,
+${bailleurNom || 'Le bailleur'}`
+      )
+      setAssuranceMsg(`Demande d'attestation envoyée à ${row.locataire.email}.`)
+    } catch (err) {
+      setAssuranceMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setAssuranceEnCours(false)
+    }
+  }
 
   // --- Révision IRL : pilotée par le TRIMESTRE DE RÉFÉRENCE (table embarquée) ---
   const [tRef, setTRef] = useState<string>('')
@@ -185,13 +240,34 @@ export function BailDetail(): React.JSX.Element {
             </span>
           )}
         </h1>
-        <button
-          onClick={() => navigate(`/quittances?bail=${bail.id}`)}
-          className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-        >
-          <Printer className="h-4 w-4" /> Quittance
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/quittances?bail=${bail.id}`)}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            <Printer className="h-4 w-4" /> Quittance
+          </button>
+          <button
+            onClick={() => void demanderAssurance()}
+            disabled={assuranceEnCours}
+            title={
+              smtpOk
+                ? 'Envoyer l’email de demande d’attestation d’assurance'
+                : 'Configure le SMTP dans Paramètres → Email pour activer l’envoi'
+            }
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {assuranceEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+            Assurance
+          </button>
+        </div>
       </div>
+
+      {assuranceMsg && (
+        <p className="rounded-lg border border-emerald-300 bg-emerald-50 p-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+          {assuranceMsg}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Le bien */}

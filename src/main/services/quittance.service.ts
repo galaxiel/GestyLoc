@@ -10,24 +10,35 @@ const writeFileAsync = promisify(writeFile)
  * Sauvegarde d'une quittance générée côté renderer (pdfmake → base64).
  * Le main ouvre la boîte "Enregistrer sous" et écrit le fichier.
  */
+import { referenceQuittance } from '@shared/quittance-ref'
+
+export { referenceQuittance }
+
 /** Trace une quittance générée dans l'historique (upsert par bail+période). */
-export function enregistrerQuittance(bailId: number, periode: string, nomFichier: string, chemin: string | null): void {
+export function enregistrerQuittance(
+  bailId: number,
+  periode: string,
+  nomFichier: string,
+  chemin: string | null,
+  reference: string
+): void {
   getRawConnection()
     .prepare(
-      `INSERT INTO quittances (bail_id, periode, nom_fichier, chemin, genere_le)
-       VALUES (?,?,?,?,CURRENT_TIMESTAMP)
+      `INSERT INTO quittances (bail_id, periode, reference_number, nom_fichier, chemin, genere_le)
+       VALUES (?,?,?,?,?,CURRENT_TIMESTAMP)
        ON CONFLICT(bail_id, periode) DO UPDATE SET
+         reference_number = excluded.reference_number,
          nom_fichier = excluded.nom_fichier,
          chemin = excluded.chemin,
          genere_le = CURRENT_TIMESTAMP`
     )
-    .run(bailId, periode, nomFichier, chemin)
+    .run(bailId, periode, reference, nomFichier, chemin)
 }
 
 /** Historique des quittances générées. */
 export function listQuittances(): QuittanceHistorique[] {
   return getRawConnection()
-    .prepare('SELECT id, bail_id, periode, nom_fichier, chemin, genere_le FROM quittances ORDER BY genere_le DESC')
+    .prepare('SELECT id, bail_id, periode, reference_number, nom_fichier, chemin, genere_le FROM quittances ORDER BY genere_le DESC')
     .all() as QuittanceHistorique[]
 }
 
@@ -50,10 +61,11 @@ export async function saveToDossierTrace(
   dossier: string,
   nomFichier: string,
   bailId: number,
-  periode: string
+  periode: string,
+  reference: string
 ): Promise<string> {
   const chemin = await saveToDossier(base64, dossier, nomFichier)
-  enregistrerQuittance(bailId, periode, nomFichier, chemin)
+  enregistrerQuittance(bailId, periode, nomFichier, chemin, reference)
   return chemin
 }
 

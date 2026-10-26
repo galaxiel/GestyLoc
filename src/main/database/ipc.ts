@@ -146,18 +146,26 @@ export function registerDatabaseHandlers(): void {
   // ---------- Quittances PDF ----------
   handle(
     'quittance:save',
-    (base64: string, nomFichier: string, bailId?: number, periode?: string) =>
+    (base64: string, nomFichier: string, bailId?: number, periode?: string, reference?: string) =>
       saveQuittancePdf(base64, nomFichier).then((chemin) => {
-        if (chemin && bailId && periode) enregistrerQuittance(bailId, periode, nomFichier, chemin)
+        if (chemin && bailId && periode && reference)
+          enregistrerQuittance(bailId, periode, nomFichier, chemin, reference)
         return chemin
       })
   )
   handle('quittance:choose-folder', () => choisirDossierQuittances())
   handle(
     'quittance:save-to',
-    (base64: string, dossier: string, nomFichier: string, bailId?: number, periode?: string) =>
-      bailId && periode
-        ? saveToDossierTrace(base64, dossier, nomFichier, bailId, periode)
+    (
+      base64: string,
+      dossier: string,
+      nomFichier: string,
+      bailId?: number,
+      periode?: string,
+      reference?: string
+    ) =>
+      bailId && periode && reference
+        ? saveToDossierTrace(base64, dossier, nomFichier, bailId, periode, reference)
         : saveToDossier(base64, dossier, nomFichier)
   )
   handle('quittances:list', () => listQuittances())

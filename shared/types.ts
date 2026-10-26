@@ -264,6 +264,7 @@ export interface QuittanceHistorique {
   id: number
   bail_id: number
   periode: string
+  reference_number: string | null
   nom_fichier: string
   chemin: string | null
   genere_le: string

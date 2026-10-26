@@ -6,6 +6,7 @@ import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
 import type { QuittanceHistorique, Paiement } from '@shared/types'
 import { formatPeriode } from '../lib/format'
+import { referenceQuittance } from '@shared/quittance-ref'
 import { libelleBien, nomBien, triParLibelle } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -30,6 +31,7 @@ function construireQuittance(params: {
   bienNom: string
   bienAdresse: string
   periode: string
+  reference: string
   dateDebutBail: string | null
   loyerHc: number
   charges: number
@@ -228,6 +230,7 @@ export function Quittances(): React.JSX.Element {
       year: 'numeric'
     })
     return construireQuittance({
+      reference: referenceQuittance(r.bail.id, periode),
       bailleur: bailleur?.nom_complet || '________________',
       adresseBailleur: bailleur?.adresse || '________________',
       bailleurVille: bailleur?.ville ?? '',
@@ -264,7 +267,13 @@ export function Quittances(): React.JSX.Element {
       const [annee, mois] = periode.split('-')
       const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${annee}-${mois}.pdf`
       pdfMake.createPdf(doc).getBase64(async (base64: string) => {
-        const chemin = await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
+        const chemin = await ipc.quittances.save(
+          base64,
+          nomFichier,
+          Number(bailId),
+          periode,
+          referenceQuittance(Number(bailId), periode)
+        )
         setMessage(chemin ? `Quittance enregistrée : ${chemin}` : 'Enregistrement annulé.')
         void rechargerHistorique()
         setEnCours(false)
@@ -300,11 +309,17 @@ export function Quittances(): React.JSX.Element {
       })
       await ipc.email.send(
         row.locataire.email,
-        `Votre quittance de loyer — ${libellePeriode}`,
+        `Votre quittance de loyer n° ${referenceQuittance(row.bail.id, periode)}`,
         `Bonjour ${row.locataire.nom_complet},\n\nVeuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.\n\nCordialement,\n${bailleur?.nom_complet ?? ''}`,
         { nomFichier, base64 }
       )
-      await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
+      await ipc.quittances.save(
+        base64,
+        nomFichier,
+        Number(bailId),
+        periode,
+        referenceQuittance(Number(bailId), periode)
+      )
       void rechargerHistorique()
       setMessage(`Quittance envoyée à ${row.locataire.email}.`)
     } catch (err) {
@@ -357,7 +372,14 @@ export function Quittances(): React.JSX.Element {
           setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
         })
         const nom = `quittance_${slug(r.locataire.nom_complet)}_${suffixe}.pdf`
-        await ipc.quittances.saveTo(base64, dossier, nom, r.bail.id, periode)
+        await ipc.quittances.saveTo(
+          base64,
+          dossier,
+          nom,
+          r.bail.id,
+          periode,
+          referenceQuittance(r.bail.id, periode)
+        )
       } catch {
         erreurs++
       }
@@ -427,11 +449,17 @@ export function Quittances(): React.JSX.Element {
         const nomFichier = `quittance_${slug(r.locataire.nom_complet)}_${suffixe}.pdf`
         await ipc.email.send(
           r.locataire.email as string,
-          `Votre quittance de loyer — ${libellePeriode}`,
+          `Votre quittance de loyer n° ${referenceQuittance(r.bail.id, periode)}`,
           `Bonjour ${r.locataire.nom_complet},\n\nVeuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.\n\nCordialement,\n${bailleur?.nom_complet ?? ''}`,
           { nomFichier, base64 }
         )
-        await ipc.quittances.save(base64, nomFichier, r.bail.id, periode)
+        await ipc.quittances.save(
+          base64,
+          nomFichier,
+          r.bail.id,
+          periode,
+          referenceQuittance(r.bail.id, periode)
+        )
       } catch {
         erreurs++
       }
@@ -667,6 +695,7 @@ export function Quittances(): React.JSX.Element {
               <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-2">Générée le</th>
+                  <th className="px-4 py-2">Référence</th>
                   <th className="px-4 py-2">Période</th>
                   <th className="px-4 py-2">Fichier</th>
                 </tr>
@@ -677,6 +706,7 @@ export function Quittances(): React.JSX.Element {
                   return (
                     <tr key={q.id} className="border-t border-slate-200 dark:border-slate-800">
                       <td className="px-4 py-2">{q.genere_le.slice(0, 10)}</td>
+                      <td className="px-4 py-2 font-mono text-xs">{q.reference_number ?? '—'}</td>
                       <td className="px-4 py-2">
                         {formatPeriode(q.periode)}
                         <span className="ml-2 text-xs text-slate-400">

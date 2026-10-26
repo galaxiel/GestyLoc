@@ -186,18 +186,20 @@ export const ipc = {
       base64: string,
       nomFichier: string,
       bailId?: number,
-      periode?: string
+      periode?: string,
+      reference?: string
     ): Promise<string | null> =>
-      unwrap(window.api.quittances.save(base64, nomFichier, bailId, periode)),
+      unwrap(window.api.quittances.save(base64, nomFichier, bailId, periode, reference)),
     chooseFolder: (): Promise<string | null> => unwrap(window.api.quittances.chooseFolder()),
     saveTo: (
       base64: string,
       dossier: string,
       nomFichier: string,
       bailId?: number,
-      periode?: string
+      periode?: string,
+      reference?: string
     ): Promise<string> =>
-      unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier, bailId, periode)),
+      unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier, bailId, periode, reference)),
     list: (): Promise<QuittanceHistorique[]> =>
       unwrap(window.api.quittances.list() as Promise<{
         ok: boolean

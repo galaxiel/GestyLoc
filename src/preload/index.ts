@@ -151,9 +151,10 @@ const api = {
       base64: string,
       nomFichier: string,
       bailId?: number,
-      periode?: string
+      periode?: string,
+      reference?: string
     ): Promise<IpcResult<string | null>> =>
-      ipcRenderer.invoke('quittance:save', base64, nomFichier, bailId, periode),
+      ipcRenderer.invoke('quittance:save', base64, nomFichier, bailId, periode, reference),
     chooseFolder: (): Promise<IpcResult<string | null>> =>
       ipcRenderer.invoke('quittance:choose-folder'),
     saveTo: (
@@ -161,9 +162,10 @@ const api = {
       dossier: string,
       nomFichier: string,
       bailId?: number,
-      periode?: string
+      periode?: string,
+      reference?: string
     ): Promise<IpcResult<string>> =>
-      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier, bailId, periode),
+      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier, bailId, periode, reference),
     list: (): Promise<IpcResult<unknown[]>> => ipcRenderer.invoke('quittances:list')
   },
 

@@ -25,6 +25,7 @@ import quittancesSql from './migrations/0006_quittances.sql?raw'
 import regularisationSql from './migrations/0007_regularisation.sql?raw'
 import nomBienSql from './migrations/0008_nom_bien.sql?raw'
 import adressesSql from './migrations/0009_adresses.sql?raw'
+import quittanceRefSql from './migrations/0010_quittance_reference.sql?raw'
 
 interface Migration {
   id: string
@@ -44,7 +45,8 @@ const migrations: Migration[] = [
   { id: '0006', name: 'quittances', sql: quittancesSql },
   { id: '0007', name: 'regularisation', sql: regularisationSql },
   { id: '0008', name: 'nom_bien', sql: nomBienSql },
-  { id: '0009', name: 'adresses', sql: adressesSql }
+  { id: '0009', name: 'adresses', sql: adressesSql },
+  { id: '0010', name: 'quittance_reference', sql: quittanceRefSql }
   // Futures migrations à ajouter ici :
   // { id: '0004', name: 'add_xxx', sql: xxxSql },
 ]

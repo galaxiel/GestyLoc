@@ -7,6 +7,7 @@ import { bailRepository } from '../repositories/bail.repository'
 import { bienRepository } from '../repositories/bien.repository'
 import { locataireRepository } from '../repositories/locataire.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
+import { listQuittances } from './quittance.service'
 import log from 'electron-log'
 
 // ----------------------------------------------------------------------------
@@ -66,6 +67,24 @@ export async function exporterCsv(): Promise<string | null> {
         r.bail.occupation_gratuite ? 'oui' : 'non',
         r.bail.date_derniere_revision
       ])
+    )
+  )
+
+  ecrire(
+    'quittances.csv',
+    versCsv(
+      ['reference', 'periode', 'locataire', 'bien', 'fichier', 'genere_le'],
+      listQuittances().map((q) => {
+        const r = bailRepository.listWithRelations().find((x) => x.bail.id === q.bail_id)
+        return [
+          q.reference_number,
+          q.periode,
+          r?.locataire.nom_complet ?? '',
+          r?.bien.designation ?? '',
+          q.nom_fichier,
+          q.genere_le
+        ]
+      })
     )
   )
 
