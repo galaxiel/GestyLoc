@@ -41,7 +41,7 @@
 - Moteur de scénario **pur et testé** (`shared/stats.ts`) : 19 tests, dont
   identité à taux nul, monotonicité, arrondi légal, IRL manquant
 
-### Correctifs techniques (issue de l'audit externe, causes racines traitées)
+### Correctifs techniques (issue de l'audit externe — livraison v1.12-v1.15 : quittances conditionnées ✓, IRL embarquée ✓, audit de données ✓, reçu partiel ✓ ; reste :)
 - [x] 🗃️ **Table IRL embarquée** (v1.11.0, en attente de publication) : 91
   trimestres INSEE (2004-T1 → 2026-T3) dans . L'outil de
   révision de la fiche bail est piloté par le trimestre : listes déroulantes
@@ -91,7 +91,7 @@
 - [x] Rappel : l'envoi **individuel** existe depuis la v1.7.0 (bouton
   « Envoyer par email au locataire » sous le formulaire).
 
-## ✅ Livré en attente de release (v1.14.0)
+## ✅ Livré (v1.15.0 publiée le 26/10/2026)
 
 - [x] 🖥️ **Quittance refondue** (demandes du 26/10) : adresses complètes
   bailleur (rue/CP/ville, profil structuré) et locataire (migration 0009 :
@@ -109,6 +109,31 @@
 - [x] 🖥️ **Alerte « assurance »** : demander l'attestation d'assurance au
   locataire dans les 30 jours avant l'anniversaire du bail (groupe dédié du
   dashboard)
+
+## 💰 Échéancier réel (besoin remonté par le bailleur, 26/10/2026)
+
+> Situation actuelle de l'utilisateur : ses locataires paient **au début du
+> mois** (jusqu'au 5 ou 6, quand les aides sociales tombent), et à
+> l'**entrée dans les lieux** ils paient un **prorata** (du jour d'entrée à
+> la fin du mois en cours). Aujourd'hui GestyLoc suppose implicitement que
+> « période = mois calendaire » et le début du bail = début de période.
+> Cette fonctionnalité permettrait de coller à la réalité :
+
+- [ ] 🖥️ **Champ « jour de paiement » sur le bail** (ex : 5) — par défaut 1
+  ; sert de référence au pointage (un loyer pointé « payé » le 3 pour
+  l'échéance du 5 est à l'heure) et aux alertes de retard (retard si non
+  payé au jour de paiement + marge configurable)
+- [ ] 🗃️ **Prorata à l'entrée** : au premier mois, montant attendu =
+  loyer CC × (jours restants du mois ÷ jours du mois) — le pointage du
+  premier mois accepte ce montant réduit sans crier « partiel »
+- [ ] 🖥️ **Calendrier des échéances** : vue qui montre pour chaque bail
+  quand le loyer est dû (jour de paiement) et si le mois courant est OK
+- [ ] 🖥️ **Fiche bail** : afficher « Paiement le 5 de chaque mois » à côté
+  des dates du bail
+- 📝 Question ouverte à trancher au moment de l'implémentation : le prorata
+  se calcule en jours civils ou en dixièmes (méthode courtier) ? Les aides
+  sociales décalées (le 5) décalent-elles le jour de paiement ou juste la
+  tolérance de pointage ?
 
 ## 🔮 Pistes produit (nécessitent une décision, pas des bugs)
 
