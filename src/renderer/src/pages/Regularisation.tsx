@@ -7,6 +7,7 @@ import type { RegularisationCharges } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro } from '../lib/format'
+import { nomBien } from '@shared/labels'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const vfs = (vfsFonts as any)?.pdfMake?.vfs ?? (vfsFonts as any)?.default?.pdfMake?.vfs ?? (vfsFonts as any)?.vfs ?? (vfsFonts as any)?.default?.vfs ?? vfsFonts
@@ -258,7 +259,7 @@ export function Regularisation(): React.JSX.Element {
                 <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2 text-sm">{r.bien.type_bien}</td>
                   <td className="px-4 py-2">
-                    <div className="font-medium">{r.bien.designation}</div>
+                    <div className="font-medium">{nomBien(r.bien)}</div>
                     <div className="text-xs text-slate-400">{r.locataire.nom_complet}</div>
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">

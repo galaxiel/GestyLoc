@@ -7,6 +7,7 @@ import type { DocumentRow, TypeDocument } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface } from '../lib/format'
+import { nomBien } from '@shared/labels'
 
 const cardCls =
   'rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950'
@@ -105,7 +106,7 @@ export function BienDetail(): React.JSX.Element {
       </button>
 
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">{bien.designation}</h1>
+        <h1 className="text-xl font-bold tracking-tight">{nomBien(bien)}</h1>
         {rowActuelle && (
           <button
             onClick={() => navigate(`/baux/${rowActuelle.bail.id}`)}

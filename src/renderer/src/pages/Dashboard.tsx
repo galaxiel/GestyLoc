@@ -8,6 +8,7 @@ import type { Alerte, Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, periodeCourante } from '../lib/format'
+import { nomBien } from '@shared/labels'
 
 const groupeStyle: Record<Alerte['type'], { titre: string; couleur: string }> = {
   fin_bail: { titre: 'Fins de bail', couleur: 'border-red-300 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300' },
@@ -268,7 +269,7 @@ export function Dashboard(): React.JSX.Element {
                   >
                     <td className="px-4 py-2 text-sm">{r.bien.type_bien}</td>
                     <td className="px-4 py-2">
-                      <div className="font-medium">{r.bien.designation}</div>
+                      <div className="font-medium">{nomBien(r.bien)}</div>
                       <div className="text-xs text-slate-400">{r.locataire.nom_complet}</div>
                     </td>
                     <td className="px-4 py-2 text-sm text-slate-400">

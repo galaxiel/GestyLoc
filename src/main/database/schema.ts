@@ -25,6 +25,9 @@ export const biens = sqliteTable('biens', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   type_bien: text('type_bien').notNull(), // TypeBien (voir shared/types.ts)
   designation: text('designation').notNull(),
+  // Nom lisible et unique du bien (migration 0008) — la désignation est
+  // souvent une adresse héritée du tableur
+  nom: text('nom'),
   adresse: text('adresse'),
   code_postal: text('code_postal'),
   ville: text('ville'),

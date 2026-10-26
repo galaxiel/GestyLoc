@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, Scale, TrendingUp } from 'lucide-react'
 import { simulerRattrapageIrl, type BailPourSimulation } from '@shared/stats'
+import { nomBien } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro } from '../lib/format'
@@ -77,6 +78,7 @@ export function Simulateur(): React.JSX.Element {
   const typesParBail = new Map(
     locations.map((r) => [r.bail.id, r.bien.type_bien])
   )
+  const nomsParBail = new Map(locations.map((r) => [r.bail.id, nomBien(r.bien)]))
   const adressesUniquesParBail = new Map(
     locations.map((r) => {
       // On dédoublonne : adresse/ville identiques à la désignation = redondants
@@ -196,7 +198,7 @@ export function Simulateur(): React.JSX.Element {
                 <tr key={r.bailId} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2 text-sm">{typesParBail.get(r.bailId)}</td>
                   <td className="px-4 py-2">
-                    <div className="font-medium">{r.designation}</div>
+                    <div className="font-medium">{nomsParBail.get(r.bailId)}</div>
                     <div className="text-xs text-slate-400">{r.locataire}</div>
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">

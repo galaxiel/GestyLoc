@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import type { Paiement, DocumentRow } from '@shared/types'
 import { IRL_INSEE, IRL_TRIMESTRES, valeurIrl } from '@shared/irl-insee'
+import { nomBien } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface, libelleStatut, formatPeriode } from '../lib/format'
@@ -165,7 +166,7 @@ export function BailDetail(): React.JSX.Element {
 
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">
-          {bien.designation}
+          {nomBien(bien)}
           {bail.occupation_gratuite && (
             <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
               Occupation gratuite

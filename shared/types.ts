@@ -22,6 +22,7 @@ export interface Bien {
   id: number
   type_bien: TypeBien
   designation: string // ex: "Appartement T3 centre-ville" / "Garage n°12"
+  nom: string | null // nom lisible et unique (migration 0008) — affiché en priorité
   adresse: string | null
   code_postal: string | null
   ville: string | null
@@ -108,6 +109,7 @@ export interface BienLocationRow {
 export interface CreateBienInput {
   type_bien: TypeBien
   designation: string
+  nom?: string | null
   adresse?: string | null
   code_postal?: string | null
   ville?: string | null

@@ -8,13 +8,19 @@
 export interface BienLabelSource {
   type_bien: string
   designation: string
+  nom?: string | null
   locataire?: string
 }
 
-/** "Garage · 11 rue renoir — M. Cathelin" (ou sans locataire si absent). */
+/** Nom affiché : le champ « nom » s'il existe, sinon la désignation. */
+export function nomBien(b: BienLabelSource): string {
+  return b.nom && b.nom.trim() !== '' ? b.nom : b.designation
+}
+
+/** "Garage · Garage renoir n°1 — M. Cathelin" (ou sans locataire si absent). */
 export function libelleBien(b: BienLabelSource): string {
   const type = b.type_bien ? `${b.type_bien} · ` : ''
-  return b.locataire ? `${type}${b.designation} — ${b.locataire}` : `${type}${b.designation}`
+  return b.locataire ? `${type}${nomBien(b)} — ${b.locataire}` : `${type}${nomBien(b)}`
 }
 
 /** Tri canonique par libellé composé (désignation, puis locataire). */

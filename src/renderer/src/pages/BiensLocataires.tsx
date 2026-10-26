@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { nomBien } from '@shared/labels'
 import { Plus, Pencil, Trash2, X, Search, Home } from 'lucide-react'
 import type { TypeBien, CreateBienInput, CreateLocataireInput, CreateBailInput } from '@shared/types'
 import { useStore } from '../hooks/useStore'
@@ -13,6 +14,7 @@ interface FormState {
   // Bien
   type_bien: TypeBien
   designation: string
+  nom: string
   adresse: string
   code_postal: string
   ville: string
@@ -46,6 +48,7 @@ interface FormState {
 const FORM_VIDE: FormState = {
   type_bien: 'Appartement',
   designation: '',
+  nom: '',
   adresse: '',
   code_postal: '',
   ville: '',
@@ -177,6 +180,7 @@ export function BiensLocataires(): React.JSX.Element {
     setForm({
       type_bien: row.bien.type_bien as TypeBien,
       designation: row.bien.designation,
+      nom: row.bien.nom ?? '',
       adresse: row.bien.adresse ?? '',
       code_postal: row.bien.code_postal ?? '',
       ville: row.bien.ville ?? '',
@@ -216,14 +220,15 @@ export function BiensLocataires(): React.JSX.Element {
   }
 
   const enregistrer = async (): Promise<void> => {
-    if (!form.designation.trim() || !form.nom_complet.trim()) {
-      setErreur('La désignation du bien et le nom du locataire sont obligatoires.')
+    if ((!form.nom.trim() && !form.designation.trim()) || !form.nom_complet.trim()) {
+      setErreur('Le nom du bien (ou sa référence) et le nom du locataire sont obligatoires.')
       return
     }
     try {
       const bienInput: CreateBienInput = {
         type_bien: form.type_bien,
         designation: form.designation.trim(),
+        nom: str(form.nom),
         adresse: str(form.adresse),
         code_postal: str(form.code_postal),
         ville: str(form.ville),
@@ -435,7 +440,7 @@ export function BiensLocataires(): React.JSX.Element {
                     title="Voir la fiche détaillée"
                     className="hover:text-primary-600 hover:underline"
                   >
-                    {r.bien.designation}
+                    {nomBien(r.bien)}
                   </button>
                   {r.bail.occupation_gratuite && (
                     <span className="ml-2 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
@@ -543,12 +548,21 @@ export function BiensLocataires(): React.JSX.Element {
                   ))}
                 </select>
               </Field>
-              <Field label="Désignation *" className="col-span-2">
+              <Field label="Nom du bien *" className="col-span-2">
+                <input
+                  className={inputCls}
+                  value={form.nom}
+                  onChange={(e) => setForm({ ...form, nom: e.target.value })}
+                  placeholder="ex : Garage renoir n°1, Studio Rdc"
+                  required
+                />
+              </Field>
+              <Field label="Référence / désignation" className="col-span-2">
                 <input
                   className={inputCls}
                   value={form.designation}
                   onChange={(e) => setForm({ ...form, designation: e.target.value })}
-                  placeholder="ex : Appartement T3 centre-ville"
+                  placeholder="ex : 11 rue renoir (peut être l'adresse)"
                 />
               </Field>
               <Field label="Meublé">

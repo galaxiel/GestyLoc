@@ -95,10 +95,12 @@
 
 ## 💡 Idées récentes (issues des retours d'usage du 25/10/2026)
 
-- [x] 🖥️ **Libellés de biens uniques** : fait via le helper `shared/labels.ts`
-  (« Type · Désignation — Locataire » partout). Si tu veux un jour des noms
-  courts encore plus parlants (« Studio Rdc »), il suffit de renommer la
-  désignation du bien — le libellé suit automatiquement.
+- [x] 🗃️ **Champ « Nom » distinct** (v1.12.0, migration 0008) : la désignation
+  héritée du tableur était une adresse ; le bien a maintenant un champ `nom`
+  lisible et unique (« Garage renoir n°1 »), affiché partout (helper
+  `nomBien()` dans `shared/labels.ts` : nom si présent, sinon désignation).
+  Les 16 biens existants ont nom = désignation initiale — à personnaliser
+  dans le formulaire (champ « Nom du bien » en tête).
 - [x] 🗃️ **Mise à jour automatique de la table IRL** : GitHub Action
   trimestriel `update-irl.yml` (16 jan/avr/juil/oct) qui recharge la série
   INSEE et commite `shared/irl-insee.ts` si elle a changé. À préciser : l'app
