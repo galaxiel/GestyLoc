@@ -26,6 +26,9 @@ interface FormState {
   nom_complet: string
   email: string
   telephone: string
+  loc_adresse: string
+  loc_cp: string
+  loc_ville: string
   // Bail
   date_debut_bail: string
   date_fin_bail: string
@@ -59,6 +62,9 @@ const FORM_VIDE: FormState = {
   nom_complet: '',
   email: '',
   telephone: '',
+  loc_adresse: '',
+  loc_cp: '',
+  loc_ville: '',
   date_debut_bail: '',
   date_fin_bail: '',
   trimestre_ref_num: '',
@@ -191,6 +197,9 @@ export function BiensLocataires(): React.JSX.Element {
       nom_complet: row.locataire.nom_complet,
       email: row.locataire.email ?? '',
       telephone: row.locataire.telephone ?? '',
+      loc_adresse: row.locataire.adresse ?? '',
+      loc_cp: row.locataire.code_postal ?? '',
+      loc_ville: row.locataire.ville ?? '',
       date_debut_bail: row.bail.date_debut_bail ?? '',
       date_fin_bail: row.bail.date_fin_bail ?? '',
       trimestre_ref_num: (() => {
@@ -241,7 +250,10 @@ export function BiensLocataires(): React.JSX.Element {
       const locataireInput: CreateLocataireInput = {
         nom_complet: form.nom_complet.trim(),
         email: str(form.email),
-        telephone: str(form.telephone)
+        telephone: str(form.telephone),
+        adresse: str(form.loc_adresse),
+        code_postal: str(form.loc_cp),
+        ville: str(form.loc_ville)
       }
       const bailInput: CreateBailInput = {
         bien_id: 0, // rempli ci-dessous
@@ -657,6 +669,28 @@ export function BiensLocataires(): React.JSX.Element {
                   className={inputCls}
                   value={form.telephone}
                   onChange={(e) => setForm({ ...form, telephone: e.target.value })}
+                />
+              </Field>
+              <Field label="Adresse du locataire (rue)" className="md:col-span-2">
+                <input
+                  className={inputCls}
+                  value={form.loc_adresse}
+                  onChange={(e) => setForm({ ...form, loc_adresse: e.target.value })}
+                  placeholder="adresse personnelle (utilisée dans les quittances)"
+                />
+              </Field>
+              <Field label="Code postal">
+                <input
+                  className={inputCls}
+                  value={form.loc_cp}
+                  onChange={(e) => setForm({ ...form, loc_cp: e.target.value })}
+                />
+              </Field>
+              <Field label="Ville">
+                <input
+                  className={inputCls}
+                  value={form.loc_ville}
+                  onChange={(e) => setForm({ ...form, loc_ville: e.target.value })}
                 />
               </Field>
             </div>

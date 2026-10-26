@@ -117,7 +117,9 @@ export function Parametres(): React.JSX.Element {
 
   // --- Profil bailleur ---
   const [bailleurNom, setBailleurNom] = useState('')
-  const [bailleurAdresse, setBailleurAdresse] = useState('')
+  const [bailleurRue, setBailleurRue] = useState('')
+  const [bailleurCp, setBailleurCp] = useState('')
+  const [bailleurVille, setBailleurVille] = useState('')
   const [bailleurMessage, setBailleurMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -129,7 +131,9 @@ export function Parametres(): React.JSX.Element {
       .then((profil) => {
         if (profil) {
           setBailleurNom(profil.nom_complet)
-          setBailleurAdresse(profil.adresse)
+          setBailleurRue(profil.adresse ?? '')
+          setBailleurCp((profil as { code_postal?: string }).code_postal ?? '')
+          setBailleurVille((profil as { ville?: string }).ville ?? '')
         }
       })
       .catch(() => {
@@ -141,7 +145,9 @@ export function Parametres(): React.JSX.Element {
     try {
       await ipc.parametres.setBailleur({
         nom_complet: bailleurNom.trim(),
-        adresse: bailleurAdresse.trim()
+        adresse: bailleurRue.trim(),
+        code_postal: bailleurCp.trim(),
+        ville: bailleurVille.trim()
       })
       setBailleurMessage('Profil enregistré — utilisé dans les quittances.')
     } catch (err) {
@@ -210,15 +216,37 @@ export function Parametres(): React.JSX.Element {
               placeholder="ex : Jean Martin"
             />
           </label>
+          <label className="block md:col-span-2">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Adresse (rue)
+            </span>
+            <input
+              className={inputCls}
+              value={bailleurRue}
+              onChange={(e) => setBailleurRue(e.target.value)}
+              placeholder="ex : 12 rue des Lilas"
+            />
+          </label>
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
-              Adresse
+              Code postal
             </span>
-            <textarea
-              className={`${inputCls} min-h-[64px] resize-y`}
-              value={bailleurAdresse}
-              onChange={(e) => setBailleurAdresse(e.target.value)}
-              placeholder="ex : 12 rue des Lilas, 75011 Paris"
+            <input
+              className={inputCls}
+              value={bailleurCp}
+              onChange={(e) => setBailleurCp(e.target.value)}
+              placeholder="ex : 75011"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Ville
+            </span>
+            <input
+              className={inputCls}
+              value={bailleurVille}
+              onChange={(e) => setBailleurVille(e.target.value)}
+              placeholder="ex : Paris"
             />
           </label>
           <button

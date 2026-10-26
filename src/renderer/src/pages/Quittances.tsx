@@ -6,7 +6,7 @@ import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
 import type { QuittanceHistorique, Paiement } from '@shared/types'
 import { formatPeriode } from '../lib/format'
-import { libelleBien, triParLibelle } from '@shared/labels'
+import { libelleBien, nomBien, triParLibelle } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate } from '../lib/format'
@@ -24,8 +24,10 @@ const inputCls =
 function construireQuittance(params: {
   bailleur: string
   adresseBailleur: string
+  bailleurVille: string
   locataire: string
-  bienDesignation: string
+  locataireAdresse: string
+  bienNom: string
   bienAdresse: string
   periode: string
   dateDebutBail: string | null
@@ -47,7 +49,8 @@ function construireQuittance(params: {
             stack: [
               { text: 'BAILLEUR', style: 'etiquette' },
               { text: params.bailleur, bold: true },
-              { text: params.adresseBailleur }
+              { text: params.adresseBailleur },
+              { text: params.bailleurVille }
             ]
           },
           {
@@ -55,7 +58,7 @@ function construireQuittance(params: {
             stack: [
               { text: 'LOCATAIRE', style: 'etiquette' },
               { text: params.locataire, bold: true },
-              { text: params.bienAdresse }
+              { text: params.locataireAdresse }
             ]
           }
         ],
@@ -63,10 +66,10 @@ function construireQuittance(params: {
       },
 
       {
-        text: `Je soussigné(e) ${params.bailleur}, bailleur du logement désigné ci-dessus, donne quittance à ${params.locataire} :`
+        text: `Le bailleur du bien désigné ci-dessus donne quittance à ${params.locataire} :`
       },
       {
-        text: `du paiement du loyer et des charges du logement pour la période de ${params.periode}.`,
+        text: `du paiement du loyer et des charges du bien pour la période de ${params.periode}.`,
         margin: [0, 4, 0, 20]
       },
 
@@ -92,7 +95,9 @@ function construireQuittance(params: {
             width: '50%',
             stack: [
               { text: 'En règlement de :', style: 'etiquette' },
-              { text: 'Loyer et charges du logement' },
+              { text: 'Loyer et charges du bien' },
+              { text: `Bien : ${params.bienNom}` },
+              { text: params.bienAdresse },
               { text: `Période : ${params.periode}` },
               { text: `Début du bail : ${formatDate(params.dateDebutBail)}` }
             ]
@@ -101,15 +106,14 @@ function construireQuittance(params: {
             width: '50%',
             alignment: 'right',
             stack: [
-              { text: `Fait à _____________, le ${aujourdhui}`, margin: [0, 0, 0, 40] },
-              { text: 'Signature du bailleur', style: 'etiquette' }
+              { text: `Fait à ${params.bailleurVille || '_____________'}, le ${aujourdhui}` }
             ]
           }
         ]
       },
 
       {
-        text: 'Cette quittance ne décharge pas le locataire du paiement des arriérés éventuels. Elle est délivrée gratuitement.',
+        text: 'Cette quittance de loyer n’est pas une preuve de paiement. Elle est délivrée gratuitement.',
         style: 'pied',
         margin: [0, 40, 0, 0]
       }
@@ -137,7 +141,12 @@ export function Quittances(): React.JSX.Element {
   })
   const [enCours, setEnCours] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const [bailleur, setBailleur] = useState<{ nom_complet: string; adresse: string } | null>(null)
+  const [bailleur, setBailleur] = useState<{
+    nom_complet: string
+    adresse: string
+    code_postal?: string
+    ville?: string
+  } | null>(null)
   const [lot, setLot] = useState<{ enCours: boolean; fait: number; total: number; erreurs: number }>({
     enCours: false,
     fait: 0,
@@ -211,6 +220,32 @@ export function Quittances(): React.JSX.Element {
 
   const row = locations.find((r) => r.bail.id === Number(bailId))
 
+  /** Construit la quittance d'un bail (profil bailleur, adresses, nom du bien). */
+  const construirePour = (r: (typeof locations)[number]): TDocumentDefinitions => {
+    const [a, m] = periode.split('-')
+    const libellePeriode = new Date(Number(a), Number(m) - 1, 1).toLocaleDateString('fr-FR', {
+      month: 'long',
+      year: 'numeric'
+    })
+    return construireQuittance({
+      bailleur: bailleur?.nom_complet || '________________',
+      adresseBailleur: bailleur?.adresse || '________________',
+      bailleurVille: bailleur?.ville ?? '',
+      locataire: r.locataire.nom_complet,
+      locataireAdresse: [r.locataire.adresse, r.locataire.code_postal, r.locataire.ville]
+        .filter(Boolean)
+        .join(', '),
+      bienNom: nomBien(r.bien),
+      bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
+        .filter(Boolean)
+        .join(', '),
+      periode: libellePeriode,
+      dateDebutBail: r.bail.date_debut_bail,
+      loyerHc: r.bail.loyer_hc ?? 0,
+      charges: r.bail.charges ?? 0
+    })
+  }
+
   /** Nom de fichier sûr : sans accents, virgules ou espaces exotiques. */
   const slug = (nom: string): string =>
     nom
@@ -219,36 +254,16 @@ export function Quittances(): React.JSX.Element {
       .replace(/[^a-zA-Z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
 
+  /** Génère le PDF de la quittance du bail sélectionné (export fichier). */
   const generer = async (): Promise<void> => {
     if (!row || !confirmerSiNonPaye(row)) return
     setEnCours(true)
     setMessage(null)
     try {
-      const loyerHc = row.bail.loyer_hc ?? 0
-      const charges = row.bail.charges ?? 0
-
+      const doc = construirePour(row)
       const [annee, mois] = periode.split('-')
-      const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
-        'fr-FR',
-        { month: 'long', year: 'numeric' }
-      )
-
-      const doc = construireQuittance({
-        bailleur: bailleur?.nom_complet || '________________',
-        adresseBailleur: bailleur?.adresse || '________________',
-        locataire: row.locataire.nom_complet,
-        bienDesignation: row.bien.designation,
-        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
-          .filter(Boolean)
-          .join(', '),
-        periode: libellePeriode,
-        dateDebutBail: row.bail.date_debut_bail,
-        loyerHc,
-        charges
-      })
-
+      const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${annee}-${mois}.pdf`
       pdfMake.createPdf(doc).getBase64(async (base64: string) => {
-        const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${periode}.pdf`
         const chemin = await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
         setMessage(chemin ? `Quittance enregistrée : ${chemin}` : 'Enregistrement annulé.')
         void rechargerHistorique()
@@ -260,51 +275,33 @@ export function Quittances(): React.JSX.Element {
     }
   }
 
-  /** Génère la quittance et l'envoie par email au locataire (SMTP configuré). */
+  /** Envoie la quittance du bail sélectionné par email à son locataire. */
   const envoyerAuLocataire = async (): Promise<void> => {
     if (!row || !confirmerSiNonPaye(row)) return
     if (!row.locataire.email) {
-      setMessage('Ce locataire n’a pas d’adresse email — complète sa fiche (Biens & Locataires → Modifier).')
+      setMessage(
+        'Ce locataire n’a pas d’adresse email — complète sa fiche (Biens & Locataires → Modifier).'
+      )
       return
     }
     setEnvoiEnCours(true)
     setMessage(null)
     try {
-      const loyerHc = row.bail.loyer_hc ?? 0
-      const charges = row.bail.charges ?? 0
       const [annee, mois] = periode.split('-')
       const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
         'fr-FR',
         { month: 'long', year: 'numeric' }
       )
-      const doc = construireQuittance({
-        bailleur: bailleur?.nom_complet || '________________',
-        adresseBailleur: bailleur?.adresse || '________________',
-        locataire: row.locataire.nom_complet,
-        bienDesignation: row.bien.designation,
-        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
-          .filter(Boolean)
-          .join(', '),
-        periode: libellePeriode,
-        dateDebutBail: row.bail.date_debut_bail,
-        loyerHc,
-        charges
-      })
+      const doc = construirePour(row)
       const nomFichier = `quittance_${slug(row.locataire.nom_complet)}_${periode}.pdf`
-      const base64 = await new Promise<string>((resolve) => {
+      const base64 = await new Promise<string>((resolve, reject) => {
         pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
-        setTimeout(() => resolve(''), 30000)
+        setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
       })
-      if (!base64) throw new Error('Génération PDF trop longue')
       await ipc.email.send(
         row.locataire.email,
         `Votre quittance de loyer — ${libellePeriode}`,
-        `Bonjour ${row.locataire.nom_complet},
-
-Veuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.
-
-Cordialement,
-${bailleur?.nom_complet ?? ''}`,
+        `Bonjour ${row.locataire.nom_complet},\n\nVeuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.\n\nCordialement,\n${bailleur?.nom_complet ?? ''}`,
         { nomFichier, base64 }
       )
       await ipc.quittances.save(base64, nomFichier, Number(bailId), periode)
@@ -322,30 +319,7 @@ ${bailleur?.nom_complet ?? ''}`,
     if (!row || !confirmerSiNonPaye(row)) return
     setEnCours(true)
     try {
-      const loyerHc = row.bail.loyer_hc ?? 0
-      const charges = row.bail.charges ?? 0
-
-      const [annee, mois] = periode.split('-')
-      const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
-        'fr-FR',
-        { month: 'long', year: 'numeric' }
-      )
-
-      const doc = construireQuittance({
-        bailleur: bailleur?.nom_complet || '________________',
-        adresseBailleur: bailleur?.adresse || '________________',
-        locataire: row.locataire.nom_complet,
-        bienDesignation: row.bien.designation,
-        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
-          .filter(Boolean)
-          .join(', '),
-        periode: libellePeriode,
-        dateDebutBail: row.bail.date_debut_bail,
-        loyerHc,
-        charges
-      })
-
-      // pdfmake ouvre un iframe avec le PDF et déclenche l'impression système.
+      const doc = construirePour(row)
       pdfMake.createPdf(doc).print()
     } catch (err) {
       setMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
@@ -354,7 +328,9 @@ ${bailleur?.nom_complet ?? ''}`,
     }
   }
 
-  /** Génère les quittances de TOUS les baux payants pour le mois choisi. */
+  /**
+   * Génération en lot : PDF de chaque bail pointé « payé », dans un dossier.
+   */
   const genererTout = async (): Promise<void> => {
     if (bauxPayes.length === 0) {
       setMessage(
@@ -369,29 +345,13 @@ ${bailleur?.nom_complet ?? ''}`,
     setMessage(null)
 
     const [annee, mois] = periode.split('-')
-    const libellePeriode = new Date(Number(annee), Number(mois) - 1, 1).toLocaleDateString(
-      'fr-FR',
-      { month: 'long', year: 'numeric' }
-    )
     const suffixe = `${annee}-${mois}`
 
     let erreurs = 0
     for (let i = 0; i < bauxPayes.length; i++) {
       const r = bauxPayes[i]
       try {
-        const doc = construireQuittance({
-          bailleur: bailleur?.nom_complet || '________________',
-          adresseBailleur: bailleur?.adresse || '________________',
-          locataire: r.locataire.nom_complet,
-          bienDesignation: r.bien.designation,
-          bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-            .filter(Boolean)
-            .join(', '),
-          periode: libellePeriode,
-          dateDebutBail: r.bail.date_debut_bail,
-          loyerHc: r.bail.loyer_hc ?? 0,
-          charges: r.bail.charges ?? 0
-        })
+        const doc = construirePour(r)
         const base64 = await new Promise<string>((resolve, reject) => {
           pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
           setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
@@ -414,14 +374,16 @@ ${bailleur?.nom_complet ?? ''}`,
   }
 
   /**
-   * Envoi en groupe : génère la quittance de chaque bail pointé « payé » et
-   * l'envoie par email au locataire. Les baux sans adresse email sont listés
-   * (non bloquants) dans le résumé.
+   * Envoi en groupe : quittance de chaque bail pointé « payé », envoyée par
+   * email. Les baux sans adresse email sont listés (non bloquants).
    */
   const envoyerTout = async (): Promise<void> => {
-    if (bauxPayes.length === 0) return
-
-    // Pré-vérification : qui a une adresse email ?
+    if (bauxPayes.length === 0) {
+      setMessage(
+        `Aucun loyer pointé « payé » pour ${periode} — pointe d'abord les loyers dans Paiements.`
+      )
+      return
+    }
     const avecEmail = bauxPayes.filter((r) => r.locataire.email)
     const sansEmail = bauxPayes.filter((r) => !r.locataire.email)
     if (avecEmail.length === 0) {
@@ -434,9 +396,7 @@ ${bailleur?.nom_complet ?? ''}`,
       !confirm(
         `Envoyer ${avecEmail.length} quittance(s) par email pour ${periode} ?` +
           (sansEmail.length > 0
-            ? `
-
-⚠ ${sansEmail.length} locataire(s) sans email seront ignorés : ${sansEmail
+            ? `\n\n⚠ ${sansEmail.length} locataire(s) sans email seront ignorés : ${sansEmail
                 .map((r) => r.locataire.nom_complet)
                 .join(', ')}`
             : '')
@@ -459,19 +419,7 @@ ${bailleur?.nom_complet ?? ''}`,
     for (let i = 0; i < avecEmail.length; i++) {
       const r = avecEmail[i]
       try {
-        const doc = construireQuittance({
-          bailleur: bailleur?.nom_complet || '________________',
-          adresseBailleur: bailleur?.adresse || '________________',
-          locataire: r.locataire.nom_complet,
-          bienDesignation: r.bien.designation,
-          bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-            .filter(Boolean)
-            .join(', '),
-          periode: libellePeriode,
-          dateDebutBail: r.bail.date_debut_bail,
-          loyerHc: r.bail.loyer_hc ?? 0,
-          charges: r.bail.charges ?? 0
-        })
+        const doc = construirePour(r)
         const base64 = await new Promise<string>((resolve, reject) => {
           pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
           setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
@@ -480,15 +428,9 @@ ${bailleur?.nom_complet ?? ''}`,
         await ipc.email.send(
           r.locataire.email as string,
           `Votre quittance de loyer — ${libellePeriode}`,
-          `Bonjour ${r.locataire.nom_complet},
-
-Veuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.
-
-Cordialement,
-${bailleur?.nom_complet ?? ''}`,
+          `Bonjour ${r.locataire.nom_complet},\n\nVeuillez trouver ci-joint votre quittance de loyer pour ${libellePeriode}.\n\nCordialement,\n${bailleur?.nom_complet ?? ''}`,
           { nomFichier, base64 }
         )
-        // Trace dans l'historique (comme un envoi individuel)
         await ipc.quittances.save(base64, nomFichier, r.bail.id, periode)
       } catch {
         erreurs++
@@ -500,7 +442,9 @@ ${bailleur?.nom_complet ?? ''}`,
     void rechargerHistorique()
     const sansEmailNote =
       sansEmail.length > 0
-        ? ` — non envoyé(s), sans email : ${sansEmail.map((r) => r.locataire.nom_complet).join(', ')}`
+        ? ` — non envoyé(s), sans email : ${sansEmail
+            .map((r) => r.locataire.nom_complet)
+            .join(', ')}`
         : ''
     setMessage(
       erreurs === 0
@@ -513,7 +457,7 @@ ${bailleur?.nom_complet ?? ''}`,
     <div className="space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Quittances de loyer</h1>
 
-      {/* Génération en lot */}
+      {/* Génération / envoi en lot */}
       <div className="max-w-xl rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -600,12 +544,20 @@ ${bailleur?.nom_complet ?? ''}`,
           />
         </label>
 
+        {!bailleur && (
+          <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            Le profil bailleur n'est pas renseigné : les champs correspondants
+            resteront vides dans le PDF. Complétez-le dans Paramètres.
+          </p>
+        )}
+
         {row && !row.bien.adresse && (
           <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
-              L'adresse du logement n'est pas renseignée : la quittance doit identifier
-              le logement loué. Complète-la dans la fiche du bien (Biens &amp; Locataires →
+              L'adresse du bien n'est pas renseignée : la quittance doit identifier
+              le bien loué. Complète-la dans la fiche du bien (Biens &amp; Locataires →
               modifier).
             </span>
           </p>
@@ -625,19 +577,13 @@ ${bailleur?.nom_complet ?? ''}`,
               <div>
                 <div className="text-xs text-slate-400">Total CC</div>
                 <div className="font-semibold text-primary-600 dark:text-primary-500">
-                  {formatEuro(row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0))}
+                  {formatEuro(
+                    row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        )}
-
-        {!bailleur && (
-          <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            Le profil bailleur n'est pas renseigné : les champs correspondants
-            resteront vides dans le PDF. Complétez-le dans Paramètres.
-          </p>
         )}
 
         <div className="flex gap-2">
@@ -659,6 +605,7 @@ ${bailleur?.nom_complet ?? ''}`,
             onClick={() => void imprimer()}
             disabled={!row || enCours}
             title="Ouvrir le dialogue d'impression"
+            aria-label="Imprimer la quittance"
             className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
             <Printer className="h-4 w-4" /> Imprimer
@@ -726,14 +673,16 @@ ${bailleur?.nom_complet ?? ''}`,
               </thead>
               <tbody>
                 {historique.slice(0, 20).map((q) => {
-                  const row = locations.find((r) => r.bail.id === q.bail_id)
+                  const rowQ = locations.find((r) => r.bail.id === q.bail_id)
                   return (
                     <tr key={q.id} className="border-t border-slate-200 dark:border-slate-800">
                       <td className="px-4 py-2">{q.genere_le.slice(0, 10)}</td>
                       <td className="px-4 py-2">
                         {formatPeriode(q.periode)}
                         <span className="ml-2 text-xs text-slate-400">
-                          {row ? `— ${row.locataire.nom_complet} (${row.bien.designation})` : ''}
+                          {rowQ
+                            ? `— ${rowQ.locataire.nom_complet} (${nomBien(rowQ.bien)})`
+                            : ''}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-xs text-slate-400">{q.nom_fichier}</td>

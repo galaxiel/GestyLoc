@@ -172,11 +172,11 @@ export const ipc = {
       }>)
   },
   parametres: {
-    getBailleur: (): Promise<{ nom_complet: string; adresse: string } | null> =>
+    getBailleur: (): Promise<{ nom_complet: string; adresse: string; code_postal?: string; ville?: string } | null> =>
       unwrap(window.api.parametres.getBailleur() as Promise<
-        { ok: boolean; data?: { nom_complet: string; adresse: string } | null; error?: string }
+        { ok: boolean; data?: { nom_complet: string; adresse: string; code_postal?: string; ville?: string } | null; error?: string }
       >),
-    setBailleur: (profil: { nom_complet: string; adresse: string }): Promise<void> =>
+    setBailleur: (profil: { nom_complet: string; adresse: string; code_postal?: string; ville?: string }): Promise<void> =>
       unwrap(window.api.parametres.setBailleur(profil) as Promise<
         { ok: boolean; data?: void; error?: string }
       >)

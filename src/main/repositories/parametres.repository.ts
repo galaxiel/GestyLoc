@@ -5,7 +5,9 @@ import { parametres } from '../database/schema'
 /** Profil du bailleur utilisé dans les quittances et l'interface. */
 export interface BailleurProfile {
   nom_complet: string
-  adresse: string
+  adresse: string // rue
+  code_postal: string
+  ville: string
 }
 
 const CLE_BAILLEUR = 'bailleur'

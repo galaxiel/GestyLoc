@@ -68,6 +68,27 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
         }
       }
     }
+
+    // --- Assurance : demander l'attestation ~30 jours avant l'anniversaire ---
+    if (row.bail.date_debut_bail) {
+      const debut = parseISO(row.bail.date_debut_bail)
+      if (isValid(debut)) {
+        const anniversaire = new Date(
+          aujourdhui.getFullYear(),
+          debut.getMonth(),
+          debut.getDate()
+        )
+        const joursAvant = differenceInCalendarDays(anniversaire, aujourdhui)
+        if (joursAvant >= 0 && joursAvant <= 30) {
+          alertes.push({
+            type: 'assurance',
+            severite: 'info',
+            message: `Demander l'attestation d'assurance à ${row.locataire.nom_complet} (${row.bien.designation}) — anniversaire du bail dans ${joursAvant} jour(s)`,
+            bail_id: row.bail.id
+          })
+        }
+      }
+    }
   }
 
   // --- Loyers impayés (statut 'impaye' ou 'retard' pointé) ---

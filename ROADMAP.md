@@ -91,6 +91,25 @@
 - [x] Rappel : l'envoi **individuel** existe depuis la v1.7.0 (bouton
   « Envoyer par email au locataire » sous le formulaire).
 
+## ✅ Livré en attente de release (v1.14.0)
+
+- [x] 🖥️ **Quittance refondue** (demandes du 26/10) : adresses complètes
+  bailleur (rue/CP/ville, profil structuré) et locataire (migration 0009 :
+  champs adresse/CP/ville sur locataires), « logement » remplacé par « bien »
+  partout, formulation non genrée (« Le bailleur du bien désigné ci-dessus
+  donne quittance à... »), « Fait à » prérempli avec la ville du bailleur,
+  mention légale remplacée par « Cette quittance de loyer n'est pas une preuve
+  de paiement » (⚠ formulation demandée par l'utilisateur — à faire valider
+  par un juriste, art. 21 dit l'inverse), signature du bailleur retirée
+- [x] 🖥️ **Fix « marquer partiel »** : window.prompt n'existe pas dans
+  Electron → remplacé par un modal de saisie du montant reçu
+- [x] 🖥️ **Clic sur une ligne de Paiements** → fiche du bail
+- [x] 🖥️ **Fix IRL** : années dédupliquées dans le select, anti-ré-application
+  (choisir un trimestre différent avant de pouvoir ré-appliquer)
+- [x] 🖥️ **Alerte « assurance »** : demander l'attestation d'assurance au
+  locataire dans les 30 jours avant l'anniversaire du bail (groupe dédié du
+  dashboard)
+
 ## 🔮 Pistes produit (nécessitent une décision, pas des bugs)
 
 - **Bail pré-rempli généré** (nu/meublé, loi 1989) — tous les concurrents l'ont
@@ -101,6 +120,18 @@
 - **Prélèvement SEPA / portail locataire / sync bancaire** — gros, oriente vers le SaaS
 - **IA locale (Ollama)** pour lecture de factures / questions sur le parc —
   l'axe « local souverain », différenciant
+- **Numéros de quittance / facture** : séquence visible sur le document
+  (certains bailleurs numérotent leurs quittances comme des factures) — à
+  concevoir avec une règle de format (ex : Q-2026-001) et compteur par année
+- **Assurances : email de demande** : au-delà de l'alerte dashboard (livrée),
+  générer/envoyer l'email de demande d'attestation au locataire via le SMTP
+  configuré ; nécessite de tracer « demande envoyée » pour ne pas relancer
+- **Signature de code (SmartScreen)** : les installs affichent l'avertissement
+  « Windows a protégé votre ordinateur » car l'app n'est pas signée. Contournement
+  immédiat : « Informations complémentaires → Exécuter quand même ». Solutions :
+  Azure Trusted Signing (~10 €/mois, moderne), certificat OV (~100-250 €/an),
+  EV (~300-500 €/an, réputation immédiate). À intégrer dans le workflow de build
+  le jour de la diffusion publique (SAS)
 - **Multi-bailleur / SCI**, sync chiffrée multi-PC, TRI/prévisionnel
 - **Email** : rappels automatiques (nécessite la config SMTP, livrée)
 

@@ -49,6 +49,10 @@ export const locataires = sqliteTable('locataires', {
   nom_complet: text('nom_complet').notNull(),
   email: text('email'),
   telephone: text('telephone'),
+  // Adresse personnelle (migration 0009) — utilisée dans les quittances
+  adresse: text('adresse'),
+  code_postal: text('code_postal'),
+  ville: text('ville'),
   notes: text('notes'),
   ...timestamps
 })

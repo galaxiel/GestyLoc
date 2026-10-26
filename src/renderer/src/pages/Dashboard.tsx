@@ -13,7 +13,8 @@ import { nomBien } from '@shared/labels'
 const groupeStyle: Record<Alerte['type'], { titre: string; couleur: string }> = {
   fin_bail: { titre: 'Fins de bail', couleur: 'border-red-300 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300' },
   revision_irl: { titre: 'Révisions IRL en attente', couleur: 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300' },
-  impaye: { titre: 'Loyers impayés', couleur: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300' }
+  impaye: { titre: 'Loyers impayés', couleur: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300' },
+  assurance: { titre: 'Assurances à demander', couleur: 'border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-500/40 dark:bg-teal-500/10 dark:text-teal-300' }
 }
 
 const severiteUrgente: Record<Alerte['severite'], boolean> = {
@@ -90,7 +91,7 @@ export function Dashboard(): React.JSX.Element {
 
   // --- Alertes groupées par type ---
   const alertesGroupees = useMemo(() => {
-    const groupes: Record<Alerte['type'], Alerte[]> = { fin_bail: [], revision_irl: [], impaye: [] }
+    const groupes: Record<Alerte['type'], Alerte[]> = { fin_bail: [], revision_irl: [], impaye: [], assurance: [] }
     for (const a of alertes) groupes[a.type].push(a)
     return groupes
   }, [alertes])
@@ -234,7 +235,7 @@ export function Dashboard(): React.JSX.Element {
           </p>
         ) : (
           <ul className="space-y-2">
-            {(['fin_bail', 'revision_irl', 'impaye'] as const).map((type) => (
+            {(['fin_bail', 'impaye', 'assurance', 'revision_irl'] as const).map((type) => (
               <GroupeAlertes key={type} type={type} alertes={alertesGroupees[type]} />
             ))}
           </ul>

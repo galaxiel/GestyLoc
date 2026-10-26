@@ -44,6 +44,9 @@ export interface Locataire {
   nom_complet: string // "Nom du locataire"
   email: string | null
   telephone: string | null
+  adresse: string | null // rue (migration 0009)
+  code_postal: string | null
+  ville: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -124,6 +127,9 @@ export interface CreateLocataireInput {
   nom_complet: string
   email?: string | null
   telephone?: string | null
+  adresse?: string | null
+  code_postal?: string | null
+  ville?: string | null
   notes?: string | null
 }
 
@@ -214,7 +220,7 @@ export interface DocumentRow {
 // ALERTES (dashboard) — calculées côté main, consommées par React
 // ----------------------------------------------------------------------------
 export interface Alerte {
-  type: 'fin_bail' | 'revision_irl' | 'impaye'
+  type: 'fin_bail' | 'revision_irl' | 'impaye' | 'assurance'
   severite: 'info' | 'warning' | 'urgent'
   message: string
   bail_id: number

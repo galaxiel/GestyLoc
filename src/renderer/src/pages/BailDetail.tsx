@@ -116,6 +116,14 @@ export function BailDetail(): React.JSX.Element {
     /** Applique la révision : met à jour le loyer et l'historique IRL. */
   const appliquerRevision = async (): Promise<void> => {
     if (nouveauLoyerHc === null || tauxPct === null) return
+    // Anti-ré-application : si l'IRL nouveau choisi est déjà celui enregistré
+    // sur le bail, appliquer à nouveau ré-incrémenterait la révision.
+    if (bail.irl_nouveau !== null && irlNouv === bail.irl_nouveau) {
+      setRevisionMsg(
+        `Cette révision semble déjà appliquée (IRL nouveau du bail : ${bail.irl_nouveau}). Choisis un trimestre différent, ou modifie le loyer manuellement via le formulaire.`
+      )
+      return
+    }
     setRevisant(true)
     setRevisionMsg(null)
     try {
@@ -133,6 +141,10 @@ export function BailDetail(): React.JSX.Element {
         date_derniere_revision: new Date().toISOString().slice(0, 10)
       })
       await refresh()
+      // Réinitialise la sélection : impossible de re-cliquer « Appliquer »
+      // sans choisir un nouveau trimestre (anti-incrément).
+      setNouveauTrim('')
+      setIrlNouveau('')
       setRevisionMsg(
         `Loyer révisé : ${formatEuro(loyerHcActuel)} → ${formatEuro(nouveauLoyerHc)} HC. La date de dernière révision est enregistrée.`
       )
@@ -271,9 +283,9 @@ export function BailDetail(): React.JSX.Element {
                   className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
                 >
                   <option value="">Année…</option>
-                  {IRL_TRIMESTRES.map((q) => (
-                    <option key={q} value={q.slice(0, 4)}>
-                      {q.slice(0, 4)}
+                  {[...new Set(IRL_TRIMESTRES.map((q) => q.slice(0, 4)))].map((annee) => (
+                    <option key={annee} value={annee}>
+                      {annee}
                     </option>
                   ))}
                 </select>

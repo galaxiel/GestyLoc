@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Check, X, Clock, Loader2, Coins } from 'lucide-react'
-import type { StatutPaiement, Paiement } from '@shared/types'
+import type { StatutPaiement, Paiement, BienLocationRow } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatPeriode } from '../lib/format'
@@ -29,6 +30,7 @@ const vfs =
  */
 export function Paiements(): React.JSX.Element {
   const { locations, refresh } = useStore()
+  const navigate = useNavigate()
   const bauxPayants = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
 
   const [periode, setPeriode] = useState<string>(() => {
@@ -38,6 +40,9 @@ export function Paiements(): React.JSX.Element {
   const [paiements, setPaiements] = useState<Paiement[]>([])
   const [saving, setSaving] = useState<number | null>(null)
   const [modes, setModes] = useState<Record<number, string>>({})
+  // Modal de saisie du montant partiel (window.prompt n'existe pas dans Electron)
+  const [partielModal, setPartielModal] = useState<{ row: BienLocationRow; attendu: number } | null>(null)
+  const [montantSaisi, setMontantSaisi] = useState('')
 
   const recharger = (): Promise<void> =>
     ipc.paiements
@@ -101,27 +106,32 @@ export function Paiements(): React.JSX.Element {
     }
   }
 
-  const pointerPartiel = async (bailId: number): Promise<void> => {
+  /** Ouvre le modal de saisie du montant partiel. */
+  const ouvrirPartiel = (bailId: number): void => {
     const row = bauxPayants.find((r) => r.bail.id === bailId)
     if (!row) return
     const attendu = row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
-    const saisie = prompt(
-      `Montant reçu de ${row.locataire.nom_complet} pour ${periode} (attendu : ${attendu.toFixed(2)} €) :`,
-      ''
-    )
-    if (saisie === null) return
-    const montant = parseFloat(saisie.replace(',', '.'))
+    setMontantSaisi('')
+    setPartielModal({ row, attendu })
+  }
+
+  /** Enregistre le paiement partiel + propose le reçu PDF. */
+  const validerPartiel = async (): Promise<void> => {
+    if (!partielModal) return
+    const { row, attendu } = partielModal
+    const montant = parseFloat(montantSaisi.replace(',', '.'))
     if (isNaN(montant) || montant <= 0) {
-      alert('Montant invalide — pointage annulé.')
+      window.alert('Montant invalide.')
       return
     }
     const montantArrondi = Math.round(montant * 100) / 100
-    await pointer(bailId, montantArrondi >= attendu ? 'paye' : 'partiel', montantArrondi)
+    setPartielModal(null)
+    await pointer(row.bail.id, montantArrondi >= attendu ? 'paye' : 'partiel', montantArrondi)
 
-    // Paiement partiel : proposer le reçu (la quittance est réservée aux
-    // paiements intégraux — art. 21, loi de 1989).
+    // Paiement partiel : proposer le reçu (la quittance atteste un paiement
+    // intégral — art. 21, loi de 1989).
     if (montantArrondi < attendu) {
-      if (!confirm('Paiement partiel enregistré. Générer un REÇU de paiement (PDF) ?')) return
+      if (!window.confirm('Paiement partiel enregistré. Générer un REÇU de paiement (PDF) ?')) return
       try {
         const bailleur = await ipc.parametres.getBailleur()
         const doc = (await ipc.recu.pdf({
@@ -130,7 +140,7 @@ export function Paiements(): React.JSX.Element {
           adresseBailleur: bailleur?.adresse || '________________',
           periode,
           montantRecu: montantArrondi,
-          modePaiement: modes[bailId] ?? 'Virement'
+          modePaiement: modes[row.bail.id] ?? 'Virement'
         })) as unknown as TDocumentDefinitions
         pdfMake.createPdf(doc).getBase64(async (base64: string) => {
           const nom = `recu_${slug(row.locataire.nom_complet)}_${periode}.pdf`
@@ -302,7 +312,12 @@ export function Paiements(): React.JSX.Element {
                 impaye: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300'
               }
               return (
-                <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
+                <tr
+                  key={r.bail.id}
+                  onClick={() => navigate(`/baux/${r.bail.id}`)}
+                  title="Voir la fiche du bail"
+                  className="cursor-pointer border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"
+                >
                   <td className="px-4 py-2">
                     <div className="font-medium">
                       <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
@@ -352,11 +367,11 @@ export function Paiements(): React.JSX.Element {
                       <span className="text-xs text-slate-400">non pointé</span>
                     )}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       {boutonStatut(r, 'paye', Check, 'bg-emerald-600 text-white hover:bg-emerald-700')}
                       <button
-                        onClick={() => void pointerPartiel(r.bail.id)}
+                        onClick={() => ouvrirPartiel(r.bail.id)}
                         title="Marquer partiel (saisir le montant reçu)"
                         aria-label="Marquer partiel (saisir le montant reçu)"
                         className={`rounded-lg p-1.5 transition-colors ${
@@ -392,6 +407,47 @@ export function Paiements(): React.JSX.Element {
         gratuites n'apparaissent pas. L'historique complet de chaque bail est dans sa
         fiche détaillée.
       </p>
+
+      {/* Modal : saisie du montant partiellement reçu */}
+      {partielModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <h2 className="mb-1 text-lg font-bold">Paiement partiel</h2>
+            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+              {partielModal.row.locataire.nom_complet} — {formatPeriode(periode)} · attendu :{' '}
+              <strong>{formatEuro(partielModal.attendu)}</strong>
+            </p>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              autoFocus
+              value={montantSaisi}
+              onChange={(e) => setMontantSaisi(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void validerPartiel()
+                if (e.key === 'Escape') setPartielModal(null)
+              }}
+              placeholder="Montant reçu (€)"
+              className="mb-4 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setPartielModal(null)}
+                className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => void validerPartiel()}
+                className="rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
