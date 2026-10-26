@@ -49,6 +49,22 @@
   (surface/tantièmes), impact du passage provisionnel ↔ forfaitaire
 - [ ] 🖥️ Compteurs cohérents : « X biens loués + Y occupation gratuite »
 
+### Rapprochement bancaire assisté (décision 26/10/2026 : voie simple)
+
+> Contexte : la connexion bancaire automatique (DSP2) exige un agrégateur
+> (Powens, Bridge — plusieurs centaines d'€/mois) ou un agrément AISP — le
+> mauvais combat pour l'instant. La voie pragmatique donne 90 % du bénéfice :
+
+- [ ] 🖥️ **Import de relevé bancaire CSV** : glisser le relevé exporté de la
+  banque (2 clics dans l'app bancaire) dans GestyLoc
+- [ ] 🖥️ **Matching automatique** : montant + période → proposition de
+  pointage (« 90 € le 03/11 = loyer de M. Cathelin pour novembre → pointer
+  payé ? »), avec les transactions non reconnues flaguées pour revue manuelle
+- [ ] 🖥️ **Validation en masse** des propositions reconnues
+- 📝 Avantages : zéro frais récurrent, zéro risque réglementaire, marche avec
+  n'importe quelle banque. La vraie sync automatique (agrégateur) reste une
+  piste SaaS le jour venu
+
 ### Finition (P3 de l'audit)
 
 - [ ] Recherche globale (retrouver un locataire depuis n'importe quelle page)
