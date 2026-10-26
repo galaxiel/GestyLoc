@@ -205,6 +205,15 @@ export const ipc = {
         error?: string
       }>)
   },
+  recu: {
+    // Récupère la définition PDF (main) puis la rend avec pdfmake côté renderer
+    pdf: (params: unknown): Promise<unknown> =>
+      unwrap(window.api.recu.pdf(params) as Promise<{ ok: boolean; data?: unknown; error?: string }>)
+  },
+  audit: {
+    run: (): Promise<unknown> =>
+      unwrap(window.api.audit.run() as Promise<{ ok: boolean; data?: unknown; error?: string }>)
+  },
   data: {
     exportCsv: (): Promise<string | null> => unwrap(window.api.data.exportCsv()),
     backupCreate: (): Promise<string | null> => unwrap(window.api.data.backupCreate()),

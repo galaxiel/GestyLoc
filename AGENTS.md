@@ -15,7 +15,7 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.9.0 publiée** et fonctionnelle (voir
+État actuel : **v1.12.0-dev** (dernière release publiée : v1.11.2) (voir
 https://github.com/galaxiel/GestyLoc/releases). Les données réelles de
 l'utilisateur (16 baux) sont déjà importées dans sa base locale. Les versions
 V1.1, V1.2 et V1.3 sont livrées — considère toute case cochée de `ROADMAP.md`
@@ -229,6 +229,19 @@ généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
   VERROUILLÉ (recalculé de la paire)
 - **Import CSV durci** (v1.9) : champs dérivés TOUJOURS recalculés (annuels,
   loyer/m², CC, taux), adresse/ville déduites de la désignation si n° de rue
+- **v1.11-1.12** : table IRL embarquée (`shared/irl-insee.ts`, régénérée par
+  `scripts/update-irl.py` + workflow trimestriel `update-irl.yml`), révision
+  bail pilotée par trimestre, libellés uniques (`shared/labels.ts` : « Type ·
+  Désignation — Locataire » partout), reçu PDF pour paiement partiel
+  (`services/recu.service.ts`), audit de données (`services/audit.service.ts`,
+  canal `data:audit`, UI dans Paramètres), licence PolyForm Noncommercial
+
+### 🚨 Piège historique à connaître (bug v1.0->v1.12, corrigé)
+Le formulaire d'édition de bail envoyait `bien_id: 0, locataire_id: 0` dans le
+payload d'UPDATE → `FOREIGN KEY constraint failed`. Règle : **les clés
+étrangères ne changent jamais en édition** — les exclure du payload
+(`const { bien_id, locataire_id, ...champs } = input`). Idem pour toute
+nouvelle table avec FK.
 - **Version portable** (cible electron-builder `portable`)
 
 ## 9. Prochaines étapes

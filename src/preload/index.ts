@@ -167,6 +167,17 @@ const api = {
     list: (): Promise<IpcResult<unknown[]>> => ipcRenderer.invoke('quittances:list')
   },
 
+  // ---- Reçu de paiement partiel (définition PDF générée côté main) ----
+  recu: {
+    pdf: (params: unknown): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('recu:pdf', params)
+  },
+
+  // ---- Audit des données ----
+  audit: {
+    run: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:audit')
+  },
+
   // ---- Indices INSEE (IRL / ICC) ----
   indices: {
     fetch: (type: string): Promise<IpcResult<unknown>> =>

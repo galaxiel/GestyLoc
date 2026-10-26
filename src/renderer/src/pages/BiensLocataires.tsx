@@ -319,7 +319,13 @@ export function BiensLocataires(): React.JSX.Element {
         if (!row) throw new Error('Bail introuvable')
         await ipc.biens.update(row.bien.id, bienInput)
         await ipc.locataires.update(row.locataire.id, locataireInput)
-        await ipc.baux.update(editId, bailInput)
+        // Les clés étrangères (bien_id/locataire_id) ne changent JAMAIS en
+        // édition — les envoyer (avec la valeur placeholder 0) ferait échouer
+        // la contrainte FOREIGN KEY.
+        const { bien_id: _b, locataire_id: _l, ...champsBail } = bailInput
+        void _b
+        void _l
+        await ipc.baux.update(editId, champsBail)
       }
       setFormOuvert(false)
       await refresh()

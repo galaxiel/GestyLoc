@@ -21,6 +21,9 @@ import {
 import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
+import { construireRecu } from '../services/recu.service'
+import { auditerDonnees } from '../services/audit.service'
+import type { RecuParams } from '../services/recu.service'
 import { fetchIndices } from '../services/indices.service'
 import {
   getSmtpConfigPublic,
@@ -158,6 +161,13 @@ export function registerDatabaseHandlers(): void {
         : saveToDossier(base64, dossier, nomFichier)
   )
   handle('quittances:list', () => listQuittances())
+
+  // ---------- Reçu de paiement partiel (généré côté main) ----------
+  handle('recu:pdf', (params: RecuParams) => {
+    const doc = construireRecu(params)
+    return doc as unknown as Record<string, unknown>
+  })
+  handle('data:audit', () => auditerDonnees())
 
   // ---------- Données : import / export / sauvegarde ----------
   handle('data:export-csv', () => exporterCsv())

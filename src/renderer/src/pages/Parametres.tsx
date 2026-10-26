@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send, FolderOpen } from 'lucide-react'
+import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send, FolderOpen, Stethoscope } from 'lucide-react'
+import type { ConstatAudit } from '@shared/audit'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
 
@@ -28,6 +29,21 @@ export function Parametres(): React.JSX.Element {
       setDataMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setDataEnCours(null)
+    }
+  }
+
+  // --- Audit des données ---
+  const [auditResultats, setAuditResultats] = useState<ConstatAudit[] | null>(null)
+  const [auditEnCours, setAuditEnCours] = useState(false)
+
+  const lancerAudit = async (): Promise<void> => {
+    setAuditEnCours(true)
+    try {
+      setAuditResultats((await window.api.audit.run()) as unknown as ConstatAudit[])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setAuditEnCours(false)
     }
   }
 
@@ -248,6 +264,44 @@ export function Parametres(): React.JSX.Element {
         </dl>
       </div>
 
+      {auditResultats !== null && (
+        <div className={cardCls}>
+          <h2 className="mb-3 flex items-center gap-2 font-semibold">
+            <Stethoscope className="h-4 w-4 text-primary-500" /> Audit des données —{' '}
+            {auditResultats.length === 0
+              ? 'aucune anomalie 🎉'
+              : `${auditResultats.length} constat(s)`}
+          </h2>
+          {auditResultats.length === 0 ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Adresses, doublons, IRL et loyers annuels : tout est cohérent.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {auditResultats.map((c, i) => (
+                <li
+                  key={i}
+                  className={`rounded-lg border p-3 text-sm ${
+                    c.severite === 'critique'
+                      ? 'border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-red-500/10'
+                      : 'border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10'
+                  }`}
+                >
+                  <div className="font-semibold">
+                    {c.severite === 'critique' ? '🔴' : '🟡'} {c.categorie} — {c.designation}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">{c.detail}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-slate-400">
+            L'audit ne modifie rien — il liste les anomalies à corriger dans les pages
+            concernées.
+          </p>
+        </div>
+      )}
+
       {/* Email (SMTP) */}
       <div className={cardCls}>
         <h2 className="mb-1 flex items-center gap-2 font-semibold">
@@ -364,6 +418,14 @@ export function Parametres(): React.JSX.Element {
           >
             {dataEnCours === 'backup' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             Sauvegarder la base
+          </button>
+          <button
+            onClick={() => void lancerAudit()}
+            disabled={auditEnCours}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {auditEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stethoscope className="h-4 w-4" />}
+            Auditer mes données
           </button>
           <button
             onClick={() => {

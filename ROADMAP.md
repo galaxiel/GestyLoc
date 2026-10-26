@@ -9,6 +9,17 @@
 > Releases. Historique détaillé des livraisons : voir les releases GitHub et
 > l'historique git.
 
+## ✅ Corrigé en attente de release (v1.12.0)
+
+- [x] 🚨 **Bug d'édition de bail** (`FOREIGN KEY constraint failed`) : le
+  formulaire envoyait `bien_id: 0` dans l'UPDATE — existedepuis la v1.0,
+  diagnostiqué par la capture d'écran de l'utilisateur
+- [x] Affichage demandé : badge type + nom du bien, puis colonnes **Adresse**
+  et **Locataire** dédiées (Paiements, Simulateur)
+- [x] Reçu PDF pour paiement partiel (généré depuis le pointage 💶)
+- [x] Bouton « Auditer mes données » (Paramètres) : adresses vides, doublons,
+  IRL non officielles, loyers annuels incohérents, baux sans date de fin
+
 ## 🔜 À faire — priorisé
 
 ### ✅ Livré en v1.10.0 — « Statistiques 2.0 & Simulateur » (spec du 25/10/2026)

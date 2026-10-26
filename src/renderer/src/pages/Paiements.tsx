@@ -4,8 +4,22 @@ import type { StatutPaiement, Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatPeriode } from '../lib/format'
+import pdfMake from 'pdfmake/build/pdfmake'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import vfsFonts from 'pdfmake/build/vfs_fonts'
+import type { TDocumentDefinitions } from 'pdfmake/interfaces'
 
 const MODES = ['Virement', 'Chèque', 'Espèces', 'Prélèvement', 'Autre'] as const
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const vfs =
+  (vfsFonts as any)?.pdfMake?.vfs ??
+  (vfsFonts as any)?.default?.pdfMake?.vfs ??
+  (vfsFonts as any)?.vfs ??
+  (vfsFonts as any)?.default?.vfs ??
+  vfsFonts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(pdfMake as any).vfs = vfs
 
 /**
  * Vue matrice Mois × Biens : pointage en masse des loyers du mois choisi,
@@ -100,7 +114,32 @@ export function Paiements(): React.JSX.Element {
       alert('Montant invalide — pointage annulé.')
       return
     }
-    await pointer(bailId, montant >= attendu ? 'paye' : 'partiel', Math.round(montant * 100) / 100)
+    const montantArrondi = Math.round(montant * 100) / 100
+    await pointer(bailId, montantArrondi >= attendu ? 'paye' : 'partiel', montantArrondi)
+
+    // Paiement partiel : proposer le reçu (la quittance est réservée aux
+    // paiements intégraux — art. 21, loi de 1989).
+    if (montantArrondi < attendu) {
+      if (!confirm('Paiement partiel enregistré. Générer un REÇU de paiement (PDF) ?')) return
+      try {
+        const bailleur = await ipc.parametres.getBailleur()
+        const doc = (await ipc.recu.pdf({
+          row,
+          bailleur: bailleur?.nom_complet || '________________',
+          adresseBailleur: bailleur?.adresse || '________________',
+          periode,
+          montantRecu: montantArrondi,
+          modePaiement: modes[bailId] ?? 'Virement'
+        })) as unknown as TDocumentDefinitions
+        pdfMake.createPdf(doc).getBase64(async (base64: string) => {
+          const nom = `recu_${slug(row.locataire.nom_complet)}_${periode}.pdf`
+          const chemin = await ipc.quittances.save(base64, nom)
+          if (chemin) window.alert(`Reçu enregistré : ${chemin}`)
+        })
+      } catch (err) {
+        window.alert(`Erreur de génération du reçu : ${err instanceof Error ? err.message : String(err)}`)
+      }
+    }
   }
 
   const toutMarquerPaye = async (): Promise<void> => {
@@ -148,6 +187,13 @@ export function Paiements(): React.JSX.Element {
     impaye: { pointer: 'Marquer impayé', annuler: 'Annuler le pointage impayé' },
     partiel: { pointer: 'Marquer partiel', annuler: 'Annuler le pointage partiel' }
   }
+
+  const slug = (nom: string): string =>
+    nom
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
 
   const adressesUniquesParBail = new Map(
     locations.map((r) => {
@@ -256,22 +302,18 @@ export function Paiements(): React.JSX.Element {
               return (
                 <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <div className="font-medium">
-                        <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                          {r.bien.type_bien}
-                        </span>
-                        {r.bien.designation}
-                      </div>
-                      <div className="shrink-0 text-sm font-medium text-slate-300 dark:text-slate-200">
-                        {r.locataire.nom_complet}
-                      </div>
+                    <div className="font-medium">
+                      <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        {r.bien.type_bien}
+                      </span>
+                      {r.bien.designation}
                     </div>
-                    {adressesUniquesParBail.get(r.bail.id) && (
-                      <div className="text-xs text-slate-400">
-                        {adressesUniquesParBail.get(r.bail.id)}
-                      </div>
-                    )}
+                  </td>
+                  <td className="px-4 py-2 text-sm text-slate-400">
+                    {adressesUniquesParBail.get(r.bail.id) ?? '—'}
+                  </td>
+                  <td className="px-4 py-2 text-sm font-medium text-slate-300 dark:text-slate-200">
+                    {r.locataire.nom_complet}
                   </td>
                   <td className="px-4 py-2 text-right font-medium">
                     {formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}
@@ -332,7 +374,7 @@ export function Paiements(): React.JSX.Element {
             })}
             {bauxPayants.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
                   Aucun bail payant actif.
                 </td>
               </tr>
