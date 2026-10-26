@@ -80,6 +80,17 @@
   pilote libsql (pur JS) compatible vitest. Priorité quand le projet gagnera
   en complexité.
 
+## ✅ Ajouté en attente de release (v1.13.0)
+
+- [x] 🌐 **Envoi des quittances en groupe par email** : bouton « Envoyer tout »
+  à côté de « Générer tout » — génère et envoie la quittance de chaque bail
+  pointé « payé », trace chaque envoi dans l'historique, confirme avant envoi
+  et liste les locataires sans adresse email (non bloquants). Prérequis :
+  SMTP configuré dans Paramètres (sinon le bouton n'apparaît pas et l'invitation
+  de configuration s'affiche).
+- [x] Rappel : l'envoi **individuel** existe depuis la v1.7.0 (bouton
+  « Envoyer par email au locataire » sous le formulaire).
+
 ## 🔮 Pistes produit (nécessitent une décision, pas des bugs)
 
 - **Bail pré-rempli généré** (nu/meublé, loi 1989) — tous les concurrents l'ont
