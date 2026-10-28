@@ -15,10 +15,10 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.12.0-dev** (dernière release publiée : v1.11.2) (voir
+État actuel : **v1.15.0** (dernière release publiée : v1.15.0, le 26/10/2026) (voir
 https://github.com/galaxiel/GestyLoc/releases). Les données réelles de
 l'utilisateur (16 baux) sont déjà importées dans sa base locale. Les versions
-V1.1, V1.2 et V1.3 sont livrées — considère toute case cochée de `ROADMAP.md`
+v1.0 à v1.15 sont livrées — considère toute case cochée de `ROADMAP.md`
 comme faite, ne la refais pas.
 
 ## 2. Stack et versions (IMPORTANT — compatibilités fragiles)
