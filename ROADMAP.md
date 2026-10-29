@@ -65,6 +65,26 @@
   n'importe quelle banque. La vraie sync automatique (agrégateur) reste une
   piste SaaS le jour venu
 
+### Automatisation hors app — quittances par Google Apps Script (29/10/2026)
+
+> GestyLoc est hors ligne par conception : l'app ne peut rien envoyer seule, et
+> seulement quand le PC est allumé. Google, lui, exécute du code sans le PC
+> (Apps Script, gratuit : 90 min de triggers/jour, 100 destinataires de mail/jour,
+> 6 min max par exécution, JavaScript uniquement). But : la quittance du mois
+> part sans ouvrir GestyLoc. **Ce n'est pas une fonctionnalité de l'app** — aucun
+> code Electron, rien dans `src/`.
+
+- [ ] ☁️ **Trigger mensuel** : remplit un gabarit (le Doc « Contrat de Location
+  Meublee - Champs a Remplir » est déjà dans le Drive) depuis une Google Sheet,
+  exporte en PDF, envoie au locataire — le jour de paiement du bail
+- [ ] 🗃️ **Alimenter la Sheet sans double saisie** — point à trancher avant de
+  coder : GestyLoc ne parle pas à Google. Soit (a) export CSV de l'app → import
+  dans la Sheet, soit (b) Hermes pousse les lignes depuis `app.db` quand le PC
+  tourne. Sans cette étape le script enverra des montants périmés
+- [ ] 📝 **Périmètre** : quittance et avis d'échéance uniquement, gabarit validé
+  une fois à la main (mentions loi 1989 art. 21). Jamais de données locataires
+  hors du Drive personnel
+
 ### Finition (P3 de l'audit)
 
 - [ ] Recherche globale (retrouver un locataire depuis n'importe quelle page)
@@ -146,4 +166,4 @@ suffira de re-mettre à jour LICENSE.
   PC est partagé (un autre bailleur = il installe l'app sur son propre PC)
 
 ---
-*Dernière mise à jour : 26/10/2026 — version courante v1.15.0*
+*Dernière mise à jour : 29/10/2026 — version courante v1.15.0*
