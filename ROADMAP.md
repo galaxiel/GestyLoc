@@ -1,6 +1,6 @@
 # Roadmap — GestyLoc
 
-> **Version courante : v1.15.0** (26/10/2026). Tout ce qui est livré depuis
+> **Version courante : v1.16.0** (04/11/2026). Tout ce qui est livré depuis
 > V1.0 : MVP complet (biens, locataires, baux, quittances PDF/impression/email
 > individuel et en groupe, paiements, alertes), patrimoine (dépenses,
 > rentabilité, 2044, régularisation des charges avec décompte PDF), IRL/ICC
@@ -11,13 +11,13 @@
 > QUITT sur les quittances, audit de données, reçu pour paiement partiel.
 > Historique détaillé : voir les releases GitHub et l'historique git.
 >
-> **🔖 Session 03/11/2026 — chantier v1.16-dev (non encore publié)** : échéancier
+> **🔖 Session 03/11/2026 — livré en v1.16.0** : échéancier
 > réel complet, rapprochement bancaire assisté, duplication de bail, recherche
 > globale, reçu refondu, historique des révisions, durcissement sécurité du
 > preload, + 10 bugs corrigés (audit externe). Détails dans les cases cochées
-> ci-dessous — à publier en v1.16.0 (bump + tag, rituel CONTRIBUTING).
+> ci-dessous — publié en v1.16.0 le 04/11/2026 (tag `v1.16.0`, rituel CONTRIBUTING).
 >
-> **🔖 Session 04/11/2026 — compléments (même v1.16-dev)** : avis d'échéance,
+> **🔖 Session 04/11/2026 — compléments (même v1.16.0)** : avis d'échéance,
 > relances d'impayés (3 niveaux + lettre PDF), contrat de location pré-rempli,
 > traçage des demandes d'assurance (migration 0013), rapprochement v2 (règles
 > mémorisées), comparatif théorique vs appliqué dans le simulateur, LINT VERT
@@ -217,4 +217,4 @@ suffira de re-mettre à jour LICENSE.
 
 ---
 
-_Dernière mise à jour : 03/11/2026 — chantier v1.16-dev (échéancier réel, rapprochement bancaire, audit)_
+_Dernière mise à jour : 04/11/2026 — v1.16.0 livrée (échéancier réel, rapprochement bancaire, audit)_

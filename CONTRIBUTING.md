@@ -76,6 +76,18 @@ git commit -m "Description de ce qui a changé"
 git push
 ```
 
+**2 bis. Vérifie que la CI locale est verte.** Le workflow lance `npm run lint`
+et `npm test` **avant** de construire : si l'un des deux est rouge, le job
+échoue et aucune release n'est créée. Lance-les donc avant de taguer :
+
+```bash
+npm run lint && npm test && npm run test:db
+```
+
+Un tag poussé est public et collant : taguer du code rouge oblige à le
+supprimer (`git tag -d vX.Y.Z && git push --delete origin vX.Y.Z`), donc
+autant vérifier avant.
+
 **3. Pose le tag et pousse-le** (le nom du tag doit correspondre à la version,
 précédé d'un `v`) :
 
@@ -87,8 +99,9 @@ git push origin v1.4.0
 **4. Attends ~5 minutes.** Sur l'onglet
 [Actions](https://github.com/galaxiel/GestyLoc/actions), le build se déroule.
 Quand il devient vert, une **draft release** (brouillon) apparaît dans
-l'onglet [Releases](https://github.com/galaxiel/GestyLoc/releases) avec
-l'installeur `gestyloc-1.4.0-setup.exe`, le `.blockmap` et le `latest.yml`.
+l'onglet [Releases](https://github.com/galaxiel/GestyLoc/releases) avec les
+4 assets : l'installeur `GestyLoc-1.4.0-setup.exe`, son `.blockmap`, la
+version portable `GestyLoc-1.4.0-portable.zip` et le `latest.yml`.
 
 **5. ⚠️ Vérifie les assets.**
 
@@ -101,7 +114,7 @@ installations existantes) :
 | `GestyLoc-x.y.z-setup.exe`          | L'installateur NSIS (téléchargé par les utilisateurs)                                                                   |
 | `GestyLoc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé)                                   |
 | `latest.yml`                        | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512                |
-| `GestyLoc-portable.zip`             | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
+| `GestyLoc-x.y.z-portable.zip`       | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
 
 Depuis la v1.11.3, le workflow publie lui-même les fichiers (le publish
 d'electron-builder, buggé — il créait deux drafts et perdait le blockmap —
@@ -120,7 +133,7 @@ workflow est relancé sur le même tag.
 Pour le vérifier sur ta machine après un build local :
 
 ```bash
-certutil -hashfile dist/GestyLoc-1.15.0-setup.exe SHA256
+certutil -hashfile dist/GestyLoc-x.y.z-setup.exe SHA256
 ```
 
 La valeur doit être identique à celle affichée dans les notes de la release.
@@ -148,6 +161,10 @@ Nécessite un token GitHub avec droit `repo` (voir `.env.example`) :
 ```bash
 GH_TOKEN=ton_token npx electron-builder --win --publish always
 ```
+
+⚠️ **Déconseillé** : c'est ce chemin qui créait deux drafts et perdait le
+`.blockmap`. Il ne calcule pas non plus les empreintes SHA-256. Le tag poussé
+(`git push origin vX.Y.Z`) reste la voie normale et déterministe.
 
 ## Points spécifiques
 

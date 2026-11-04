@@ -15,16 +15,13 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.15.0 publiée** (26/10/2026, dernier commit `main`) + **chantier
-v1.16-dev — 2 sessions (03/11 et 04/11/2026) — VALIDÉ, NON COMMITÉ** (72 fichiers
-dans le working tree local : échéancier réel, rapprochement bancaire + v2,
-avis d'échéance, relances, contrat pré-rempli, traçage assurance, baux_revisions,
-lint vert, harnais BDD — détail : ROADMAP « Session 03/11/2026 » et « Session
-04/11/2026 »). ⚠️ Un clone frais du dépôt GitHub NE CONTIENT PAS ce chantier :
-il vit uniquement dans le working tree de cette machine jusqu'au commit (3
-commits logiques proposés dans le rapport de session). Les données réelles de
-l'utilisateur (16 baux) sont déjà importées dans sa base locale. Considère toute
-case cochée de `ROADMAP.md` comme faite, ne la refais pas.
+État actuel : **v1.16.0 publiée** (04/11/2026, tag `v1.16.0`, `main`) — échéancier
+réel, rapprochement bancaire + v2, avis d'échéance, relances, contrat pré-rempli,
+traçage assurance, table `baux_revisions`, lint vert, harnais BDD. Le chantier
+v1.16 est **commité et livré** : un clone frais du dépôt le contient, et les
+détails sont dans ROADMAP (« Session 03/11/2026 » et « Session 04/11/2026 »).
+Les données réelles de l'utilisateur (16 baux) sont déjà importées dans sa base
+locale. Considère toute case cochée de `ROADMAP.md` comme faite, ne la refais pas.
 
 ## 2. Stack et versions (IMPORTANT — compatibilités fragiles)
 
@@ -159,11 +156,12 @@ releaseType: draft`.
   volontaire (cahier des charges).
 - Le renderer s'abonne aux événements via `window.api.updater.on(...)` ; les
   noms de canaux sont dans `shared/updater-channels.ts`.
-- **Release** : bump `package.json` → commit → `git tag vX.Y.Z` → push →
-  GitHub Actions construit et crée une draft → publier la draft sur GitHub.
-  Rituel détaillé pas à pas pour humains : `CONTRIBUTING.md`. Fusion des
-  drafts dupliquées : script générique documenté dans CONTRIBUTING §« Vérifie
-  les assets » (télécharger blockmap orphelin, re-uploader, supprimer).
+- **Release** : bump `package.json` → commit → **lint + tests verts en local** →
+  `git tag vX.Y.Z` → push → GitHub Actions construit, vérifie les 4 assets et
+  écrit les empreintes SHA-256 dans la draft → publier la draft sur GitHub.
+  Rituel détaillé pas à pas : `CONTRIBUTING.md` §« Publier une nouvelle
+  version ». Ne pas revenir à `electron-builder --publish always` : c'est cette
+  voie qui créait deux drafts et perdait le `.blockmap`.
 
 ### Publication (depuis v1.12.1 : déterministe, plus de bug de drafts)
 
