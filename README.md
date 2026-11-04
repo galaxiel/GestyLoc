@@ -53,6 +53,13 @@ redémarrage. Vous n'avez rien à faire.
 
 **Configuration requise** : Windows 10/11 (64 bits). Aucune autre dépendance.
 
+> ⚠️ **Windows peut afficher un écran bleu « Windows a protégé votre
+> ordinateur » au premier lancement.** L'exécutable n'est pas signé par un
+> certificat payant, donc SmartScreen le signale tant qu'il n'a pas accumulé
+> assez de téléchargements pour être reconnu. Cliquez sur **« Informations
+> complémentaires » → « Exécuter quand même »** : l'avertissement ne
+> réapparait plus ensuite, et le logiciel fonctionne normalement.
+
 > **Deux formats disponibles** : l'**installateur** (`gestyloc-x.y.z-setup.exe`,
 > recommandé : raccourci bureau, mises à jour automatiques) et la **version
 > portable** (`GestyLoc-portable.zip` : extrais le dossier où tu veux — Bureau,
