@@ -109,9 +109,25 @@ a été remplacé par un upload déterministe) et **échoue explicitement si un
 fichier manque**. Une release valide = **exactement 4 assets** : la liste du
 tableau ci-dessus.
 
+**Empreintes SHA-256.** Juste après l'upload, le workflow calcule le SHA-256
+des 4 fichiers et l'écrit dans les **notes du brouillon**, sous le titre
+`### Empreintes SHA-256`. L'app n'étant pas signée, c'est le seul contrôle
+d'intégrité offert à l'utilisateur : **ne supprime pas ce bloc** en rédigeant
+les notes de version. Ce n'est pas un 5e asset (la règle « exactement 4
+assets » reste vraie), et le bloc est recalculé — jamais dupliqué — si le
+workflow est relancé sur le même tag.
+
+Pour le vérifier sur ta machine après un build local :
+
+```bash
+certutil -hashfile dist/GestyLoc-1.15.0-setup.exe SHA256
+```
+
+La valeur doit être identique à celle affichée dans les notes de la release.
+
 **6. Publie le brouillon** : clique sur la release, complète les notes de
-version, puis **Publish release**. La version devient téléchargeable
-publiquement.
+version (**garde le bloc `### Empreintes SHA-256` déjà présent**), puis
+**Publish release**. La version devient téléchargeable publiquement.
 
 **7. C'est tout.** Les installations existantes détectent la nouvelle version
 au lancement (notification native), proposent le téléchargement, et installent

@@ -175,6 +175,32 @@ crée UN draft et upload 4 fichiers vérifiés (échec explicite si un manque) :
 `GestyLoc-X.Y.Z-setup.exe` + `.blockmap` + `GestyLoc-X.Y.Z-portable.zip` +
 `latest.yml`. L'exe portable autonome a été supprimé (décision utilisateur).
 
+### Empreintes SHA-256 (intégrité des téléchargements)
+
+L'app n'étant **pas signée** (voir le paragraphe « Pourquoi pas de signature de
+code » ci-dessous), Windows ne peut rien affirmer
+sur l'éditeur : le seul contrôle offert à l'utilisateur est l'empreinte du
+fichier. Le workflow calcule donc le SHA-256 des 4 assets après l'upload et
+l'écrit dans les **notes de la draft**, sous le titre `### Empreintes SHA-256`.
+
+- Ce n'est **pas un 5e asset** : la règle « exactement 4 assets » tient
+  toujours, et `electron-updater` n'en saurait rien faire.
+- Le bloc est **recalculé et remplacé** à chaque exécution (il est tronqué au
+  marqueur avant réécriture) : pas de doublon sur une relance de tag.
+- À la publication manuelle de la draft, **ne pas le supprimer** : c'est la
+  seule preuve d'intégrité disponible, et le README y renvoie.
+- Vérification locale : `certutil -hashfile <fichier> SHA256`.
+
+**Pourquoi pas de signature de code** (décision à ne pas rouvrir sans ordre) :
+un certificat OV coûte 150–300 €/an avec **token matériel obligatoire** depuis
+2023, et **Azure Artifact Signing** (ex-Trusted Signing, ~9,99 $/mois) n'ouvre
+les particuliers qu'aux **USA et Canada** — donc fermé à l'auteur, particulier
+en France. Et depuis 2024 un certificat, même EV, **ne supprime pas l'alerte
+SmartScreen** à la première release : la réputation se construit release après
+release. Seule voie gratuite sans avertissement : un paquet **MSIX publié sur
+le Microsoft Store** (inscription développeur individuelle gratuite), à
+étudier avant tout achat de certificat.
+
 ### Autre piège
 
 `resources/app-update.yml` (fichier lu par l'updater en production) n'est
@@ -397,7 +423,9 @@ Lire `ROADMAP.md` (source de vérité). Restants :
   `baux_revisions` posent le décor)
 - Sauvegarde auto hebdomadaire, notifications Windows, décomptes en lot,
   export 2044 PDF (Finition P3)
-- Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing)
+- Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing) —
+  ⚠️ indisponible pour un particulier hors USA/Canada, cf. §7 « Pourquoi pas
+  de signature de code »
 - Vagues produit : bail pré-rempli, relances, état des lieux, SEPA/portail
 - Licence : PolyForm Noncommercial (usage commercial réservé au SAS projet)
 

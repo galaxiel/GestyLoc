@@ -37,15 +37,14 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 2. Téléchargez **`gestyloc-x.y.z-setup.exe`**
 3. Lancez-le : l'installation prend quelques secondes
 
-**Quel fichier télécharger ?** Une release contient 5 fichiers — un seul t'intéresse
+**Quel fichier télécharger ?** Une release contient 4 fichiers — un seul t'intéresse
 généralement :
 
-| Fichier                               | Pour qui                                                                                                                |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `gestyloc-x.y.z-setup.exe`            | 👤 **Toi** — l'installateur classique (recommandé)                                                                      |
-| `GestyLoc-x.y.z-portable.zip`         | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
-| `GestyLoc-portable.zip`               | 👤 **Toi** — la version portable complète (voir ci-dessus)                                                              |
-| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les                                           |
+| Fichier | Pour qui |
+|---|---|
+| `gestyloc-x.y.z-setup.exe` | 👤 **Toi** — l'installateur classique (recommandé) |
+| `GestyLoc-x.y.z-portable.zip` | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
+| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les |
 
 Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
 versions au démarrage, vous propose de les télécharger, et installe au
@@ -64,6 +63,19 @@ redémarrage. Vous n'avez rien à faire.
 > recommandé : raccourci bureau, mises à jour automatiques) et la **version
 > portable** (`GestyLoc-portable.zip` : extrais le dossier où tu veux — Bureau,
 > clé USB — et toutes les données vivent dans ce dossier, à côté de l'exe).
+
+**Vérifier que le fichier est bien celui publié.** Chaque release affiche
+l'empreinte **SHA-256** de ses fichiers dans les notes de version. Ouvrez une
+invite de commandes dans le dossier du fichier téléchargé et lancez :
+
+```bat
+certutil -hashfile GestyLoc-x.y.z-setup.exe SHA256
+```
+
+Si les 64 caractères affichés sont identiques à ceux de la release, le fichier
+est exactement celui publié ici et n'a pas été altéré au téléchargement. Le
+code source est public : chacun peut aussi vérifier ce que fait le programme,
+et le recompiler s'il préfère.
 
 ## 🔒 Vos données
 

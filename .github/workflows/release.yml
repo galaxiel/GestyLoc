@@ -71,3 +71,58 @@ jobs:
           }
           gh release upload $tag $fichiers --clobber
           Write-Host "4 fichiers uploadés sur la draft $tag"
+
+      # L'app n'étant pas signée, l'empreinte SHA-256 publiée est le seul
+      # contrôle d'intégrité offert à l'utilisateur. On l'écrit dans les NOTES
+      # de la release et non comme 5e asset (la règle « exactement 4 assets »
+      # reste vraie, et electron-updater n'a rien à faire d'un fichier en plus).
+      - name: Empreintes SHA-256 dans les notes de la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:GITHUB_REF -replace 'refs/tags/',''
+          $ver = $tag.TrimStart('v')
+          $marqueur = '### Empreintes SHA-256'
+
+          $fichiers = @(
+            "dist/GestyLoc-$ver-setup.exe",
+            "dist/GestyLoc-$ver-setup.exe.blockmap",
+            "dist/GestyLoc-$ver-portable.zip",
+            "dist/latest.yml"
+          )
+          foreach ($f in $fichiers) {
+            if (-not (Test-Path $f)) { throw "FICHIER MANQUANT : $f" }
+          }
+
+          # Corps existant, débarrassé d'un bloc d'empreintes déjà présent
+          # (le workflow peut être relancé sur le même tag).
+          $body = gh release view $tag --json body -q .body
+          if ($null -eq $body) { $body = '' }
+          $pos = $body.IndexOf($marqueur)
+          if ($pos -ge 0) { $body = $body.Substring(0, $pos).TrimEnd() }
+
+          $bloc = @()
+          $bloc += ''
+          $bloc += ''
+          $bloc += $marqueur
+          $bloc += ''
+          $bloc += "Empreintes des fichiers de cette version, pour vérifier qu'un téléchargement n'a pas été altéré :"
+          $bloc += ''
+          $bloc += '- Windows : `certutil -hashfile <fichier> SHA256`'
+          $bloc += '- Linux / macOS : `sha256sum <fichier>`'
+          $bloc += ''
+          $bloc += '```text'
+          foreach ($f in $fichiers) {
+            $h = (Get-FileHash -Path $f -Algorithm SHA256).Hash.ToLower()
+            $bloc += "$h  $(Split-Path $f -Leaf)"
+          }
+          $bloc += '```'
+          $bloc += ''
+          $bloc += "Ces empreintes prouvent l'intégrité des fichiers, pas l'identité de l'éditeur : GestyLoc n'est pas signé par un certificat de signature de code."
+
+          $notes = Join-Path $env:RUNNER_TEMP 'notes-release.md'
+          Set-Content -Path $notes -Value ($body + ($bloc -join "`n")) -Encoding utf8
+          gh release edit $tag --notes-file $notes
+          Write-Host "Empreintes SHA-256 ajoutées aux notes de $tag"
