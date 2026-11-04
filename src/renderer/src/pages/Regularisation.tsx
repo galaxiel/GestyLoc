@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileText, Loader2, Save } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
@@ -9,10 +9,15 @@ import { ipc } from '../lib/ipc'
 import { formatEuro } from '../lib/format'
 import { nomBien } from '@shared/labels'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const vfs = (vfsFonts as any)?.pdfMake?.vfs ?? (vfsFonts as any)?.default?.pdfMake?.vfs ?? (vfsFonts as any)?.vfs ?? (vfsFonts as any)?.default?.vfs ?? vfsFonts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any -- formes de module variables */
+const vfs =
+  (vfsFonts as any)?.pdfMake?.vfs ??
+  (vfsFonts as any)?.default?.pdfMake?.vfs ??
+  (vfsFonts as any)?.vfs ??
+  (vfsFonts as any)?.default?.vfs ??
+  vfsFonts
 ;(pdfMake as any).vfs = vfs
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Régularisation annuelle des charges : provisions versées (charges mensuelles
@@ -75,7 +80,11 @@ export function Regularisation(): React.JSX.Element {
     return {
       content: [
         { text: 'DÉCOMPTE ANNUEL DE RÉGULARISATION DES CHARGES', style: 'titre' },
-        { text: `(article 23 de la loi du 6 juillet 1989)`, style: 'sousTitre', margin: [0, 0, 0, 16] },
+        {
+          text: `(article 23 de la loi du 6 juillet 1989)`,
+          style: 'sousTitre',
+          margin: [0, 0, 0, 16]
+        },
         {
           columns: [
             {
@@ -102,9 +111,18 @@ export function Regularisation(): React.JSX.Element {
           table: {
             widths: ['*', 'auto'],
             body: [
-              [{ text: 'Poste', bold: true }, { text: 'Montant', bold: true, alignment: 'right' }],
-              ['Provisions pour charges versées en ' + annee, { text: formatEuro(provisions), alignment: 'right' }],
-              ['Charges réelles justifiées pour ' + annee, { text: formatEuro(reelles), alignment: 'right' }],
+              [
+                { text: 'Poste', bold: true },
+                { text: 'Montant', bold: true, alignment: 'right' }
+              ],
+              [
+                'Provisions pour charges versées en ' + annee,
+                { text: formatEuro(provisions), alignment: 'right' }
+              ],
+              [
+                'Charges réelles justifiées pour ' + annee,
+                { text: formatEuro(reelles), alignment: 'right' }
+              ],
               [
                 ecart >= 0
                   ? 'EXCÉDENT dû au locataire (régularisation en sa faveur)'
@@ -131,9 +149,7 @@ export function Regularisation(): React.JSX.Element {
             {
               width: '50%',
               alignment: 'right',
-              stack: [
-                { text: 'Signature du bailleur', style: 'etiquette', margin: [0, 30, 0, 0] }
-              ]
+              stack: [{ text: 'Signature du bailleur', style: 'etiquette', margin: [0, 30, 0, 0] }]
             }
           ]
         }
@@ -175,12 +191,25 @@ export function Regularisation(): React.JSX.Element {
     ])
   )
 
-  const stats = useMemo(() => {
+  // Stats de l'année — calcul direct (boucle triviale sur le parc) : le
+  // compilateur React refuse le useMemo ici, et le surcoût est négligeable.
+  const stats = ((): { aReverser: number; aRecuperer: number; nbRegulees: number } => {
+    const provisionsDe = (bailId: number): number => {
+      const row = bauxPayants.find((r) => r.bail.id === bailId)
+      if (!row) return 0
+      const chargesMensuelles = row.bail.charges ?? 0
+      const debut = row.bail.date_debut_bail
+      if (!debut || debut <= `${annee - 1}-12-31`) return chargesMensuelles * 12
+      if (debut >= `${annee}-12-31`) return 0
+      const d = new Date(debut)
+      const moisOccupes = 12 - d.getMonth()
+      return Math.round(chargesMensuelles * moisOccupes * 100) / 100
+    }
     let aReverser = 0
     let aRecuperer = 0
     let nbRegulees = 0
     for (const r of bauxPayants) {
-      const reel = chargesReellesDe(r.bail.id)
+      const reel = regs.find((x) => x.bail_id === r.bail.id && x.annee === annee)
       if (reel) {
         nbRegulees++
         const ecart = provisionsDe(r.bail.id) - reel.charges_reelles
@@ -189,7 +218,7 @@ export function Regularisation(): React.JSX.Element {
       }
     }
     return { aReverser, aRecuperer, nbRegulees }
-  }, [bauxPayants, regs, annee])
+  })()
 
   return (
     <div className="space-y-4">
@@ -209,19 +238,23 @@ export function Regularisation(): React.JSX.Element {
       </div>
 
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Saisis les <strong>charges réelles</strong> justifiées (copropriété, ordures
-        ménagères…) pour chaque bail et chaque année. L'écart avec les provisions versées
-        détermine ce que tu dois au locataire — ou ce qu'il te doit.
+        Saisis les <strong>charges réelles</strong> justifiées (copropriété, ordures ménagères…)
+        pour chaque bail et chaque année. L’écart avec les provisions versées détermine ce que tu
+        dois au locataire — ou ce qu’il te doit.
       </p>
 
       {/* Totaux */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-slate-200 bg-white p-3 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="text-xs text-slate-400">Régularisées</div>
-          <div className="text-lg font-bold">{stats.nbRegulees}/{bauxPayants.length}</div>
+          <div className="text-lg font-bold">
+            {stats.nbRegulees}/{bauxPayants.length}
+          </div>
         </div>
         <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-center dark:border-emerald-500/40 dark:bg-emerald-500/10">
-          <div className="text-xs text-emerald-600 dark:text-emerald-400">À reverser au locataire</div>
+          <div className="text-xs text-emerald-600 dark:text-emerald-400">
+            À reverser au locataire
+          </div>
           <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">
             {formatEuro(stats.aReverser)}
           </div>
@@ -252,7 +285,9 @@ export function Regularisation(): React.JSX.Element {
             {bauxPayants.map((r) => {
               const provisions = provisionsDe(r.bail.id)
               const reel = chargesReellesDe(r.bail.id)
-              const ecart = reel ? Math.round((provisions - reel.charges_reelles) * 100) / 100 : null
+              const ecart = reel
+                ? Math.round((provisions - reel.charges_reelles) * 100) / 100
+                : null
               return (
                 <tr key={r.bail.id} className="border-t border-slate-200 dark:border-slate-800">
                   <td className="px-4 py-2">
@@ -294,14 +329,20 @@ export function Regularisation(): React.JSX.Element {
                       )}
                     </div>
                   </td>
-                  <td className={`px-4 py-2 text-right font-medium ${ecart === null ? 'text-slate-400' : ecart >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {ecart === null ? 'non saisi' : `${ecart >= 0 ? '−' : '+'}${formatEuro(Math.abs(ecart))}`}
+                  <td
+                    className={`px-4 py-2 text-right font-medium ${ecart === null ? 'text-slate-400' : ecart >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
+                  >
+                    {ecart === null
+                      ? 'non saisi'
+                      : `${ecart >= 0 ? '−' : '+'}${formatEuro(Math.abs(ecart))}`}
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button
                       onClick={() => void genererDecompte(r.bail.id)}
                       disabled={!reel || pdfEnCours === r.bail.id}
-                      title={reel ? 'Générer le décompte PDF' : 'Enregistre d’abord les charges réelles'}
+                      title={
+                        reel ? 'Générer le décompte PDF' : 'Enregistre d’abord les charges réelles'
+                      }
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100 disabled:opacity-30 dark:border-slate-700 dark:hover:bg-slate-800"
                     >
                       {pdfEnCours === r.bail.id ? (

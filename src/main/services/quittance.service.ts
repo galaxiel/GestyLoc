@@ -38,7 +38,9 @@ export function enregistrerQuittance(
 /** Historique des quittances générées. */
 export function listQuittances(): QuittanceHistorique[] {
   return getRawConnection()
-    .prepare('SELECT id, bail_id, periode, reference_number, nom_fichier, chemin, genere_le FROM quittances ORDER BY genere_le DESC')
+    .prepare(
+      'SELECT id, bail_id, periode, reference_number, nom_fichier, chemin, genere_le FROM quittances ORDER BY genere_le DESC'
+    )
     .all() as QuittanceHistorique[]
 }
 
@@ -84,7 +86,11 @@ export async function choisirDossierQuittances(): Promise<string | null> {
 }
 
 /** Écrit un PDF base64 dans un dossier déjà choisi (retourne le chemin). */
-export async function saveToDossier(base64: string, dossier: string, nomFichier: string): Promise<string> {
+export async function saveToDossier(
+  base64: string,
+  dossier: string,
+  nomFichier: string
+): Promise<string> {
   const chemin = `${dossier}\\${nomFichier}`.replace(/\//g, '\\')
   const buffer = Buffer.from(base64, 'base64')
   await writeFileAsync(chemin, buffer)

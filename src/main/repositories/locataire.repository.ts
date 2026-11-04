@@ -13,8 +13,7 @@ export const locataireRepository = {
 
   getById(id: number): Locataire | undefined {
     return getDb().select().from(locataires).where(eq(locataires.id, id)).get() as
-      | Locataire
-      | undefined
+      Locataire | undefined
   },
 
   create(input: CreateLocataireInput): Locataire {

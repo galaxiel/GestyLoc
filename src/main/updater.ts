@@ -101,7 +101,7 @@ function branchEvents(): void {
     send(UPDATER_CHANNELS.downloaded)
     showNotification(
       'Mise à jour prête',
-      "Elle sera installée au redémarrage. Cliquez pour redémarrer maintenant."
+      'Elle sera installée au redémarrage. Cliquez pour redémarrer maintenant.'
     )
   })
 

@@ -14,8 +14,6 @@ import { bailRepository } from '../repositories/bail.repository'
 import { valeurIrl } from '@shared/irl-insee'
 import type { ConstatAudit } from '@shared/audit'
 
-
-
 function normaliseNom(nom: string): string {
   return nom.toLowerCase().replace(/[.\s-]/g, '')
 }
@@ -72,7 +70,11 @@ export function auditerDonnees(): ConstatAudit[] {
     }
     // Paire légale : IRL ref = T(n) année A, IRL nouveau = T(n) année A+1
     const refAttendu = valeurIrl(`${annee[0]}-Q${m[0]}`)
-    if (refAttendu !== null && irl_reference !== null && Math.abs(refAttendu - irl_reference) > 0.01) {
+    if (
+      refAttendu !== null &&
+      irl_reference !== null &&
+      Math.abs(refAttendu - irl_reference) > 0.01
+    ) {
       constats.push({
         severite: 'critique',
         categorie: 'IRL de référence non officielle',
@@ -118,7 +120,12 @@ export function auditerDonnees(): ConstatAudit[] {
       })
     }
     // Loyer CC ≠ HC + charges
-    if (hc !== null && r.bail.charges !== null && cc !== null && Math.abs(hc + r.bail.charges - cc) > 0.02) {
+    if (
+      hc !== null &&
+      r.bail.charges !== null &&
+      cc !== null &&
+      Math.abs(hc + r.bail.charges - cc) > 0.02
+    ) {
       constats.push({
         severite: 'attention',
         categorie: 'Loyer CC incohérent',
@@ -130,12 +137,18 @@ export function auditerDonnees(): ConstatAudit[] {
 
   // ---- 5. Baux actifs sans loyer ni statut gratuit ----
   for (const r of rows) {
-    if (r.bail.actif && !r.bail.occupation_gratuite && r.bail.loyer_hc === null && r.bail.loyer_cc === null) {
+    if (
+      r.bail.actif &&
+      !r.bail.occupation_gratuite &&
+      r.bail.loyer_hc === null &&
+      r.bail.loyer_cc === null
+    ) {
       constats.push({
         severite: 'attention',
         categorie: 'Bail actif sans loyer',
         designation: nom(r.bien.designation, r.locataire.nom_complet),
-        detail: 'Bail actif mais aucun loyer : complète le bail, ou bascule-le en « occupation gratuite ».'
+        detail:
+          'Bail actif mais aucun loyer : complète le bail, ou bascule-le en « occupation gratuite ».'
       })
     }
   }
@@ -147,11 +160,14 @@ export function auditerDonnees(): ConstatAudit[] {
         severite: 'attention',
         categorie: 'Bail sans date de fin',
         designation: nom(r.bien.designation, r.locataire.nom_complet),
-        detail: 'Aucune alerte de fin de bail possible. Complète la date de fin (bail 3 ans par défaut).'
+        detail:
+          'Aucune alerte de fin de bail possible. Complète la date de fin (bail 3 ans par défaut).'
       })
     }
   }
 
   void conn
-  return constats.sort((a, b) => (a.severite === 'critique' ? -1 : 1) - (b.severite === 'critique' ? -1 : 1))
+  return constats.sort(
+    (a, b) => (a.severite === 'critique' ? -1 : 1) - (b.severite === 'critique' ? -1 : 1)
+  )
 }

@@ -25,6 +25,22 @@ describe('parseCsv', () => {
       ['c', 'd']
     ])
   })
+
+  it('détecte le séparateur point-virgule (export Excel-fr)', () => {
+    expect(parseCsv('nom;loyer;charges\nDupont;650;50')).toEqual([
+      ['nom', 'loyer', 'charges'],
+      ['Dupont', '650', '50']
+    ])
+  })
+
+  it('stripe le BOM UTF-8 écrit par Excel (l\'en-tête ne devient pas "\\uFEFFID")', () => {
+    const res = parseCsv('\uFEFFID;nom\n1;X')
+    expect(res[0][0]).toBe('ID')
+  })
+
+  it('respecte un séparateur forcé', () => {
+    expect(parseCsv('a,b;c', ';')).toEqual([['a,b', 'c']])
+  })
 })
 
 describe('frNombre', () => {
@@ -58,6 +74,12 @@ describe('frDate', () => {
     expect(frDate('n/a')).toBeNull()
     expect(frDate(null)).toBeNull()
   })
+
+  it('retourne null pour une date sémantiquement invalide (pas de date fantôme)', () => {
+    expect(frDate('31/02/2024')).toBeNull()
+    expect(frDate('39/13/2024')).toBeNull()
+    expect(frDate('00/05/2024')).toBeNull()
+  })
 })
 
 describe('csvCell / versCsv', () => {
@@ -65,6 +87,7 @@ describe('csvCell / versCsv', () => {
     expect(csvCell('a;b')).toBe('"a;b"')
     expect(csvCell('dis "salut"')).toBe('"dis ""salut"""')
     expect(csvCell('l1\nl2')).toBe('"l1\nl2"')
+    expect(csvCell('l1\rl2')).toBe('"l1\rl2"')
     expect(csvCell(null)).toBe('')
     expect(csvCell(650.5)).toBe('650.5')
   })

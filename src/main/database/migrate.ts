@@ -26,6 +26,9 @@ import regularisationSql from './migrations/0007_regularisation.sql?raw'
 import nomBienSql from './migrations/0008_nom_bien.sql?raw'
 import adressesSql from './migrations/0009_adresses.sql?raw'
 import quittanceRefSql from './migrations/0010_quittance_reference.sql?raw'
+import echeancierSql from './migrations/0011_echeancier.sql?raw'
+import bauxRevisionsSql from './migrations/0012_baux_revisions.sql?raw'
+import assuranceSql from './migrations/0013_assurance.sql?raw'
 
 interface Migration {
   id: string
@@ -46,9 +49,12 @@ const migrations: Migration[] = [
   { id: '0007', name: 'regularisation', sql: regularisationSql },
   { id: '0008', name: 'nom_bien', sql: nomBienSql },
   { id: '0009', name: 'adresses', sql: adressesSql },
-  { id: '0010', name: 'quittance_reference', sql: quittanceRefSql }
+  { id: '0010', name: 'quittance_reference', sql: quittanceRefSql },
+  { id: '0011', name: 'echeancier', sql: echeancierSql },
+  { id: '0012', name: 'baux_revisions', sql: bauxRevisionsSql },
+  { id: '0013', name: 'assurance', sql: assuranceSql }
   // Futures migrations à ajouter ici :
-  // { id: '0004', name: 'add_xxx', sql: xxxSql },
+  // { id: '0014', name: 'add_xxx', sql: xxxSql },
 ]
 
 /**
@@ -84,10 +90,9 @@ export function runMigrations(): void {
   for (const migration of pending) {
     const tx = conn.transaction(() => {
       conn.exec(migration.sql)
-      conn.prepare('INSERT INTO _migrations (id, name) VALUES (?, ?)').run(
-        migration.id,
-        migration.name
-      )
+      conn
+        .prepare('INSERT INTO _migrations (id, name) VALUES (?, ?)')
+        .run(migration.id, migration.name)
     })
 
     try {

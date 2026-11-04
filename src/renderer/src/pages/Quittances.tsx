@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { FileText, Download, Loader2, AlertTriangle, Printer, Layers, Mail, Send } from 'lucide-react'
+import {
+  FileText,
+  Download,
+  Loader2,
+  AlertTriangle,
+  Printer,
+  Layers,
+  Mail,
+  Send,
+  CalendarClock
+} from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -8,15 +18,21 @@ import type { QuittanceHistorique, Paiement } from '@shared/types'
 import { formatPeriode } from '../lib/format'
 import { referenceQuittance } from '@shared/quittance-ref'
 import { libelleBien, nomBien, triParLibelle } from '@shared/labels'
+import { montantAttendu, detailProrata, echeanceIso } from '@shared/echeancier'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate } from '../lib/format'
 
 // Branchement des polices embarquées (forme du module variable selon la version).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const vfs = (vfsFonts as any)?.pdfMake?.vfs ?? (vfsFonts as any)?.default?.pdfMake?.vfs ?? (vfsFonts as any)?.vfs ?? (vfsFonts as any)?.default?.vfs ?? vfsFonts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any -- formes de module variables */
+const vfs =
+  (vfsFonts as any)?.pdfMake?.vfs ??
+  (vfsFonts as any)?.default?.pdfMake?.vfs ??
+  (vfsFonts as any)?.vfs ??
+  (vfsFonts as any)?.default?.vfs ??
+  vfsFonts
 ;(pdfMake as any).vfs = vfs
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const inputCls =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-900'
@@ -42,7 +58,11 @@ function construireQuittance(params: {
   return {
     content: [
       { text: 'QUITTANCE DE LOYER', style: 'titre' },
-      { text: `(article 21 de la loi du 6 juillet 1989)`, style: 'sousTitre', margin: [0, 0, 0, 20] },
+      {
+        text: `(article 21 de la loi du 6 juillet 1989)`,
+        style: 'sousTitre',
+        margin: [0, 0, 0, 20]
+      },
 
       {
         columns: [
@@ -79,9 +99,15 @@ function construireQuittance(params: {
         table: {
           widths: ['*', 'auto'],
           body: [
-            [{ text: 'Désignation', bold: true }, { text: 'Montant', bold: true, alignment: 'right' }],
+            [
+              { text: 'Désignation', bold: true },
+              { text: 'Montant', bold: true, alignment: 'right' }
+            ],
             ['Loyer hors charges', { text: formatEuro(params.loyerHc), alignment: 'right' }],
-            ['Charges / provision pour charges', { text: formatEuro(params.charges), alignment: 'right' }],
+            [
+              'Charges / provision pour charges',
+              { text: formatEuro(params.charges), alignment: 'right' }
+            ],
             [
               { text: 'TOTAL LOYER CHARGES COMPRISES', bold: true },
               { text: formatEuro(totalCc), bold: true, alignment: 'right' }
@@ -107,9 +133,7 @@ function construireQuittance(params: {
           {
             width: '50%',
             alignment: 'right',
-            stack: [
-              { text: `Fait à ${params.bailleurVille || '_____________'}, le ${aujourdhui}` }
-            ]
+            stack: [{ text: `Fait à ${params.bailleurVille || '_____________'}, le ${aujourdhui}` }]
           }
         ]
       },
@@ -124,6 +148,129 @@ function construireQuittance(params: {
       titre: { fontSize: 18, bold: true, alignment: 'center' },
       sousTitre: { fontSize: 9, italics: true, alignment: 'center', color: '#666666' },
       etiquette: { fontSize: 9, color: '#888888', margin: [0, 0, 0, 2] },
+      pied: { fontSize: 8, italics: true, color: '#999999' }
+    },
+    defaultStyle: { font: 'Roboto', fontSize: 10 }
+  }
+}
+
+const euro = (n: number): string =>
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
+
+/**
+ * Construit l'AVIS D'ÉCHANCE — document distinct de la quittance (souhait
+ * UIA) : rappel du loyer À VENIR envoyé AVANT le paiement, avec la même
+ * référence QUITT. Échéancier réel intégré : montant proratisé au premier
+ * mois et date d'échéance = jour de paiement du bail.
+ */
+function construireAvisEcheance(params: {
+  reference: string
+  bailleur: string
+  adresseBailleur: string
+  bailleurVille: string
+  locataire: string
+  locataireAdresse: string
+  bienNom: string
+  bienAdresse: string
+  periode: string // libellé « novembre 2026 »
+  echeance: string // jj/mm/aaaa — jour de paiement du bail
+  loyerHc: number
+  charges: number
+  totalCc: number
+  prorata: string | null // « 16/30 j » si premier mois proratisé
+}): TDocumentDefinitions {
+  const {
+    reference,
+    bailleur,
+    adresseBailleur,
+    bailleurVille,
+    locataire,
+    locataireAdresse,
+    bienNom,
+    bienAdresse,
+    periode,
+    echeance,
+    loyerHc,
+    charges,
+    totalCc,
+    prorata
+  } = params
+  return {
+    content: [
+      { text: `Réf. ${reference}`, style: 'ref', alignment: 'right' },
+      { text: 'AVIS D’ÉCHANCE DE LOYER', style: 'titre' },
+      {
+        text: 'Rappel du loyer à venir — distinct de la quittance (art. 21, loi du 6 juillet 1989)',
+        style: 'sousTitre',
+        margin: [0, 0, 0, 20]
+      },
+
+      {
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              { text: 'BAILLEUR', style: 'etiquette' },
+              { text: bailleur, bold: true },
+              { text: adresseBailleur },
+              ...(bailleurVille ? [{ text: bailleurVille }] : [])
+            ]
+          },
+          {
+            width: '50%',
+            stack: [
+              { text: 'LOCATAIRE', style: 'etiquette' },
+              { text: locataire, bold: true },
+              { text: locataireAdresse }
+            ]
+          }
+        ],
+        margin: [0, 0, 0, 16]
+      },
+
+      {
+        text: `Bien loué : ${bienNom}${bienAdresse ? ` — ${bienAdresse}` : ''}`,
+        margin: [0, 0, 0, 12]
+      },
+
+      {
+        text: `Chère/Cher ${locataire.split(' ')[0] ?? locataire}, nous vous rappelons que le loyer et les charges du bien désigné ci-dessus sont dus pour la période de ${periode} au plus tard le ${echeance} :`,
+        margin: [0, 0, 0, 12]
+      },
+
+      {
+        table: {
+          widths: ['*', 'auto'],
+          body: [
+            [
+              { text: 'Désignation', bold: true },
+              { text: 'Montant', bold: true, alignment: 'right' }
+            ],
+            ['Loyer hors charges', { text: euro(loyerHc), alignment: 'right' }],
+            ['Charges', { text: euro(charges), alignment: 'right' }],
+            [
+              {
+                text: prorata ? `TOTAL À PAYER (prorata ${prorata})` : 'TOTAL À PAYER',
+                bold: true
+              },
+              { text: euro(totalCc), bold: true, alignment: 'right' }
+            ]
+          ]
+        },
+        margin: [0, 0, 0, 12]
+      },
+
+      {
+        text: 'Le paiement de ce loyer vaudra quittance : un justificatif vous sera délivré après encaissement. Cet avis est délivré gratuitement.',
+        style: 'pied',
+        margin: [0, 10, 0, 0]
+      }
+    ],
+    styles: {
+      titre: { fontSize: 18, bold: true, alignment: 'center' },
+      sousTitre: { fontSize: 9, italics: true, alignment: 'center', color: '#666666' },
+      etiquette: { fontSize: 9, color: '#888888', margin: [0, 0, 0, 2] },
+      ref: { fontSize: 9, color: '#888888' },
       pied: { fontSize: 8, italics: true, color: '#999999' }
     },
     defaultStyle: { font: 'Roboto', fontSize: 10 }
@@ -149,7 +296,12 @@ export function Quittances(): React.JSX.Element {
     code_postal?: string
     ville?: string
   } | null>(null)
-  const [lot, setLot] = useState<{ enCours: boolean; fait: number; total: number; erreurs: number }>({
+  const [lot, setLot] = useState<{
+    enCours: boolean
+    fait: number
+    total: number
+    erreurs: number
+  }>({
     enCours: false,
     fait: 0,
     total: 0,
@@ -205,8 +357,7 @@ export function Quittances(): React.JSX.Element {
   })
   const nbEnAttente = bauxEligibles.length - bauxPayes.length
   /** Le bail sélectionné est-il pointé « payé » pour la période ? */
-  const estPaye = (bailId: number): boolean =>
-    bauxPayes.some((r) => r.bail.id === bailId)
+  const estPaye = (bailId: number): boolean => bauxPayes.some((r) => r.bail.id === bailId)
   /**
    * Garde-fou art. 21 : une quittance atteste un paiement intégral.
    * Si le loyer n'est pas pointé « payé », on prévient et on demande confirmation.
@@ -239,9 +390,7 @@ export function Quittances(): React.JSX.Element {
         .filter(Boolean)
         .join(', '),
       bienNom: nomBien(r.bien),
-      bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville]
-        .filter(Boolean)
-        .join(', '),
+      bienAdresse: [r.bien.adresse, r.bien.code_postal, r.bien.ville].filter(Boolean).join(', '),
       periode: libellePeriode,
       dateDebutBail: r.bail.date_debut_bail,
       loyerHc: r.bail.loyer_hc ?? 0,
@@ -256,6 +405,67 @@ export function Quittances(): React.JSX.Element {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
+
+  /**
+   * Génère l'AVIS D'ÉCHANCE du bail sélectionné pour le mois SUIVANT la
+   * période sélectionnée (rappel du loyer à venir, avant paiement) —
+   * échéancier réel : prorata au 1er mois + jour de paiement du bail.
+   */
+  const genererAvis = async (): Promise<void> => {
+    if (!row) return
+    setEnCours(true)
+    setMessage(null)
+    try {
+      const [a, m] = periode.split('-')
+      const suivante =
+        Number(m) === 12 ? `${Number(a) + 1}-01` : `${a}-${String(Number(m) + 1).padStart(2, '0')}`
+      const [as, ms] = suivante.split('-')
+      const libelleSuivant = new Date(Number(as), Number(ms) - 1, 1).toLocaleDateString('fr-FR', {
+        month: 'long',
+        year: 'numeric'
+      })
+      const attendu = montantAttendu(row.bail, suivante)
+      const totalCc =
+        attendu ?? row.bail.loyer_cc ?? (row.bail.loyer_hc ?? 0) + (row.bail.charges ?? 0)
+      const loyerHc = row.bail.loyer_hc ?? Math.max(totalCc - (row.bail.charges ?? 0), 0)
+      const charges = row.bail.charges ?? Math.max(totalCc - loyerHc, 0)
+      const doc = construireAvisEcheance({
+        reference: referenceQuittance(row.bail.id, suivante),
+        bailleur: bailleur?.nom_complet || '________________',
+        adresseBailleur: bailleur?.adresse || '________________',
+        bailleurVille: bailleur?.ville ?? '',
+        locataire: row.locataire.nom_complet,
+        locataireAdresse: [row.locataire.adresse, row.locataire.code_postal, row.locataire.ville]
+          .filter(Boolean)
+          .join(', '),
+        bienNom: nomBien(row.bien),
+        bienAdresse: [row.bien.adresse, row.bien.code_postal, row.bien.ville]
+          .filter(Boolean)
+          .join(', '),
+        periode: libelleSuivant,
+        echeance: formatDate(echeanceIso(suivante, row.bail.jour_paiement)),
+        loyerHc,
+        charges,
+        totalCc,
+        prorata: detailProrata(row.bail, suivante)
+      })
+      const nomFichier = `avis_echeance_${slug(row.locataire.nom_complet)}_${suivante}.pdf`
+      pdfMake.createPdf(doc).getBase64(async (base64: string) => {
+        // Pas de trace dans l'historique des quittances : l'avis n'est pas
+        // une quittance (le fichier est simplement enregistré chez le bailleur).
+        const chemin = await ipc.quittances.save(base64, nomFichier)
+        setMessage(
+          chemin
+            ? `Avis d'échéance ${libelleSuivant} enregistré : ${chemin}`
+            : 'Enregistrement annulé.'
+        )
+        setEnCours(false)
+      })
+    } catch (err) {
+      setMessage(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+      setEnCours(false)
+    }
+  }
 
   /** Génère le PDF de la quittance du bail sélectionné (export fichier). */
   const generer = async (): Promise<void> => {
@@ -541,11 +751,7 @@ export function Quittances(): React.JSX.Element {
           <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
             Bail
           </span>
-          <select
-            value={bailId}
-            onChange={(e) => setBailId(e.target.value)}
-            className={inputCls}
-          >
+          <select value={bailId} onChange={(e) => setBailId(e.target.value)} className={inputCls}>
             <option value="">— Sélectionner un bail —</option>
             {triParLibelle(bauxEligibles, (r) => r.locataire.nom_complet).map((r) => (
               <option key={r.bail.id} value={r.bail.id}>
@@ -575,8 +781,8 @@ export function Quittances(): React.JSX.Element {
         {!bailleur && (
           <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            Le profil bailleur n'est pas renseigné : les champs correspondants
-            resteront vides dans le PDF. Complétez-le dans Paramètres.
+            Le profil bailleur n’est pas renseigné : les champs correspondants resteront vides dans
+            le PDF. Complétez-le dans Paramètres.
           </p>
         )}
 
@@ -584,9 +790,8 @@ export function Quittances(): React.JSX.Element {
           <p className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
-              L'adresse du bien n'est pas renseignée : la quittance doit identifier
-              le bien loué. Complète-la dans la fiche du bien (Biens &amp; Locataires →
-              modifier).
+              L’adresse du bien n’est pas renseignée : la quittance doit identifier le bien loué.
+              Complète-la dans la fiche du bien (Biens &amp; Locataires → modifier).
             </span>
           </p>
         )}
@@ -640,6 +845,17 @@ export function Quittances(): React.JSX.Element {
           </button>
         </div>
 
+        {/* Avis d'échéance : rappel du loyer À VENIR (document distinct, souhait UIA) */}
+        <button
+          onClick={() => void genererAvis()}
+          disabled={!row || enCours}
+          title="Avis d'échéance du mois prochain : rappel du loyer dû, avec le jour de paiement du bail (même référence QUITT)"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary-300 px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-primary-500/40 dark:text-primary-400 dark:hover:bg-primary-500/10"
+        >
+          <CalendarClock className="h-4 w-4" />
+          Avis d’échéance (mois prochain)
+        </button>
+
         {/* Envoi par email */}
         {!smtpConfigure ? (
           <p className="flex items-start gap-2 rounded-lg border border-dashed border-slate-300 p-2 text-xs text-slate-400 dark:border-slate-700">
@@ -687,7 +903,7 @@ export function Quittances(): React.JSX.Element {
         </h2>
         {historique.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-700">
-            Aucune quittance générée pour l'instant.
+            Aucune quittance générée pour l’instant.
           </p>
         ) : (
           <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
@@ -710,9 +926,7 @@ export function Quittances(): React.JSX.Element {
                       <td className="px-4 py-2">
                         {formatPeriode(q.periode)}
                         <span className="ml-2 text-xs text-slate-400">
-                          {rowQ
-                            ? `— ${rowQ.locataire.nom_complet} (${nomBien(rowQ.bien)})`
-                            : ''}
+                          {rowQ ? `— ${rowQ.locataire.nom_complet} (${nomBien(rowQ.bien)})` : ''}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-xs text-slate-400">{q.nom_fichier}</td>

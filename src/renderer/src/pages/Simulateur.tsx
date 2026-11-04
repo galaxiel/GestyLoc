@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, Scale, TrendingUp } from 'lucide-react'
 import { simulerRattrapageIrl, type BailPourSimulation } from '@shared/stats'
+import type { BailRevision } from '@shared/types'
 import { nomBien } from '@shared/labels'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
-import { formatEuro } from '../lib/format'
+import { formatEuro, formatDate } from '../lib/format'
 
 const inputCls =
   'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
@@ -29,6 +30,23 @@ export function Simulateur(): React.JSX.Element {
   const [irlHistory, setIrlHistory] = useState<Map<string, number> | null>(null)
   const [irlErreur, setIrlErreur] = useState<string | null>(null)
   const [chargement, setChargement] = useState(true)
+  // Historique des révisions RÉELLEMENT appliquées (migration 0012) —
+  // comparatif « théorique (simulation) vs appliqué ».
+  const [revisionsReelles, setRevisionsReelles] = useState<Map<number, BailRevision>>(new Map())
+
+  useEffect(() => {
+    void ipc.revisions
+      .listAll()
+      .then((revs) => {
+        // Dernière révision appliquée par bail (liste triée desc par date).
+        const map = new Map<number, BailRevision>()
+        for (const rev of revs) {
+          if (!map.has(rev.bail_id)) map.set(rev.bail_id, rev)
+        }
+        setRevisionsReelles(map)
+      })
+      .catch(() => setRevisionsReelles(new Map()))
+  }, [locations])
 
   useEffect(() => {
     void ipc.indices
@@ -75,9 +93,7 @@ export function Simulateur(): React.JSX.Element {
     [bauxSimulables, anneeDepart, irlHistory, tauxFixeNum]
   )
 
-  const typesParBail = new Map(
-    locations.map((r) => [r.bail.id, r.bien.type_bien])
-  )
+  const typesParBail = new Map(locations.map((r) => [r.bail.id, r.bien.type_bien]))
   const nomsParBail = new Map(locations.map((r) => [r.bail.id, nomBien(r.bien)]))
   const adressesParBail = new Map(
     locations.map((r) => [
@@ -86,9 +102,7 @@ export function Simulateur(): React.JSX.Element {
     ])
   )
 
-  const totalDeltaAn = Math.round(
-    resultats.reduce((s, r) => s + r.deltaAn, 0) * 100
-  ) / 100
+  const totalDeltaAn = Math.round(resultats.reduce((s, r) => s + r.deltaAn, 0) * 100) / 100
   const totalLoyerActuel = resultats.reduce((s, r) => s + r.loyerActuel, 0)
   const totalLoyerSimule = resultats.reduce((s, r) => s + r.loyerSimule, 0)
   const tries = [...resultats].sort((a, b) => b.deltaAn - a.deltaAn)
@@ -106,13 +120,13 @@ export function Simulateur(): React.JSX.Element {
       {/* ===== Modèle A : rattrapage IRL ===== */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          A. Rattrapage IRL — « et si j'avais révisé chaque année ? »
+          A. Rattrapage IRL — « et si j’avais révisé chaque année ? »
         </h2>
 
         <p className="text-xs text-slate-400">
-          ⚠ Simulation à titre indicatif : la révision du loyer n'est pas rétroactive —
-          ce scénario mesure une renonciation passée, pas une créance. Pour appliquer
-          une révision : fiche du bail (prochaine échéance annuelle légale).
+          ⚠ Simulation à titre indicatif : la révision du loyer n’est pas rétroactive — ce scénario
+          mesure une renonciation passée, pas une créance. Pour appliquer une révision : fiche du
+          bail (prochaine échéance annuelle légale).
         </p>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -188,6 +202,7 @@ export function Simulateur(): React.JSX.Element {
                 <th className="px-4 py-2 text-right">Δ / mois</th>
                 <th className="px-4 py-2 text-right">Δ / an</th>
                 <th className="px-4 py-2 text-center">Révisions</th>
+                <th className="px-4 py-2">Dernière révision appliquée</th>
               </tr>
             </thead>
             <tbody>
@@ -201,7 +216,7 @@ export function Simulateur(): React.JSX.Element {
                       {nomsParBail.get(r.bailId)}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm font-medium text-slate-300 dark:text-slate-200">
+                  <td className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                     {r.locataire}
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-400">
@@ -218,11 +233,30 @@ export function Simulateur(): React.JSX.Element {
                   <td className="px-4 py-2 text-center text-xs text-slate-400">
                     {r.revisionsJouees} manquée(s)
                   </td>
+                  <td className="px-4 py-2 text-xs text-slate-500 dark:text-slate-400">
+                    {(() => {
+                      const rev = revisionsReelles.get(r.bailId)
+                      if (!rev) return <span className="text-slate-400">aucune trace</span>
+                      return (
+                        <span title="Révision réellement appliquée (historique de la fiche bail)">
+                          {formatDate(rev.date_revision)}
+                          {rev.taux !== null && (
+                            <span
+                              className={`ml-1 font-semibold ${rev.taux > 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
+                            >
+                              ({rev.taux > 0 ? '+' : ''}
+                              {rev.taux} %)
+                            </span>
+                          )}
+                        </span>
+                      )
+                    })()}
+                  </td>
                 </tr>
               ))}
               {tries.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                  <td colSpan={9} className="px-4 py-10 text-center text-slate-400">
                     Aucun bail simulable (loyer ou date de début manquants).
                   </td>
                 </tr>
@@ -245,28 +279,31 @@ export function Simulateur(): React.JSX.Element {
           <div className="space-y-2">
             {meubles.map((r) => {
               const bailId = r.bail.id
-              const recettes = Number(
-                (
-                  r.bail.loyer_cc ??
-                  (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)
-                ).toFixed(2)
-              ) * 12
+              const recettes =
+                Number(
+                  (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)).toFixed(2)
+                ) * 12
               // Charges déductibles du bien meublé sur l'année en cours
               void bailId
               const charges = 0 // calculé ci-dessous via les dépenses
               void charges
               return (
-                <SeuilLmnp key={bailId} designation={r.bien.designation} recettes={recettes} bailId={bailId} annee={annee} />
+                <SeuilLmnp
+                  key={bailId}
+                  designation={r.bien.designation}
+                  recettes={recettes}
+                  bailId={bailId}
+                  annee={annee}
+                />
               )
             })}
             <p className="flex items-start gap-2 rounded-lg border border-dashed border-slate-300 p-2 text-xs text-slate-400 dark:border-slate-700">
               <TrendingUp className="mt-0.5 h-4 w-4 shrink-0" />
-              Le seuil de bascule : le régime réel devient plus favorable dès que les
-              charges déductibles dépassent <strong>50 % des recettes</strong> (micro-BIC
-              abattement forfaitaire de 50 %). En-dessous, le micro-BIC est plus simple et
-              plus avantageux. Ce calcul ignore l'**amortissement** (déductible au réel,
-              non encaissé) : le réel est donc en réalité encore plus favorable que
-              montré. À confirmer avec ton comptable.
+              Le seuil de bascule : le régime réel devient plus favorable dès que les charges
+              déductibles dépassent <strong>50 % des recettes</strong> (micro-BIC abattement
+              forfaitaire de 50 %). En-dessous, le micro-BIC est plus simple et plus avantageux. Ce
+              calcul ignore l’**amortissement** (déductible au réel, non encaissé) : le réel est
+              donc en réalité encore plus favorable que montré. À confirmer avec ton comptable.
             </p>
           </div>
         )}
@@ -296,9 +333,7 @@ function SeuilLmnp({
         setCharges(
           Math.round(
             deps
-              .filter(
-                (d) => d.bien_id === bailId && d.date_depense?.startsWith(annee)
-              )
+              .filter((d) => d.bien_id === bailId && d.date_depense?.startsWith(annee))
               .reduce((s, d) => s + d.montant, 0) * 100
           ) / 100
         )
@@ -320,8 +355,8 @@ function SeuilLmnp({
         <div>
           <div className="text-sm font-semibold">{designation}</div>
           <div className="text-xs text-slate-400">
-            Recettes {annee} : {formatEuro(recettes)} · charges déductibles :{' '}
-            {formatEuro(charges)} ({pctRecettes} % des recettes)
+            Recettes {annee} : {formatEuro(recettes)} · charges déductibles : {formatEuro(charges)}{' '}
+            ({pctRecettes} % des recettes)
           </div>
         </div>
         <div className="text-right">

@@ -4,7 +4,7 @@
   "description": "Logiciel de gestion locative - biens, locataires, quittances, suivi des paiements",
   "main": "./out/main/index.js",
   "author": "gestion-locative",
-  "homepage": "https://github.com/",
+  "homepage": "https://github.com/galaxiel/GestyLoc",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -17,12 +17,13 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux",
+    "build:mac": "npm run typecheck && electron-vite build && electron-builder --mac",
+    "build:linux": "npm run typecheck && electron-vite build && electron-builder --linux",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:db": "esbuild scripts/test-db/main.ts --bundle --platform=node --format=esm --external:electron --external:better-sqlite3 --alias:@shared=./shared --outfile=scripts/test-db/bundle.mjs && electron scripts/test-db/bundle.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -70,5 +71,14 @@
     "vite": "^7.2.6",
     "vitest": "^5.0.5"
   },
-  "license": "PolyForm-Noncommercial-1.0.0"
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "allowScripts": {
+    "electron@40.9.3": true,
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.19.12": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.18.20": true,
+    "electron-winstaller@5.4.0": true
+  }
 }

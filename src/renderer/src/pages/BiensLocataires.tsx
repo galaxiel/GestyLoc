@@ -1,13 +1,26 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { nomBien } from '@shared/labels'
-import { Plus, Pencil, Trash2, X, Search, Home } from 'lucide-react'
-import type { TypeBien, CreateBienInput, CreateLocataireInput, CreateBailInput } from '@shared/types'
+import { Plus, Pencil, Trash2, X, Search, Home, Copy } from 'lucide-react'
+import type {
+  TypeBien,
+  CreateBienInput,
+  CreateLocataireInput,
+  CreateBailInput
+} from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatSurface, formatDate } from '../lib/format'
 
-const TYPES_BIEN: TypeBien[] = ['Appartement', 'Maison', 'Garage', 'Parking', 'Local', 'Studio', 'Autre']
+const TYPES_BIEN: TypeBien[] = [
+  'Appartement',
+  'Maison',
+  'Garage',
+  'Parking',
+  'Local',
+  'Studio',
+  'Autre'
+]
 
 // --- Champs de formulaire (fusion bien + locataire + bail) ---
 interface FormState {
@@ -46,6 +59,7 @@ interface FormState {
   occupation_gratuite: boolean
   depot_garantie: string
   type_charges: string
+  jour_paiement: string
 }
 
 const FORM_VIDE: FormState = {
@@ -80,7 +94,8 @@ const FORM_VIDE: FormState = {
   actif: true,
   occupation_gratuite: false,
   depot_garantie: '',
-  type_charges: ''
+  type_charges: '',
+  jour_paiement: '1'
 }
 
 function num(v: string): number | null {
@@ -105,7 +120,9 @@ function Field({
 }): React.JSX.Element {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
       {children}
     </label>
   )
@@ -180,9 +197,8 @@ export function BiensLocataires(): React.JSX.Element {
     setFormOuvert(true)
   }
 
-  const ouvrirEdition = (bailId: number): void => {
-    const row = locations.find((r) => r.bail.id === bailId)
-    if (!row) return
+  /** Remplit le formulaire depuis une ligne existante (édition OU duplication). */
+  const remplirDepuis = (row: (typeof locations)[number]): void => {
     setForm({
       type_bien: row.bien.type_bien as TypeBien,
       designation: row.bien.designation,
@@ -203,8 +219,9 @@ export function BiensLocataires(): React.JSX.Element {
       date_debut_bail: row.bail.date_debut_bail ?? '',
       date_fin_bail: row.bail.date_fin_bail ?? '',
       trimestre_ref_num: (() => {
-        const m = (row.bail.trimestre_reference ?? '').match(/[1234]/)
-        return m ? m[0] : ''
+        // Ancre T : « T3 2023 » -> 3 (le motif nu attraperait le 2 de 2023).
+        const m = (row.bail.trimestre_reference ?? '').match(/\bT([1-4])\b/)
+        return m ? m[1] : ''
       })(),
       trimestre_ref_annee: (() => {
         const m = (row.bail.trimestre_reference ?? '').match(/(19|20)\d{2}/)
@@ -221,9 +238,40 @@ export function BiensLocataires(): React.JSX.Element {
       actif: row.bail.actif,
       occupation_gratuite: row.bail.occupation_gratuite,
       depot_garantie: row.bail.depot_garantie?.toString() ?? '',
-      type_charges: row.bail.type_charges ?? ''
+      type_charges: row.bail.type_charges ?? '',
+      jour_paiement: row.bail.jour_paiement?.toString() ?? '1'
     })
+  }
+
+  const ouvrirEdition = (bailId: number): void => {
+    const row = locations.find((r) => r.bail.id === bailId)
+    if (!row) return
+    remplirDepuis(row)
     setEditId(bailId)
+    setErreur(null)
+    setFormOuvert(true)
+  }
+
+  /**
+   * Duplication : ouvre le formulaire CRÉATION pré-rempli depuis un bail
+   * existant (relocation du même bien, nouveau locataire dans le même
+   * logement…). Les dates sont vidées (à renseigner), le bail est actif,
+   * et les historiques IRL/paiements ne sont pas copiés.
+   */
+  const dupliquerBail = (bailId: number): void => {
+    const row = locations.find((r) => r.bail.id === bailId)
+    if (!row) return
+    remplirDepuis(row)
+    setForm((f) => ({
+      ...f,
+      date_debut_bail: '',
+      date_fin_bail: '',
+      irl_nouveau: '',
+      taux_irl: '',
+      nouveau_loyer_hc: '',
+      actif: true
+    }))
+    setEditId(null)
     setErreur(null)
     setFormOuvert(true)
   }
@@ -244,7 +292,8 @@ export function BiensLocataires(): React.JSX.Element {
         surface_m2: num(form.surface_m2),
         meuble: form.meuble,
         valeur_venale: num(form.valeur_venale),
-        valeur_venale_date: num(form.valeur_venale) !== null ? new Date().toISOString().slice(0, 10) : null,
+        valeur_venale_date:
+          num(form.valeur_venale) !== null ? new Date().toISOString().slice(0, 10) : null,
         dpe: form.dpe.trim() || null
       }
       const locataireInput: CreateLocataireInput = {
@@ -267,9 +316,7 @@ export function BiensLocataires(): React.JSX.Element {
         loyer_hc: num(form.loyer_hc),
         charges: num(form.charges),
         loyer_cc:
-          num(form.loyer_hc) !== null
-            ? (num(form.loyer_hc) ?? 0) + (num(form.charges) ?? 0)
-            : null,
+          num(form.loyer_hc) !== null ? (num(form.loyer_hc) ?? 0) + (num(form.charges) ?? 0) : null,
         loyer_metre_carre_hc: num(form.loyer_metre_carre_hc),
         loyer_annuel_hc: num(form.loyer_hc) !== null ? (num(form.loyer_hc) ?? 0) * 12 : null,
         loyer_annuel_cc:
@@ -282,9 +329,7 @@ export function BiensLocataires(): React.JSX.Element {
         taux_irl: (() => {
           const ref = num(form.irl_reference)
           const nouv = num(form.irl_nouveau)
-          return ref && nouv && ref > 0
-            ? Math.round((nouv / ref - 1) * 100000) / 1000
-            : null
+          return ref && nouv && ref > 0 ? Math.round((nouv / ref - 1) * 100000) / 1000 : null
         })(),
         nouveau_loyer_hc: num(form.nouveau_loyer_hc),
         frais_agence: num(form.frais_agence),
@@ -292,7 +337,13 @@ export function BiensLocataires(): React.JSX.Element {
         // Occupation gratuite : aucun loyer n'est dû, tous les montants à null.
         occupation_gratuite: form.occupation_gratuite,
         depot_garantie: num(form.depot_garantie),
-        type_charges: form.type_charges || null
+        type_charges: form.type_charges || null,
+        // Jour du mois où le loyer est attendu (1-31, défaut 1) — sert au
+        // pointage, au calendrier des échéances et aux alertes de retard.
+        jour_paiement: (() => {
+          const n = parseInt(form.jour_paiement.replace(',', '.'), 10)
+          return isNaN(n) || n < 1 ? 1 : Math.min(n, 31)
+        })()
       }
       if (form.occupation_gratuite) {
         bailInput.loyer_hc = null
@@ -310,8 +361,7 @@ export function BiensLocataires(): React.JSX.Element {
 
       if (editId === null) {
         // Détection de doublon de locataire (nom normalisé : casse/espaces/points).
-        const normalise = (n: string): string =>
-          n.toLowerCase().replace(/[.\s-]/g, '')
+        const normalise = (n: string): string => n.toLowerCase().replace(/[.\s-]/g, '')
         const doublon = locations.find(
           (r) => normalise(r.locataire.nom_complet) === normalise(form.nom_complet.trim())
         )
@@ -320,8 +370,7 @@ export function BiensLocataires(): React.JSX.Element {
           !confirm(
             `Un locataire au nom proche existe déjà : « ${doublon.locataire.nom_complet} » (${doublon.bien.designation}).
 
-` +
-              'OK = créer quand même (deux personnes distinctes) — Annuler = vérifier.'
+` + 'OK = créer quand même (deux personnes distinctes) — Annuler = vérifier.'
           )
         ) {
           return
@@ -464,9 +513,7 @@ export function BiensLocataires(): React.JSX.Element {
                 <td className="px-4 py-2">{formatSurface(r.bien.surface_m2)}</td>
                 <td className="px-4 py-2 text-right">{formatEuro(r.bail.loyer_hc)}</td>
                 <td className="px-4 py-2 text-right">{formatEuro(r.bail.charges)}</td>
-                <td className="px-4 py-2 text-right font-medium">
-                  {formatEuro(r.bail.loyer_cc)}
-                </td>
+                <td className="px-4 py-2 text-right font-medium">{formatEuro(r.bail.loyer_cc)}</td>
                 <td className="px-4 py-2">
                   {formatDate(r.bail.date_fin_bail)}
                   {r.jours_avant_fin_bail !== null && (r.jours_avant_fin_bail ?? 0) < 90 && (
@@ -486,6 +533,13 @@ export function BiensLocataires(): React.JSX.Element {
                       className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
                     >
                       <Home className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => dupliquerBail(r.bail.id)}
+                      title="Dupliquer ce bail (nouveau bail pré-rempli)"
+                      className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-slate-800"
+                    >
+                      <Copy className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => ouvrirEdition(r.bail.id)}
@@ -699,7 +753,10 @@ export function BiensLocataires(): React.JSX.Element {
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Le bail &amp; le loyer
             </h3>
-            <fieldset disabled={form.occupation_gratuite} className="grid grid-cols-2 gap-3 md:grid-cols-4 disabled:opacity-50">
+            <fieldset
+              disabled={form.occupation_gratuite}
+              className="grid grid-cols-2 gap-3 md:grid-cols-4 disabled:opacity-50"
+            >
               <Field label="Début du bail">
                 <input
                   className={inputCls}
@@ -714,6 +771,18 @@ export function BiensLocataires(): React.JSX.Element {
                   type="date"
                   value={form.date_fin_bail}
                   onChange={(e) => setForm({ ...form, date_fin_bail: e.target.value })}
+                />
+              </Field>
+              <Field label="Jour de paiement du loyer">
+                <input
+                  className={inputCls}
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={form.jour_paiement}
+                  onChange={(e) => setForm({ ...form, jour_paiement: e.target.value })}
+                  placeholder="1"
+                  title="Jour du mois où le loyer est attendu (1-31). Sert aux alertes de retard et au calendrier des échéances."
                 />
               </Field>
               <Field label="Trimestre de référence IRL">
@@ -885,8 +954,8 @@ export function BiensLocataires(): React.JSX.Element {
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
             <h2 className="mb-2 text-lg font-bold">Supprimer ce bail ?</h2>
             <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
-              Le contrat et son historique de paiements seront supprimés. Le bien et le
-              locataire restent enregistrés.
+              Le contrat et son historique de paiements seront supprimés. Le bien et le locataire
+              restent enregistrés.
             </p>
             <div className="flex justify-end gap-2">
               <button

@@ -3,6 +3,7 @@ import log from 'electron-log'
 import { bienRepository } from '../repositories/bien.repository'
 import { locataireRepository } from '../repositories/locataire.repository'
 import { bailRepository } from '../repositories/bail.repository'
+import { bailRevisionRepository } from '../repositories/bail-revision.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
 import { parametresRepository, type BailleurProfile } from '../repositories/parametres.repository'
 import { depenseRepository } from '../repositories/depense.repository'
@@ -22,6 +23,7 @@ import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/d
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
 import { construireRecu } from '../services/recu.service'
+import { construireContrat } from '../services/contrat.service'
 import { auditerDonnees } from '../services/audit.service'
 import type { RecuParams } from '../services/recu.service'
 import { fetchIndices } from '../services/indices.service'
@@ -37,6 +39,7 @@ import type {
   CreateLocataireInput,
   CreateBailInput,
   CreatePaiementInput,
+  CreateBailRevisionInput,
   TypeDocument
 } from '@shared/types'
 
@@ -80,9 +83,7 @@ export function registerDatabaseHandlers(): void {
   // ---------- Locataires ----------
   handle('db:locataires:list', () => locataireRepository.list())
   handle('db:locataires:get', (id: number) => locataireRepository.getById(id))
-  handle('db:locataires:create', (input: CreateLocataireInput) =>
-    locataireRepository.create(input)
-  )
+  handle('db:locataires:create', (input: CreateLocataireInput) => locataireRepository.create(input))
   handle('db:locataires:update', (id: number, input: CreateLocataireInput) =>
     locataireRepository.update(id, input)
   )
@@ -92,16 +93,23 @@ export function registerDatabaseHandlers(): void {
   handle('db:baux:list', () => bailRepository.list())
   handle('db:baux:get', (id: number) => bailRepository.getById(id))
   handle('db:baux:create', (input: CreateBailInput) => bailRepository.create(input))
-  handle('db:baux:update', (id: number, input: CreateBailInput) =>
-    bailRepository.update(id, input)
-  )
+  handle('db:baux:update', (id: number, input: CreateBailInput) => bailRepository.update(id, input))
   handle('db:baux:delete', (id: number) => bailRepository.delete(id))
+
+  // ---------- Révisions de loyer (historique, migration 0012) ----------
+  handle('db:revisions:list', (bailId: number) => bailRevisionRepository.listByBail(bailId))
+  handle('db:revisions:list-all', () => bailRevisionRepository.listAll())
+  handle('db:revisions:create', (input: CreateBailRevisionInput) =>
+    bailRevisionRepository.create(input)
+  )
 
   // ---------- Dépenses (module patrimonial) ----------
   handle('db:depenses:list', () => depenseRepository.list())
   handle('db:depenses:by-bien', (bienId: number) => depenseRepository.listByBien(bienId))
   handle('db:depenses:create', (input: CreateDepenseInput) => depenseRepository.create(input))
-  handle('db:depenses:update', (id: number, input: CreateDepenseInput) => depenseRepository.update(id, input))
+  handle('db:depenses:update', (id: number, input: CreateDepenseInput) =>
+    depenseRepository.update(id, input)
+  )
   handle('db:depenses:delete', (id: number) => depenseRepository.delete(id))
 
   // ---------- Régularisation des charges ----------
@@ -113,9 +121,7 @@ export function registerDatabaseHandlers(): void {
   // ---------- Paiements ----------
   handle('db:paiements:by-bail', (bailId: number) => paiementRepository.listByBail(bailId))
   handle('db:paiements:all', () => paiementRepository.listAll())
-  handle('db:paiements:upsert', (input: CreatePaiementInput) =>
-    paiementRepository.upsert(input)
-  )
+  handle('db:paiements:upsert', (input: CreatePaiementInput) => paiementRepository.upsert(input))
   handle('db:paiements:delete', (bailId: number, periode: string) =>
     paiementRepository.delete(bailId, periode)
   )
@@ -175,6 +181,10 @@ export function registerDatabaseHandlers(): void {
     const doc = construireRecu(params)
     return doc as unknown as Record<string, unknown>
   })
+  handle('contrat:pdf', (params: Parameters<typeof construireContrat>[0]) => {
+    const doc = construireContrat(params)
+    return doc as unknown as Record<string, unknown>
+  })
   handle('data:audit', () => auditerDonnees())
 
   // ---------- Données : import / export / sauvegarde ----------
@@ -194,7 +204,11 @@ export function registerDatabaseHandlers(): void {
   handle('email:test', () => testerSmtp())
   handle(
     'email:send',
-    (destinataire: string, sujet: string, corps: string, pieceJointe?: { nomFichier: string; base64: string }) =>
-      envoyerEmail(destinataire, sujet, corps, pieceJointe)
+    (
+      destinataire: string,
+      sujet: string,
+      corps: string,
+      pieceJointe?: { nomFichier: string; base64: string }
+    ) => envoyerEmail(destinataire, sujet, corps, pieceJointe)
   )
 }

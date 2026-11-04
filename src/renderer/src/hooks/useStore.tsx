@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState, createContext, useContext } from 'rea
 import type { BienLocationRow, Alerte } from '@shared/types'
 import { ipc } from '../lib/ipc'
 
+/* eslint-disable react-refresh/only-export-components -- le hook useStore
+   accompagne nécessairement son Provider (pattern React context standard) */
+
 interface StoreState {
   locations: BienLocationRow[]
   alertes: Alerte[]

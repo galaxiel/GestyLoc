@@ -1,5 +1,21 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Rocket, Loader2, User, Save, Database, Download, Upload, FileInput, FileOutput, Mail, Send, FolderOpen, Stethoscope } from 'lucide-react'
+import {
+  RefreshCw,
+  Rocket,
+  Loader2,
+  User,
+  Save,
+  Database,
+  Download,
+  Upload,
+  FileInput,
+  FileOutput,
+  Mail,
+  Send,
+  FolderOpen,
+  Stethoscope,
+  CalendarClock
+} from 'lucide-react'
 import type { ConstatAudit } from '@shared/audit'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
@@ -12,7 +28,9 @@ const inputCls =
 
 export function Parametres(): React.JSX.Element {
   const [version, setVersion] = useState<string>('…')
-  const [etat, setEtat] = useState<'inactif' | 'verification' | 'disponible' | 'telecharge' | 'erreur'>('inactif')
+  const [etat, setEtat] = useState<
+    'inactif' | 'verification' | 'disponible' | 'telecharge' | 'erreur'
+  >('inactif')
   const [message, setMessage] = useState<string | null>(null)
 
   // --- Données : export / import / sauvegarde ---
@@ -58,7 +76,12 @@ export function Parametres(): React.JSX.Element {
 
   // --- Configuration Email (SMTP) ---
   const [smtp, setSmtp] = useState({
-    host: '', port: '587', secure: false, utilisateur: '', mot_de_passe: '', expediteur_nom: ''
+    host: '',
+    port: '587',
+    secure: false,
+    utilisateur: '',
+    mot_de_passe: '',
+    expediteur_nom: ''
   })
   const [smtpConfigure, setSmtpConfigure] = useState(false)
   const [smtpMsg, setSmtpMsg] = useState<string | null>(null)
@@ -122,9 +145,14 @@ export function Parametres(): React.JSX.Element {
   const [bailleurVille, setBailleurVille] = useState('')
   const [bailleurMessage, setBailleurMessage] = useState<string | null>(null)
 
+  // Échéancier réel : marge de tolérance (jours) après le jour de paiement
+  // avant qu'un loyer non pointé ne soit signalé en retard (défaut 0).
+  const [margeRetard, setMargeRetard] = useState('0')
+  const [echeancierMsg, setEcheancierMsg] = useState<string | null>(null)
+
   useEffect(() => {
     // Version de l'app (depuis package.json, injecté par electron).
-    void window.electron.ipcRenderer.invoke('app:get-version').then(setVersion)
+    void window.api.app.getVersion().then(setVersion)
     // Chargement du profil bailleur.
     void ipc.parametres
       .getBailleur()
@@ -139,7 +167,32 @@ export function Parametres(): React.JSX.Element {
       .catch(() => {
         /* profil absent : champs vides */
       })
+    // Chargement de la marge de retard (échéancier).
+    void ipc.parametres
+      .get<{ marge_retard_jours?: number }>('echeancier')
+      .then((cfg) => {
+        if (cfg && typeof cfg.marge_retard_jours === 'number') {
+          setMargeRetard(String(cfg.marge_retard_jours))
+        }
+      })
+      .catch(() => {
+        /* pas encore configuré */
+      })
   }, [])
+
+  const enregistrerEcheancier = async (): Promise<void> => {
+    const n = parseInt(margeRetard, 10)
+    const marge = isNaN(n) || n < 0 ? 0 : Math.min(n, 31)
+    try {
+      await ipc.parametres.set('echeancier', { marge_retard_jours: marge })
+      setMargeRetard(String(marge))
+      setEcheancierMsg(
+        `Marge enregistrée : un loyer non pointé est signalé en retard ${marge === 0 ? 'dès le lendemain du jour de paiement' : `${marge} jour(s) après le jour de paiement`}.`
+      )
+    } catch (err) {
+      setEcheancierMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
 
   const enregistrerBailleur = async (): Promise<void> => {
     try {
@@ -171,9 +224,7 @@ export function Parametres(): React.JSX.Element {
     })
     const ne = window.api.updater.on(UPDATER_EVENT.error, (payload) => {
       setEtat('erreur')
-      setMessage(
-        `Erreur de mise à jour : ${(payload as unknown as { message: string }).message}`
-      )
+      setMessage(`Erreur de mise à jour : ${(payload as unknown as { message: string }).message}`)
       ne()
     })
     await window.api.updater.check()
@@ -261,6 +312,42 @@ export function Parametres(): React.JSX.Element {
         </div>
       </div>
 
+      {/* Échéancier réel : tolérance des alertes de retard */}
+      <div className={cardCls}>
+        <h2 className="mb-3 flex items-center gap-2 font-semibold">
+          <CalendarClock className="h-4 w-4 text-primary-500" /> Échéancier des loyers
+        </h2>
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+          Le jour de paiement se règle sur chaque bail (formulaire Biens &amp; Locataires). Cette
+          marge tolère un retard avant l’alerte — utile quand les aides sociales tombent en début de
+          mois.
+        </p>
+        <div className="flex items-end gap-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Marge de retard (jours)
+            </span>
+            <input
+              className={`${inputCls} w-28`}
+              type="number"
+              min="0"
+              max="31"
+              value={margeRetard}
+              onChange={(e) => setMargeRetard(e.target.value)}
+            />
+          </label>
+          <button
+            onClick={() => void enregistrerEcheancier()}
+            className="flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            <Save className="h-4 w-4" /> Enregistrer
+          </button>
+        </div>
+        {echeancierMsg && (
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{echeancierMsg}</p>
+        )}
+      </div>
+
       {/* Infos app */}
       <div className={cardCls}>
         <h2 className="mb-3 font-semibold">Application</h2>
@@ -324,8 +411,7 @@ export function Parametres(): React.JSX.Element {
             </ul>
           )}
           <p className="mt-3 text-xs text-slate-400">
-            L'audit ne modifie rien — il liste les anomalies à corriger dans les pages
-            concernées.
+            L’audit ne modifie rien — il liste les anomalies à corriger dans les pages concernées.
           </p>
         </div>
       )}
@@ -345,22 +431,37 @@ export function Parametres(): React.JSX.Element {
           </span>
         </h2>
         <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-          Configure ton serveur SMTP pour envoyer les quittances par email depuis
-          l'application. Astuce Gmail / Orange / Outlook : utilise un{' '}
-          <strong>mot de passe d'application</strong> (jamais ton mot de passe principal).
-          Toutes les infos restent sur ton PC.
+          Configure ton serveur SMTP pour envoyer les quittances par email depuis l’application.
+          Astuce Gmail / Orange / Outlook : utilise un <strong>mot de passe d’application</strong>{' '}
+          (jamais ton mot de passe principal). Toutes les infos restent sur ton PC.
         </p>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Serveur SMTP</span>
-            <input className={inputCls} value={smtp.host} onChange={(e) => setSmtp({ ...smtp, host: e.target.value })} placeholder="smtp.gmail.com" />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Serveur SMTP
+            </span>
+            <input
+              className={inputCls}
+              value={smtp.host}
+              onChange={(e) => setSmtp({ ...smtp, host: e.target.value })}
+              placeholder="smtp.gmail.com"
+            />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Port</span>
-            <input className={inputCls} value={smtp.port} onChange={(e) => setSmtp({ ...smtp, port: e.target.value })} placeholder="587" />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Port
+            </span>
+            <input
+              className={inputCls}
+              value={smtp.port}
+              onChange={(e) => setSmtp({ ...smtp, port: e.target.value })}
+              placeholder="587"
+            />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Sécurité</span>
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Sécurité
+            </span>
             <select
               className={inputCls}
               value={smtp.secure ? 'ssl' : 'starttls'}
@@ -371,16 +472,37 @@ export function Parametres(): React.JSX.Element {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Adresse email (compte)</span>
-            <input className={inputCls} value={smtp.utilisateur} onChange={(e) => setSmtp({ ...smtp, utilisateur: e.target.value })} placeholder="moi@exemple.fr" />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Adresse email (compte)
+            </span>
+            <input
+              className={inputCls}
+              value={smtp.utilisateur}
+              onChange={(e) => setSmtp({ ...smtp, utilisateur: e.target.value })}
+              placeholder="moi@exemple.fr"
+            />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Mot de passe d'application</span>
-            <input className={inputCls} type="password" value={smtp.mot_de_passe} onChange={(e) => setSmtp({ ...smtp, mot_de_passe: e.target.value })} />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Mot de passe d’application
+            </span>
+            <input
+              className={inputCls}
+              type="password"
+              value={smtp.mot_de_passe}
+              onChange={(e) => setSmtp({ ...smtp, mot_de_passe: e.target.value })}
+            />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Nom de l'expéditeur</span>
-            <input className={inputCls} value={smtp.expediteur_nom} onChange={(e) => setSmtp({ ...smtp, expediteur_nom: e.target.value })} placeholder="Jean Martin" />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Nom de l’expéditeur
+            </span>
+            <input
+              className={inputCls}
+              value={smtp.expediteur_nom}
+              onChange={(e) => setSmtp({ ...smtp, expediteur_nom: e.target.value })}
+              placeholder="Jean Martin"
+            />
           </label>
         </div>
         <div className="mt-3 flex items-center gap-2">
@@ -396,7 +518,11 @@ export function Parametres(): React.JSX.Element {
             disabled={smtpEnCours || !smtp.host.trim()}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {smtpEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {smtpEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
             Tester la connexion
           </button>
         </div>
@@ -414,29 +540,38 @@ export function Parametres(): React.JSX.Element {
             disabled={dataEnCours !== null}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {dataEnCours === 'export' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileOutput className="h-4 w-4" />}
+            {dataEnCours === 'export' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileOutput className="h-4 w-4" />
+            )}
             Exporter en CSV
           </button>
           <button
-            onClick={() => void executer('import', async () => {
-              const prev = await ipc.data.importPreview()
-              if (!prev || prev.nbLignes === 0) {
-                return prev?.erreur ?? 'Aucune ligne exploitable (ou boîte annulée).'
-              }
-              const conf = confirm(
-                `${prev.nbLignes} baux détectés (ex : ${prev.apercu[0]?.locataire ?? ''} — ${prev.apercu[0]?.designation ?? ''}).
+            onClick={() =>
+              void executer('import', async () => {
+                const prev = await ipc.data.importPreview()
+                if (!prev || prev.nbLignes === 0) {
+                  return prev?.erreur ?? 'Aucune ligne exploitable (ou boîte annulée).'
+                }
+                const conf = confirm(
+                  `${prev.nbLignes} baux détectés (ex : ${prev.apercu[0]?.locataire ?? ''} — ${prev.apercu[0]?.designation ?? ''}).
 
-` +
-                  'Importer maintenant ? (refusé si la base contient déjà des baux)'
-              )
-              if (!conf) return 'Import annulé.'
-              const r = await ipc.data.importCommit()
-              return `Import réussi : ${r.baux} baux, ${r.biens} biens, ${r.locataires} locataires (${r.ignores} lignes ignorées).`
-            })}
+` + 'Importer maintenant ? (refusé si la base contient déjà des baux)'
+                )
+                if (!conf) return 'Import annulé.'
+                const r = await ipc.data.importCommit()
+                return `Import réussi : ${r.baux} baux, ${r.biens} biens, ${r.locataires} locataires (${r.ignores} lignes ignorées).`
+              })
+            }
             disabled={dataEnCours !== null}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {dataEnCours === 'import' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileInput className="h-4 w-4" />}
+            {dataEnCours === 'import' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileInput className="h-4 w-4" />
+            )}
             Importer un tableur (CSV)
           </button>
           <button
@@ -444,7 +579,11 @@ export function Parametres(): React.JSX.Element {
             disabled={dataEnCours !== null}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {dataEnCours === 'backup' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {dataEnCours === 'backup' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
             Sauvegarder la base
           </button>
           <button
@@ -452,19 +591,37 @@ export function Parametres(): React.JSX.Element {
             disabled={auditEnCours}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {auditEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stethoscope className="h-4 w-4" />}
+            {auditEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Stethoscope className="h-4 w-4" />
+            )}
             Auditer mes données
           </button>
           <button
             onClick={() => {
-              if (confirm('Restaurer une sauvegarde remplacera TOUTES vos données actuelles (une copie de sécurité sera faite). Continuer ?')) {
-                void executer('restore', () => ipc.data.backupRestore().then((ok) => (ok ? 'Restauration en cours, redémarrage…' : 'Restauration annulée.')))
+              if (
+                confirm(
+                  'Restaurer une sauvegarde remplacera TOUTES vos données actuelles (une copie de sécurité sera faite). Continuer ?'
+                )
+              ) {
+                void executer('restore', () =>
+                  ipc.data
+                    .backupRestore()
+                    .then((ok) =>
+                      ok ? 'Restauration en cours, redémarrage…' : 'Restauration annulée.'
+                    )
+                )
               }
             }}
             disabled={dataEnCours !== null}
             className="flex items-center gap-2 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50 disabled:opacity-40 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
           >
-            {dataEnCours === 'restore' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {dataEnCours === 'restore' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
             Restaurer une sauvegarde
           </button>
         </div>
@@ -500,9 +657,7 @@ export function Parametres(): React.JSX.Element {
             </button>
           )}
         </div>
-        {message && (
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{message}</p>
-        )}
+        {message && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{message}</p>}
       </div>
     </div>
   )

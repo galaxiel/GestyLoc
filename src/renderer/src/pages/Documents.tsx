@@ -137,8 +137,8 @@ export function Documents(): React.JSX.Element {
           Joindre un fichier (PDF, image, Word)
         </button>
         <p className="text-xs text-slate-400">
-          Les fichiers sont copiés dans le dossier de données de l'application —
-          l'original reste où il est, vous pouvez le déplacer sans risque.
+          Les fichiers sont copiés dans le dossier de données de l’application — l’original reste où
+          il est, vous pouvez le déplacer sans risque.
         </p>
       </div>
 
@@ -151,8 +151,7 @@ export function Documents(): React.JSX.Element {
           </h2>
           {docs.length === 0 ? (
             <p className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400 dark:border-slate-700">
-              Aucun document pour ce bail. Joignez le contrat, les états des lieux,
-              l'assurance…
+              Aucun document pour ce bail. Joignez le contrat, les états des lieux, l’assurance…
             </p>
           ) : (
             <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">

@@ -19,11 +19,7 @@ export const paiementRepository = {
 
   /** Tous les paiements (tous baux confondus) — utile au dashboard. */
   listAll() {
-    return getDb()
-      .select()
-      .from(paiements)
-      .orderBy(desc(paiements.periode))
-      .all()
+    return getDb().select().from(paiements).orderBy(desc(paiements.periode)).all()
   },
 
   get(bailId: number, periode: string) {
@@ -46,6 +42,10 @@ export const paiementRepository = {
           statut: input.statut,
           date_paiement: input.date_paiement ?? null,
           mode_paiement: input.mode_paiement ?? null,
+          // Bug corrigé : reference/notes étaient silencieusement ignorés
+          // lors d'une mise à jour (upsert) — ils sont désormais repris.
+          reference: input.reference ?? null,
+          notes: input.notes ?? null,
           updated_at: new Date().toISOString()
         }
       })

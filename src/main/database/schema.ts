@@ -4,7 +4,15 @@
 // versionnées dans drizzle/*. Ne pas éditer les .sql à la main.
 // ============================================================================
 
-import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core'
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  primaryKey,
+  uniqueIndex,
+  index
+} from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 // Helper : timestamps automatiques.
@@ -98,12 +106,18 @@ export const baux = sqliteTable('baux', {
   depot_garantie: real('depot_garantie'),
   type_charges: text('type_charges'), // 'forfaitaires' | 'provisionnelles'
 
+  // Échéancier réel (migration 0011) : jour du mois où le loyer est attendu
+  // (1-31, défaut 1). Les aides tombant parfois jusqu'au 5-6, le bailleur
+  // décale le pointage et les alertes de retard sur ce jour.
+  jour_paiement: integer('jour_paiement').notNull().default(1),
+  // Traçage assurance (migration 0013) : date de la dernière demande
+  // d'attestation envoyée au locataire — évite de relancer pour rien.
+  assurance_demandee_le: text('assurance_demandee_le'),
+
   // État
   actif: integer('actif', { mode: 'boolean' }).notNull().default(true),
   // Occupation gratuite (sans loyer, ex : membre de la famille) — migration 0003
-  occupation_gratuite: integer('occupation_gratuite', { mode: 'boolean' })
-    .notNull()
-    .default(false),
+  occupation_gratuite: integer('occupation_gratuite', { mode: 'boolean' }).notNull().default(false),
 
   ...timestamps
 })
@@ -172,7 +186,15 @@ export const depenses = sqliteTable('depenses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   bien_id: integer('bien_id').references(() => biens.id, { onDelete: 'cascade' }),
   categorie: text('categorie', {
-    enum: ['travaux', 'reparations', 'assurance_pno', 'taxe_fonciere', 'charges_non_recuperables', 'frais_agence', 'autre']
+    enum: [
+      'travaux',
+      'reparations',
+      'assurance_pno',
+      'taxe_fonciere',
+      'charges_non_recuperables',
+      'frais_agence',
+      'autre'
+    ]
   })
     .notNull()
     .default('autre'),
@@ -183,20 +205,33 @@ export const depenses = sqliteTable('depenses', {
 })
 
 // ----------------------------------------------------------------------------
-// Table Quittances générées (historique/trace) — migration 0006
+// Table Quittances générées (historique/trace) — migrations 0006 + 0010.
+// Doit refléter EXACTEMENT le SQL appliqué (migrations) : un `db:generate`
+// basé sur ce schéma ne doit jamais produire de DROP destructeur.
 // ----------------------------------------------------------------------------
-export const quittances = sqliteTable('quittances', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  bail_id: integer('bail_id')
-    .notNull()
-    .references(() => baux.id, { onDelete: 'cascade' }),
-  periode: text('periode').notNull(), // 'yyyy-mm'
-  nom_fichier: text('nom_fichier').notNull(),
-  chemin: text('chemin'),
-  genere_le: text('genere_le')
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`)
-})
+export const quittances = sqliteTable(
+  'quittances',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    bail_id: integer('bail_id')
+      .notNull()
+      .references(() => baux.id, { onDelete: 'cascade' }),
+    periode: text('periode').notNull(), // 'yyyy-mm'
+    nom_fichier: text('nom_fichier').notNull(),
+    chemin: text('chemin'),
+    // Référence unique QUITT-{AAAA}{MM}-{ID_BAIL} (migration 0010)
+    reference_number: text('reference_number'),
+    genere_le: text('genere_le')
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+  },
+  (table) => [
+    // Index créés par les migrations 0006 et 0010 — dupliqués ici pour
+    // que drizzle-kit connaisse l'état réel de la base.
+    uniqueIndex('idx_quittances_bail_periode').on(table.bail_id, table.periode),
+    uniqueIndex('idx_quittances_reference').on(table.reference_number)
+  ]
+)
 
 // ----------------------------------------------------------------------------
 // Table Régularisation des charges (bail × année) — migration 0007
@@ -211,3 +246,26 @@ export const regularisationsCharges = sqliteTable('regularisations_charges', {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`)
 })
+
+// ----------------------------------------------------------------------------
+// Table Historique des révisions de loyer — migration 0012
+// Une ligne par révision appliquée (IRL guidée ou manuelle) : sert au suivi
+// et à la comparaison loyer théorique vs appliqué dans le simulateur.
+// ----------------------------------------------------------------------------
+export const bauxRevisions = sqliteTable(
+  'baux_revisions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    bail_id: integer('bail_id')
+      .notNull()
+      .references(() => baux.id, { onDelete: 'cascade' }),
+    date_revision: text('date_revision').notNull(), // ISO, date d'application
+    ancien_loyer_hc: real('ancien_loyer_hc'),
+    nouveau_loyer_hc: real('nouveau_loyer_hc'),
+    irl_reference: real('irl_reference'),
+    irl_nouveau: real('irl_nouveau'),
+    taux: real('taux'), // % (irl_nouveau/irl_reference - 1)
+    ...timestamps
+  },
+  (table) => [index('idx_baux_revisions_bail').on(table.bail_id)]
+)

@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  ArrowLeft, Home, FileUp, ExternalLink, Trash2, Loader2, User, Pencil
-} from 'lucide-react'
+import { ArrowLeft, Home, FileUp, ExternalLink, Trash2, Loader2, User, Pencil } from 'lucide-react'
 import type { DocumentRow, TypeDocument } from '@shared/types'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
@@ -38,10 +36,17 @@ export function BienDetail(): React.JSX.Element {
 
   const [docs, setDocs] = useState<DocumentRow[]>([])
   const [docEnCours, setDocEnCours] = useState(false)
+  // Horodatage « maintenant » : Date.now() est impur pendant le rendu — on le
+  // prend dans un état initialisé par effet (purity rule + rendu stable).
+  const [maintenant, setMaintenant] = useState<number>(0)
 
   useEffect(() => {
     if (!bienId) return
-    void ipc.documents.listByBien(bienId).then(setDocs).catch(() => setDocs([]))
+    void ipc.documents
+      .listByBien(bienId)
+      .then(setDocs)
+      .catch(() => setDocs([]))
+    setMaintenant(Date.now())
   }, [bienId])
 
   if (!bien) {
@@ -62,11 +67,12 @@ export function BienDetail(): React.JSX.Element {
 
   // Taux de vacance : part du temps sans bail actif depuis le 1er bail.
   const tauxVacance = ((): number | null => {
+    if (maintenant === 0) return null
     const baux = rowsDuBien.filter((r) => r.bail.date_debut_bail)
     if (baux.length === 0) return null
     const premierJour = baux.map((r) => r.bail.date_debut_bail!).sort()[0]
     const debut = new Date(premierJour).getTime()
-    const fin = Date.now()
+    const fin = maintenant
     const dureeTotale = fin - debut
     if (dureeTotale <= 0) return null
     let joursOccupes = 0
@@ -130,14 +136,8 @@ export function BienDetail(): React.JSX.Element {
             label="Adresse"
             valeur={[bien.adresse, bien.code_postal, bien.ville].filter(Boolean).join(', ') || '—'}
           />
-          <Info
-            label="DPE"
-            valeur={bien.dpe ? `Classe ${bien.dpe}` : '—'}
-          />
-          <Info
-            label="Taux de vacance"
-            valeur={tauxVacance !== null ? `${tauxVacance} %` : '—'}
-          />
+          <Info label="DPE" valeur={bien.dpe ? `Classe ${bien.dpe}` : '—'} />
+          <Info label="Taux de vacance" valeur={tauxVacance !== null ? `${tauxVacance} %` : '—'} />
           <Info
             label="Valeur vénale"
             valeur={
@@ -194,7 +194,9 @@ export function BienDetail(): React.JSX.Element {
                   <td className="px-4 py-2 text-right">
                     {r.bail.occupation_gratuite
                       ? 'Gratuit'
-                      : formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}
+                      : formatEuro(
+                          r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)
+                        )}
                   </td>
                   <td className="px-4 py-2 text-right">
                     <button
@@ -229,7 +231,11 @@ export function BienDetail(): React.JSX.Element {
             disabled={docEnCours}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {docEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+            {docEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileUp className="h-4 w-4" />
+            )}
             Joindre
           </button>
         </div>

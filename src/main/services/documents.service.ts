@@ -13,17 +13,12 @@ import type { DocumentRow, TypeDocument } from '@shared/types'
  */
 export const documentsService = {
   /** Ouvre une boîte de sélection, copie le fichier choisi, l'enregistre en BDD. */
-  async selectAndAttach(
-    bailId: number,
-    typeDocument: TypeDocument
-  ): Promise<DocumentRow | null> {
+  async selectAndAttach(bailId: number, typeDocument: TypeDocument): Promise<DocumentRow | null> {
     const win = BrowserWindow.getAllWindows()[0]
     const result = await dialog.showOpenDialog(win, {
       title: 'Sélectionner un document à joindre',
       properties: ['openFile'],
-      filters: [
-        { name: 'Documents', extensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'] }
-      ]
+      filters: [{ name: 'Documents', extensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'] }]
     })
     if (result.canceled || result.filePaths.length === 0) return null
 
@@ -66,9 +61,7 @@ export const documentsService = {
     const result = await dialog.showOpenDialog(win, {
       title: 'Sélectionner un document à joindre au bien',
       properties: ['openFile'],
-      filters: [
-        { name: 'Documents', extensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'] }
-      ]
+      filters: [{ name: 'Documents', extensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'] }]
     })
     if (result.canceled || result.filePaths.length === 0) return null
     const sourcePath = result.filePaths[0]

@@ -8,6 +8,8 @@ import type {
   CreateLocataireInput,
   CreateBailInput,
   CreatePaiementInput,
+  CreateBailRevisionInput,
+  BailRevision,
   Paiement,
   DocumentRow,
   Alerte,
@@ -51,6 +53,32 @@ export const ipc = {
       unwrap(window.api.db.updateBail(id, input)),
     remove: (id: number): Promise<void> => unwrap(window.api.db.deleteBail(id))
   },
+  revisions: {
+    listAll: (): Promise<BailRevision[]> =>
+      unwrap(
+        window.api.db.listAllRevisions() as Promise<{
+          ok: boolean
+          data?: BailRevision[]
+          error?: string
+        }>
+      ),
+    listByBail: (bailId: number): Promise<BailRevision[]> =>
+      unwrap(
+        window.api.db.listRevisions(bailId) as Promise<{
+          ok: boolean
+          data?: BailRevision[]
+          error?: string
+        }>
+      ),
+    create: (input: CreateBailRevisionInput): Promise<BailRevision> =>
+      unwrap(
+        window.api.db.createRevision(input) as Promise<{
+          ok: boolean
+          data?: BailRevision
+          error?: string
+        }>
+      )
+  },
   paiements: {
     listByBail: (bailId: number): Promise<Paiement[]> =>
       unwrap(window.api.db.listPaiementsByBail(bailId)),
@@ -73,17 +101,26 @@ export const ipc = {
     remove: (id: number): Promise<void> => unwrap(window.api.docs.remove(id))
   },
   depenses: {
-    list: (): Promise<Depense[]> => unwrap(window.api.db.listDepenses() as Promise<
-      { ok: boolean; data?: Depense[]; error?: string }
-    >),
+    list: (): Promise<Depense[]> =>
+      unwrap(
+        window.api.db.listDepenses() as Promise<{ ok: boolean; data?: Depense[]; error?: string }>
+      ),
     create: (input: CreateDepenseInput): Promise<Depense> =>
-      unwrap(window.api.db.createDepense(input) as Promise<
-        { ok: boolean; data?: Depense; error?: string }
-      >),
+      unwrap(
+        window.api.db.createDepense(input) as Promise<{
+          ok: boolean
+          data?: Depense
+          error?: string
+        }>
+      ),
     update: (id: number, input: Partial<CreateDepenseInput>): Promise<Depense> =>
-      unwrap(window.api.db.updateDepense(id, input) as Promise<
-        { ok: boolean; data?: Depense; error?: string }
-      >),
+      unwrap(
+        window.api.db.updateDepense(id, input) as Promise<{
+          ok: boolean
+          data?: Depense
+          error?: string
+        }>
+      ),
     remove: (id: number): Promise<void> =>
       unwrap(window.api.db.deleteDepense(id) as Promise<{ ok: boolean; error?: string }>)
   },
@@ -96,18 +133,20 @@ export const ipc = {
       utilisateur: string
       expediteur_nom: string
     }> =>
-      unwrap(window.api.email.getConfig() as Promise<{
-        ok: boolean
-        data?: {
-          configure: boolean
-          host: string
-          port: number
-          secure: boolean
-          utilisateur: string
-          expediteur_nom: string
-        }
-        error?: string
-      }>),
+      unwrap(
+        window.api.email.getConfig() as Promise<{
+          ok: boolean
+          data?: {
+            configure: boolean
+            host: string
+            port: number
+            secure: boolean
+            utilisateur: string
+            expediteur_nom: string
+          }
+          error?: string
+        }>
+      ),
     saveConfig: (cfg: {
       host: string
       port: number
@@ -125,33 +164,41 @@ export const ipc = {
       corps: string,
       pieceJointe?: { nomFichier: string; base64: string }
     ): Promise<void> =>
-      unwrap(window.api.email.send(destinataire, sujet, corps, pieceJointe) as Promise<{
-        ok: boolean
-        error?: string
-      }>)
+      unwrap(
+        window.api.email.send(destinataire, sujet, corps, pieceJointe) as Promise<{
+          ok: boolean
+          error?: string
+        }>
+      )
   },
   regularisations: {
     list: (): Promise<RegularisationCharges[]> =>
-      unwrap(window.api.db.listRegularisations() as Promise<{
-        ok: boolean
-        data?: RegularisationCharges[]
-        error?: string
-      }>),
+      unwrap(
+        window.api.db.listRegularisations() as Promise<{
+          ok: boolean
+          data?: RegularisationCharges[]
+          error?: string
+        }>
+      ),
     upsert: (bailId: number, annee: number, chargesReelles: number): Promise<void> =>
-      unwrap(window.api.db.upsertRegularisation(bailId, annee, chargesReelles) as Promise<{
-        ok: boolean
-        error?: string
-      }>)
+      unwrap(
+        window.api.db.upsertRegularisation(bailId, annee, chargesReelles) as Promise<{
+          ok: boolean
+          error?: string
+        }>
+      )
   },
   indices: {
     fetchHistory: (
       type: 'IRL' | 'ICC'
     ): Promise<{ valeurs: { periode: string; valeur: number }[]; erreur: string | null }> =>
-      unwrap(window.api.indices.history(type) as Promise<{
-        ok: boolean
-        data?: { valeurs: { periode: string; valeur: number }[]; erreur: string | null }
-        error?: string
-      }>),
+      unwrap(
+        window.api.indices.history(type) as Promise<{
+          ok: boolean
+          data?: { valeurs: { periode: string; valeur: number }[]; erreur: string | null }
+          error?: string
+        }>
+      ),
     fetch: (
       type: 'IRL' | 'ICC'
     ): Promise<{
@@ -160,26 +207,66 @@ export const ipc = {
       valeurs: { periode: string; valeur: number }[]
       erreur: string | null
     }> =>
-      unwrap(window.api.indices.fetch(type) as Promise<{
-        ok: boolean
-        data?: {
-          type: 'IRL' | 'ICC'
-          titre: string
-          valeurs: { periode: string; valeur: number }[]
-          erreur: string | null
-        }
-        error?: string
-      }>)
+      unwrap(
+        window.api.indices.fetch(type) as Promise<{
+          ok: boolean
+          data?: {
+            type: 'IRL' | 'ICC'
+            titre: string
+            valeurs: { periode: string; valeur: number }[]
+            erreur: string | null
+          }
+          error?: string
+        }>
+      )
   },
   parametres: {
-    getBailleur: (): Promise<{ nom_complet: string; adresse: string; code_postal?: string; ville?: string } | null> =>
-      unwrap(window.api.parametres.getBailleur() as Promise<
-        { ok: boolean; data?: { nom_complet: string; adresse: string; code_postal?: string; ville?: string } | null; error?: string }
-      >),
-    setBailleur: (profil: { nom_complet: string; adresse: string; code_postal?: string; ville?: string }): Promise<void> =>
-      unwrap(window.api.parametres.setBailleur(profil) as Promise<
-        { ok: boolean; data?: void; error?: string }
-      >)
+    get: <T>(cle: string): Promise<T | null> =>
+      unwrap(
+        window.api.parametres.get(cle) as Promise<{
+          ok: boolean
+          data?: T | null
+          error?: string
+        }>
+      ),
+    set: (cle: string, valeur: unknown): Promise<void> =>
+      unwrap(
+        window.api.parametres.set(cle, valeur) as Promise<{
+          ok: boolean
+          error?: string
+        }>
+      ),
+    getBailleur: (): Promise<{
+      nom_complet: string
+      adresse: string
+      code_postal?: string
+      ville?: string
+    } | null> =>
+      unwrap(
+        window.api.parametres.getBailleur() as Promise<{
+          ok: boolean
+          data?: {
+            nom_complet: string
+            adresse: string
+            code_postal?: string
+            ville?: string
+          } | null
+          error?: string
+        }>
+      ),
+    setBailleur: (profil: {
+      nom_complet: string
+      adresse: string
+      code_postal?: string
+      ville?: string
+    }): Promise<void> =>
+      unwrap(
+        window.api.parametres.setBailleur(profil) as Promise<{
+          ok: boolean
+          data?: void
+          error?: string
+        }>
+      )
   },
   quittances: {
     save: (
@@ -201,16 +288,27 @@ export const ipc = {
     ): Promise<string> =>
       unwrap(window.api.quittances.saveTo(base64, dossier, nomFichier, bailId, periode, reference)),
     list: (): Promise<QuittanceHistorique[]> =>
-      unwrap(window.api.quittances.list() as Promise<{
-        ok: boolean
-        data?: QuittanceHistorique[]
-        error?: string
-      }>)
+      unwrap(
+        window.api.quittances.list() as Promise<{
+          ok: boolean
+          data?: QuittanceHistorique[]
+          error?: string
+        }>
+      )
   },
   recu: {
     // Récupère la définition PDF (main) puis la rend avec pdfmake côté renderer
     pdf: (params: unknown): Promise<unknown> =>
-      unwrap(window.api.recu.pdf(params) as Promise<{ ok: boolean; data?: unknown; error?: string }>)
+      unwrap(
+        window.api.recu.pdf(params) as Promise<{ ok: boolean; data?: unknown; error?: string }>
+      )
+  },
+  contrat: {
+    // Idem recu : définition PDF construite côté main, rendue côté renderer
+    pdf: (params: unknown): Promise<unknown> =>
+      unwrap(
+        window.api.contrat.pdf(params) as Promise<{ ok: boolean; data?: unknown; error?: string }>
+      )
   },
   audit: {
     run: (): Promise<unknown> =>
@@ -220,17 +318,44 @@ export const ipc = {
     exportCsv: (): Promise<string | null> => unwrap(window.api.data.exportCsv()),
     backupCreate: (): Promise<string | null> => unwrap(window.api.data.backupCreate()),
     backupRestore: (): Promise<boolean> => unwrap(window.api.data.backupRestore()),
-    importPreview: (): Promise<{ nbLignes: number; apercu: { designation: string; type_bien: string; locataire: string; loyer_cc: number | null }[]; erreur: string | null }> =>
-      unwrap(window.api.data.importPreview() as Promise<{
-        ok: boolean
-        data?: { nbLignes: number; apercu: { designation: string; type_bien: string; locataire: string; loyer_cc: number | null }[]; erreur: string | null }
-        error?: string
-      }>),
-    importCommit: (): Promise<{ baux: number; biens: number; locataires: number; ignores: number }> =>
-      unwrap(window.api.data.importCommit() as Promise<{
-        ok: boolean
-        data?: { baux: number; biens: number; locataires: number; ignores: number }
-        error?: string
-      }>)
+    importPreview: (): Promise<{
+      nbLignes: number
+      apercu: {
+        designation: string
+        type_bien: string
+        locataire: string
+        loyer_cc: number | null
+      }[]
+      erreur: string | null
+    }> =>
+      unwrap(
+        window.api.data.importPreview() as Promise<{
+          ok: boolean
+          data?: {
+            nbLignes: number
+            apercu: {
+              designation: string
+              type_bien: string
+              locataire: string
+              loyer_cc: number | null
+            }[]
+            erreur: string | null
+          }
+          error?: string
+        }>
+      ),
+    importCommit: (): Promise<{
+      baux: number
+      biens: number
+      locataires: number
+      ignores: number
+    }> =>
+      unwrap(
+        window.api.data.importCommit() as Promise<{
+          ok: boolean
+          data?: { baux: number; biens: number; locataires: number; ignores: number }
+          error?: string
+        }>
+      )
   }
 }

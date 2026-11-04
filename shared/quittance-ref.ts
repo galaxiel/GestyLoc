@@ -5,6 +5,11 @@
 // ============================================================================
 
 export function referenceQuittance(bailId: number, periode: string): string {
+  // Garde : periode doit être 'yyyy-mm' (sinon la référence serait
+  // « QUITT-octobreundefined-001 » et violerait l'index unique).
+  if (!/^\d{4}-\d{2}$/.test(periode)) {
+    throw new Error(`Période invalide pour la référence de quittance : « ${periode} »`)
+  }
   const [a, m] = periode.split('-')
   return `QUITT-${a}${m}-${String(bailId).padStart(3, '0')}`
 }

@@ -4,7 +4,15 @@ import { getRawConnection } from '../database/connection'
 import { parseCsv, frNombre, frDate } from '@shared/csv'
 import type { TypeBien } from '@shared/types'
 
-const TYPES_VALIDES: TypeBien[] = ['Appartement', 'Maison', 'Garage', 'Parking', 'Local', 'Studio', 'Autre']
+const TYPES_VALIDES: TypeBien[] = [
+  'Appartement',
+  'Maison',
+  'Garage',
+  'Parking',
+  'Local',
+  'Studio',
+  'Autre'
+]
 
 // Lignes à ignorer dans un tableur type Google Sheet : en-tête, totaux,
 // blocs de synthèse.
@@ -85,7 +93,7 @@ export async function commitImport(): Promise<ImportResult> {
   }
 
   const db = getRawConnection()
-  const existants = db.prepare("SELECT COUNT(*) AS n FROM baux").get() as { n: number }
+  const existants = db.prepare('SELECT COUNT(*) AS n FROM baux').get() as { n: number }
   if (existants.n > 0) {
     throw new Error(
       `La base contient déjà ${existants.n} bail(s). L'import n'est autorisé que sur une base vide pour éviter les doublons.`
@@ -121,9 +129,8 @@ export async function commitImport(): Promise<ImportResult> {
       }
 
       const typeBrut = (l[1] ?? '').trim()
-      const type = (TYPES_VALIDES.find(
-        (t) => t.toLowerCase() === typeBrut.toLowerCase()
-      ) ?? 'Autre') as TypeBien
+      const type = (TYPES_VALIDES.find((t) => t.toLowerCase() === typeBrut.toLowerCase()) ??
+        'Autre') as TypeBien
 
       // Heuristique adresse : si la désignation contient un chiffre (n° de rue),
       // on la réutilise comme adresse (le tableur confondait souvent les deux).
@@ -171,9 +178,7 @@ export async function commitImport(): Promise<ImportResult> {
         (() => {
           const ref = frNombre(l[13])
           const nouv = frNombre(l[14])
-          return ref && nouv && ref > 0
-            ? Math.round((nouv / ref - 1) * 100000) / 1000
-            : null
+          return ref && nouv && ref > 0 ? Math.round((nouv / ref - 1) * 100000) / 1000 : null
         })(),
         frNombre(l[16]),
         frNombre(l[20]),

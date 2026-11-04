@@ -6,13 +6,7 @@
 // ============================================================================
 
 export type TypeBien =
-  | 'Appartement'
-  | 'Maison'
-  | 'Garage'
-  | 'Parking'
-  | 'Local'
-  | 'Studio'
-  | 'Autre'
+  'Appartement' | 'Maison' | 'Garage' | 'Parking' | 'Local' | 'Studio' | 'Autre'
 
 // ----------------------------------------------------------------------------
 // BIENS  (table Biens) — caractéristiques physiques du logement.
@@ -89,6 +83,12 @@ export interface Bail {
   depot_garantie: number | null
   type_charges: string | null // 'forfaitaires' | 'provisionnelles'
 
+  // --- Échéancier réel (migration 0011) ---
+  jour_paiement: number // 1-31, défaut 1 — jour du mois où le loyer est dû
+
+  // --- Traçage assurance (migration 0013) ---
+  assurance_demandee_le: string | null // ISO, null si jamais demandée
+
   // --- Métadonnées ---
   actif: boolean // true = bail en cours
   occupation_gratuite: boolean // occupé sans loyer (ex : famille)
@@ -155,6 +155,8 @@ export interface CreateBailInput {
   occupation_gratuite?: boolean
   depot_garantie?: number | null
   type_charges?: string | null
+  jour_paiement?: number // 1-31 (colonne NOT NULL, défaut 1 en BDD)
+  assurance_demandee_le?: string | null
 }
 
 // Update payloads = mêmes champs mais tous optionnels.
@@ -197,11 +199,7 @@ export type UpdatePaiementInput = Partial<Omit<CreatePaiementInput, 'bail_id' | 
 // DOCUMENTS (pièces jointes : baux, états des lieux...)
 // ----------------------------------------------------------------------------
 export type TypeDocument =
-  | 'bail'
-  | 'etat_des_lieux_entree'
-  | 'etat_des_lieux_sortie'
-  | 'assurance'
-  | 'autre'
+  'bail' | 'etat_des_lieux_entree' | 'etat_des_lieux_sortie' | 'assurance' | 'autre'
 
 export interface DocumentRow {
   id: number
@@ -278,6 +276,33 @@ export interface RegularisationCharges {
   annee: number
   charges_reelles: number
   regularise_le: string
+}
+
+// ----------------------------------------------------------------------------
+// HISTORIQUE DES RÉVISIONS DE LOYER — migration 0012
+// Une ligne par révision appliquée (IRL guidée ou saisie manuelle).
+// ----------------------------------------------------------------------------
+export interface BailRevision {
+  id: number
+  bail_id: number
+  date_revision: string // ISO, date d'application
+  ancien_loyer_hc: number | null
+  nouveau_loyer_hc: number | null
+  irl_reference: number | null
+  irl_nouveau: number | null
+  taux: number | null // en %
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateBailRevisionInput {
+  bail_id: number
+  date_revision: string
+  ancien_loyer_hc?: number | null
+  nouveau_loyer_hc?: number | null
+  irl_reference?: number | null
+  irl_nouveau?: number | null
+  taux?: number | null
 }
 
 // ----------------------------------------------------------------------------

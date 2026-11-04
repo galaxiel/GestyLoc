@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
 import type {
   Bien,
   Locataire,
@@ -17,9 +16,10 @@ import type {
 
 // ============================================================================
 // API exposée au renderer (React) via contextBridge.
-// SEUL ce qui est déclaré ici est accessible depuis window.api.
-// Aucun accès direct à Node.js / fs / require depuis le renderer : c'est la
-// garantie de sécurité fondamentale (contextIsolation: true).
+// SEUL ce qui est déclaré ici est accessible depuis window.api — l'objet
+// « electron » (electronAPI) n'est volontairement PLUS exposé : il donnait au
+// renderer un ipcRenderer brut sur TOUS les canaux (contournement de cette
+// liste blanche en cas de XSS). Tout appel passe par api ci-dessous.
 // ============================================================================
 
 // Résultat standardisé de chaque appel IPC vers la BDD.
@@ -38,8 +38,7 @@ const api = {
     // S'abonner aux évènements updater. Le listener reçoit directement le
     // payload (args[0]), pas l'event IPC brut.
     on: (channel: string, listener: (payload: unknown) => void): (() => void) => {
-      const wrapped = (_event: IpcRendererEvent, ...args: unknown[]): void =>
-        listener(args[0])
+      const wrapped = (_event: IpcRendererEvent, ...args: unknown[]): void => listener(args[0])
       ipcRenderer.on(channel, wrapped)
       return () => ipcRenderer.removeListener(channel, wrapped)
     }
@@ -60,19 +59,16 @@ const api = {
       ipcRenderer.invoke('db:biens:create', input),
     updateBien: (id: number, input: Partial<CreateBienInput>): Promise<IpcResult<Bien>> =>
       ipcRenderer.invoke('db:biens:update', id, input),
-    deleteBien: (id: number): Promise<IpcResult<void>> =>
-      ipcRenderer.invoke('db:biens:delete', id),
+    deleteBien: (id: number): Promise<IpcResult<void>> => ipcRenderer.invoke('db:biens:delete', id),
 
     // Locataires
-    listLocataires: (): Promise<IpcResult<Locataire[]>> =>
-      ipcRenderer.invoke('db:locataires:list'),
+    listLocataires: (): Promise<IpcResult<Locataire[]>> => ipcRenderer.invoke('db:locataires:list'),
     createLocataire: (input: CreateLocataireInput): Promise<IpcResult<Locataire>> =>
       ipcRenderer.invoke('db:locataires:create', input),
     updateLocataire: (
       id: number,
       input: Partial<CreateLocataireInput>
-    ): Promise<IpcResult<Locataire>> =>
-      ipcRenderer.invoke('db:locataires:update', id, input),
+    ): Promise<IpcResult<Locataire>> => ipcRenderer.invoke('db:locataires:update', id, input),
     deleteLocataire: (id: number): Promise<IpcResult<void>> =>
       ipcRenderer.invoke('db:locataires:delete', id),
 
@@ -82,12 +78,18 @@ const api = {
       ipcRenderer.invoke('db:baux:create', input),
     updateBail: (id: number, input: Partial<CreateBailInput>): Promise<IpcResult<Bail>> =>
       ipcRenderer.invoke('db:baux:update', id, input),
-    deleteBail: (id: number): Promise<IpcResult<void>> =>
-      ipcRenderer.invoke('db:baux:delete', id),
+    deleteBail: (id: number): Promise<IpcResult<void>> => ipcRenderer.invoke('db:baux:delete', id),
+
+    // Révisions de loyer (historique, migration 0012)
+    listRevisions: (bailId: number): Promise<IpcResult<unknown[]>> =>
+      ipcRenderer.invoke('db:revisions:list', bailId),
+    listAllRevisions: (): Promise<IpcResult<unknown[]>> =>
+      ipcRenderer.invoke('db:revisions:list-all'),
+    createRevision: (input: unknown): Promise<IpcResult<unknown>> =>
+      ipcRenderer.invoke('db:revisions:create', input),
 
     // Dépenses (patrimoine)
-    listDepenses: (): Promise<IpcResult<unknown[]>> =>
-      ipcRenderer.invoke('db:depenses:list'),
+    listDepenses: (): Promise<IpcResult<unknown[]>> => ipcRenderer.invoke('db:depenses:list'),
     listDepensesByBien: (bienId: number): Promise<IpcResult<unknown[]>> =>
       ipcRenderer.invoke('db:depenses:by-bien', bienId),
     createDepense: (input: unknown): Promise<IpcResult<unknown>> =>
@@ -110,8 +112,7 @@ const api = {
     // Paiements (suivi loyers)
     listPaiementsByBail: (bailId: number): Promise<IpcResult<Paiement[]>> =>
       ipcRenderer.invoke('db:paiements:by-bail', bailId),
-    listPaiements: (): Promise<IpcResult<Paiement[]>> =>
-      ipcRenderer.invoke('db:paiements:all'),
+    listPaiements: (): Promise<IpcResult<Paiement[]>> => ipcRenderer.invoke('db:paiements:all'),
     upsertPaiement: (input: CreatePaiementInput): Promise<IpcResult<Paiement>> =>
       ipcRenderer.invoke('db:paiements:upsert', input),
     deletePaiement: (bailId: number, periode: string): Promise<IpcResult<void>> =>
@@ -120,8 +121,7 @@ const api = {
 
   // ---- Paramètres (profil bailleur, préférences) ----
   parametres: {
-    get: (cle: string): Promise<IpcResult<unknown>> =>
-      ipcRenderer.invoke('db:parametres:get', cle),
+    get: (cle: string): Promise<IpcResult<unknown>> => ipcRenderer.invoke('db:parametres:get', cle),
     set: (cle: string, valeur: unknown): Promise<IpcResult<void>> =>
       ipcRenderer.invoke('db:parametres:set', cle, valeur),
     getBailleur: (): Promise<IpcResult<unknown>> =>
@@ -165,14 +165,26 @@ const api = {
       periode?: string,
       reference?: string
     ): Promise<IpcResult<string>> =>
-      ipcRenderer.invoke('quittance:save-to', base64, dossier, nomFichier, bailId, periode, reference),
+      ipcRenderer.invoke(
+        'quittance:save-to',
+        base64,
+        dossier,
+        nomFichier,
+        bailId,
+        periode,
+        reference
+      ),
     list: (): Promise<IpcResult<unknown[]>> => ipcRenderer.invoke('quittances:list')
   },
 
   // ---- Reçu de paiement partiel (définition PDF générée côté main) ----
   recu: {
-    pdf: (params: unknown): Promise<IpcResult<unknown>> =>
-      ipcRenderer.invoke('recu:pdf', params)
+    pdf: (params: unknown): Promise<IpcResult<unknown>> => ipcRenderer.invoke('recu:pdf', params)
+  },
+
+  // ---- Contrat de location pré-rempli (définition PDF générée côté main) ----
+  contrat: {
+    pdf: (params: unknown): Promise<IpcResult<unknown>> => ipcRenderer.invoke('contrat:pdf', params)
   },
 
   // ---- Audit des données ----
@@ -182,8 +194,7 @@ const api = {
 
   // ---- Indices INSEE (IRL / ICC) ----
   indices: {
-    fetch: (type: string): Promise<IpcResult<unknown>> =>
-      ipcRenderer.invoke('indices:fetch', type),
+    fetch: (type: string): Promise<IpcResult<unknown>> => ipcRenderer.invoke('indices:fetch', type),
     history: (type: string): Promise<IpcResult<unknown>> =>
       ipcRenderer.invoke('indices:history', type)
   },
@@ -205,17 +216,15 @@ const api = {
 
   // ---- Infos app ----
   app: {
-    getDbPath: (): Promise<IpcResult<string>> =>
-      ipcRenderer.invoke('app:get-db-path'),
-    openDataFolder: (): Promise<IpcResult<boolean>> =>
-      ipcRenderer.invoke('app:open-data-folder')
+    getVersion: (): Promise<string> => ipcRenderer.invoke('app:get-version'),
+    getDbPath: (): Promise<IpcResult<string>> => ipcRenderer.invoke('app:get-db-path'),
+    openDataFolder: (): Promise<IpcResult<boolean>> => ipcRenderer.invoke('app:open-data-folder')
   },
 
   // ---- Données : import / export / sauvegarde ----
   data: {
     exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),
-    backupCreate: (): Promise<IpcResult<string | null>> =>
-      ipcRenderer.invoke('data:backup-create'),
+    backupCreate: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:backup-create'),
     backupRestore: (): Promise<IpcResult<boolean>> => ipcRenderer.invoke('data:backup-restore'),
     importPreview: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-preview'),
     importCommit: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-commit')
@@ -224,15 +233,12 @@ const api = {
 
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (défini dans index.d.ts)
-  window.electron = electronAPI
-  // @ts-ignore (défini dans index.d.ts)
+  // @ts-ignore (défini dans index.d.ts) — cas non isolé, jamais vu en prod
   window.api = api
 }
 

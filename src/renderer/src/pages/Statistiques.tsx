@@ -1,10 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  BarChart3, TrendingUp, Home, Wallet, Ruler, AlertTriangle, Coins, Percent
+  BarChart3,
+  TrendingUp,
+  Home,
+  Wallet,
+  Ruler,
+  AlertTriangle,
+  Coins,
+  Percent
 } from 'lucide-react'
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts'
 import type { Paiement } from '@shared/types'
 import { useStore } from '../hooks/useStore'
@@ -155,7 +170,8 @@ export function Statistiques(): React.JSX.Element {
   const suspectsList = suspects(segments)
   // Taux d'occupation : biens occupés (bail actif, payant ou gratuit) / total des biens
   const biensOccupes = locations.filter((r) => r.bail.actif).length
-  const tauxOccupation = locations.length > 0 ? Math.round((biensOccupes / locations.length) * 100) : 0
+  const tauxOccupation =
+    locations.length > 0 ? Math.round((biensOccupes / locations.length) * 100) : 0
 
   const axes = sombre ? '#64748b' : '#94a3b8'
   const grille = sombre ? '#334155' : '#e2e8f0'
@@ -239,21 +255,30 @@ export function Statistiques(): React.JSX.Element {
                   )}
                 </div>
               </div>
-              {seg.n < 3 ? (
+              {seg.n < 3 || seg.ratios.length === 0 ? (
                 <p className="mt-2 text-xs text-slate-400">
-                  Trop peu de biens ({seg.n}) pour une moyenne fiable — comparer
-                  individuellement.
+                  {seg.ratios.length === 0
+                    ? 'Aucun bien calculable dans ce segment (surface ou loyer manquant).'
+                    : `Trop peu de biens (${seg.n}) pour une moyenne fiable — comparer individuellement.`}
                 </p>
               ) : (
                 <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
                   <span>
-                    Médiane : <strong>{num2(seg.med ?? 0)} {seg.unite === 'm2' ? '€/m²' : '€'}</strong>
+                    Médiane :{' '}
+                    <strong>
+                      {num2(seg.med ?? 0)} {seg.unite === 'm2' ? '€/m²' : '€'}
+                    </strong>
                   </span>
-                  <span>Q1–Q3 : {num2(seg.q1 ?? 0)} – {num2(seg.q3 ?? 0)}</span>
-                  <span>Min–Max : {num2(seg.ratios[seg.ratios.length - 1].valeur)} – {num2(seg.ratios[0].valeur)}</span>
+                  <span>
+                    Q1–Q3 : {num2(seg.q1 ?? 0)} – {num2(seg.q3 ?? 0)}
+                  </span>
+                  <span>
+                    Min–Max : {num2(seg.ratios[seg.ratios.length - 1].valeur)} –{' '}
+                    {num2(seg.ratios[0].valeur)}
+                  </span>
                 </div>
               )}
-              {seg.n >= 3 && (
+              {seg.n >= 3 && seg.ratios.length > 0 && (
                 <div className="mt-2 space-y-1">
                   {seg.ratios.map((r) => {
                     const ecart = seg.med ? Math.round((r.valeur / seg.med - 1) * 100) : 0
@@ -266,13 +291,16 @@ export function Statistiques(): React.JSX.Element {
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
                             className={`h-full rounded-full ${ecart < 0 ? 'bg-amber-400' : 'bg-emerald-500'}`}
-                            style={{ width: `${Math.min((r.valeur / (seg.ratios[0].valeur || 1)) * 100, 100)}%` }}
+                            style={{
+                              width: `${Math.min((r.valeur / (seg.ratios[0].valeur || 1)) * 100, 100)}%`
+                            }}
                           />
                         </div>
                         <span
                           className={`w-16 shrink-0 text-right ${ecart <= -15 ? 'font-semibold text-red-500' : 'text-slate-400'}`}
                         >
-                          {ecart > 0 ? '+' : ''}{ecart} %
+                          {ecart > 0 ? '+' : ''}
+                          {ecart} %
                         </span>
                       </div>
                     )
@@ -300,7 +328,8 @@ export function Statistiques(): React.JSX.Element {
                   <strong>{x.locataire}</strong>
                   <span className="text-slate-400"> — {x.designation}</span>{' '}
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    ({x.typeBien}) — {num2(x.valeur)} vs médiane {num2(x.medianeSegment)} ({num2(x.ecartPct)} %)
+                    ({x.typeBien}) — {num2(x.valeur)} vs médiane {num2(x.medianeSegment)} (
+                    {num2(x.ecartPct)} %)
                   </span>
                 </span>
                 <span className="font-semibold text-amber-700 dark:text-amber-300">
@@ -320,10 +349,7 @@ export function Statistiques(): React.JSX.Element {
         {(() => {
           const biensAvecValeur = locations.filter((r) => (r.bien.valeur_venale ?? 0) > 0)
           const valeurTotale = biensAvecValeur.reduce((s, r) => s + (r.bien.valeur_venale ?? 0), 0)
-          const loyersAnnuelsHc = bauxPayants.reduce(
-            (s, r) => s + (r.bail.loyer_hc ?? 0) * 12,
-            0
-          )
+          const loyersAnnuelsHc = bauxPayants.reduce((s, r) => s + (r.bail.loyer_hc ?? 0) * 12, 0)
           const depensesAnnee = depensesList
             .filter((d) => d.date_depense?.startsWith(String(annee)))
             .reduce((s, d) => s + d.montant, 0)
@@ -340,7 +366,8 @@ export function Statistiques(): React.JSX.Element {
             .filter((r) => r.bail.taux_irl && r.bail.taux_irl > 0 && r.bail.loyer_hc)
             .reduce(
               (s, r) =>
-                s + ((r.bail.loyer_hc ?? 0) * (r.bail.taux_irl ?? 0)) / (100 + (r.bail.taux_irl ?? 0)),
+                s +
+                ((r.bail.loyer_hc ?? 0) * (r.bail.taux_irl ?? 0)) / (100 + (r.bail.taux_irl ?? 0)),
               0
             )
           const gainsIrl = Math.round(gainsIrlMensuel * 12 * 100) / 100
@@ -348,8 +375,8 @@ export function Statistiques(): React.JSX.Element {
           if (valeurTotale === 0) {
             return (
               <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-700">
-                Renseigne la <strong>valeur vénale</strong> de tes biens (formulaire Biens
-                &amp; Locataires) pour activer la rentabilité brute/nette et le cash-flow.
+                Renseigne la <strong>valeur vénale</strong> de tes biens (formulaire Biens &amp;
+                Locataires) pour activer la rentabilité brute/nette et le cash-flow.
                 {depensesAnnee > 0 &&
                   ` Tes dépenses ${annee} sont déjà enregistrées : ${formatEuro(depensesAnnee)}.`}
               </p>
@@ -357,18 +384,50 @@ export function Statistiques(): React.JSX.Element {
           }
           return (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-              <KpiCard titre="Valeur du patrimoine" valeur={formatEuro(valeurTotale)}
-                detail={`${biensAvecValeur.length} bien(s) valorisé(s)`} icon={Home} couleur="text-indigo-500" />
-              <KpiCard titre="Loyers annuels HC" valeur={formatEuro(loyersAnnuelsHc)}
-                detail="sur baux actifs" icon={Wallet} couleur="text-emerald-500" />
-              <KpiCard titre={`Dépenses ${annee}`} valeur={formatEuro(depensesAnnee)}
-                detail="travaux, TF, PNO…" icon={Coins} couleur="text-red-500" />
-              <KpiCard titre="Rentabilité brute" valeur={rentBrute !== null ? `${rentBrute} %` : '—'}
-                detail="loyers HC ÷ valeur" icon={Percent} couleur="text-sky-500" />
-              <KpiCard titre="Rentabilité nette" valeur={rentNette !== null ? `${rentNette} %` : '—'}
-                detail={`cash-flow ${formatEuro(cashFlow)}`} icon={TrendingUp} couleur={rentNette !== null && rentNette >= 0 ? 'text-emerald-500' : 'text-amber-500'} />
-              <KpiCard titre="Gains dus aux révisions IRL" valeur={formatEuro(gainsIrl)}
-                detail="estimation annualisée (baux révisés)" icon={TrendingUp} couleur="text-blue-500" />
+              <KpiCard
+                titre="Valeur du patrimoine"
+                valeur={formatEuro(valeurTotale)}
+                detail={`${biensAvecValeur.length} bien(s) valorisé(s)`}
+                icon={Home}
+                couleur="text-indigo-500"
+              />
+              <KpiCard
+                titre="Loyers annuels HC"
+                valeur={formatEuro(loyersAnnuelsHc)}
+                detail="sur baux actifs"
+                icon={Wallet}
+                couleur="text-emerald-500"
+              />
+              <KpiCard
+                titre={`Dépenses ${annee}`}
+                valeur={formatEuro(depensesAnnee)}
+                detail="travaux, TF, PNO…"
+                icon={Coins}
+                couleur="text-red-500"
+              />
+              <KpiCard
+                titre="Rentabilité brute"
+                valeur={rentBrute !== null ? `${rentBrute} %` : '—'}
+                detail="loyers HC ÷ valeur"
+                icon={Percent}
+                couleur="text-sky-500"
+              />
+              <KpiCard
+                titre="Rentabilité nette"
+                valeur={rentNette !== null ? `${rentNette} %` : '—'}
+                detail={`cash-flow ${formatEuro(cashFlow)}`}
+                icon={TrendingUp}
+                couleur={
+                  rentNette !== null && rentNette >= 0 ? 'text-emerald-500' : 'text-amber-500'
+                }
+              />
+              <KpiCard
+                titre="Gains dus aux révisions IRL"
+                valeur={formatEuro(gainsIrl)}
+                detail="estimation annualisée (baux révisés)"
+                icon={TrendingUp}
+                couleur="text-blue-500"
+              />
             </div>
           )
         })()}
@@ -381,9 +440,7 @@ export function Statistiques(): React.JSX.Element {
         </h2>
         {(() => {
           // Baux meublés : hors revenus fonciers (BIC/LMNP, déclaration 2031).
-          const bauxMeubles = new Set(
-            locations.filter((r) => r.bien.meuble).map((r) => r.bail.id)
-          )
+          const bauxMeubles = new Set(locations.filter((r) => r.bien.meuble).map((r) => r.bail.id))
           const recettes = paiements
             .filter(
               (p) =>
@@ -404,16 +461,38 @@ export function Statistiques(): React.JSX.Element {
           return (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <KpiCard titre="Recettes encaissées" valeur={formatEuro(recettes)}
-                  detail={`loyers pointés ${annee}`} icon={Wallet} couleur="text-emerald-500" />
-                <KpiCard titre="Charges déductibles" valeur={formatEuro(chargesDeductibles)}
-                  detail="module Dépenses" icon={Coins} couleur="text-red-500" />
-                <KpiCard titre="Résultat foncier (réel)" valeur={formatEuro(resultat)}
-                  detail={resultat >= 0 ? 'bénéfice imposable' : 'déficit reportable'} icon={TrendingUp}
-                  couleur={resultat >= 0 ? 'text-blue-500' : 'text-amber-500'} />
-                <KpiCard titre="Régime conseillé (nu)" valeur={microFoncier ? 'Micro-foncier' : 'Réel'}
-                  detail={microFoncier ? `recettes nu ≤ 15 000 € — abattement 30 % : ${formatEuro(recettes - netMicro)}` : 'recettes > 15 000 € — réel obligatoire'}
-                  icon={Percent} couleur="text-violet-500" />
+                <KpiCard
+                  titre="Recettes encaissées"
+                  valeur={formatEuro(recettes)}
+                  detail={`loyers pointés ${annee}`}
+                  icon={Wallet}
+                  couleur="text-emerald-500"
+                />
+                <KpiCard
+                  titre="Charges déductibles"
+                  valeur={formatEuro(chargesDeductibles)}
+                  detail="module Dépenses"
+                  icon={Coins}
+                  couleur="text-red-500"
+                />
+                <KpiCard
+                  titre="Résultat foncier (réel)"
+                  valeur={formatEuro(resultat)}
+                  detail={resultat >= 0 ? 'bénéfice imposable' : 'déficit reportable'}
+                  icon={TrendingUp}
+                  couleur={resultat >= 0 ? 'text-blue-500' : 'text-amber-500'}
+                />
+                <KpiCard
+                  titre="Régime conseillé (nu)"
+                  valeur={microFoncier ? 'Micro-foncier' : 'Réel'}
+                  detail={
+                    microFoncier
+                      ? `recettes nu ≤ 15 000 € — abattement 30 % : ${formatEuro(recettes - netMicro)}`
+                      : 'recettes > 15 000 € — réel obligatoire'
+                  }
+                  icon={Percent}
+                  couleur="text-violet-500"
+                />
               </div>
               <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-950">
                 <table className="w-full">
@@ -427,19 +506,20 @@ export function Statistiques(): React.JSX.Element {
                   <tbody>
                     <tr>
                       <td className="text-slate-500 dark:text-slate-400">Base imposable</td>
-                      <td className="text-right font-medium">{formatEuro(Math.max(netMicro, 0))}</td>
+                      <td className="text-right font-medium">
+                        {formatEuro(Math.max(netMicro, 0))}
+                      </td>
                       <td className="text-right font-medium">{formatEuro(netReel)}</td>
                     </tr>
                   </tbody>
                 </table>
                 <p className="mt-3 text-xs text-slate-400">
-                  Les biens <strong>meublés</strong> sont exclus de ce récap (ils relèvent
-                  des BIC / LMNP, déclaration 2031). Estimations indicatives basées sur tes
-                  pointages et ton module Dépenses.
-                  Reporte ces montants dans la déclaration 2044 (régime réel) ou 2042
-                  case 4BE (micro-foncier). Un déficit foncier est reportable sur les
-                  revenus globaux jusqu'à 10 700 €/an. Vérifie avec ton comptable ou
-                  l'administration fiscale.
+                  Les biens <strong>meublés</strong> sont exclus de ce récap (ils relèvent des BIC /
+                  LMNP, déclaration 2031). Estimations indicatives basées sur tes pointages et ton
+                  module Dépenses. Reporte ces montants dans la déclaration 2044 (régime réel) ou
+                  2042 case 4BE (micro-foncier). Un déficit foncier est reportable sur les revenus
+                  globaux jusqu’à 10 700 €/an. Vérifie avec ton comptable ou l’administration
+                  fiscale.
                 </p>
               </div>
             </div>
@@ -455,8 +535,8 @@ export function Statistiques(): React.JSX.Element {
         <div className="h-72 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
           {encaissements.every((e) => e.total === 0) ? (
             <div className="flex h-full items-center justify-center text-sm text-slate-400">
-              Aucun paiement pointé sur les 12 derniers mois — pointe tes loyers dans la
-              page Paiements pour remplir ce graphique.
+              Aucun paiement pointé sur les 12 derniers mois — pointe tes loyers dans la page
+              Paiements pour remplir ce graphique.
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -575,7 +655,7 @@ export function Statistiques(): React.JSX.Element {
           <div className="h-72 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
             {parAnnee.every((a) => a.total === 0) ? (
               <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                Pas encore d'historique sur deux années.
+                Pas encore d’historique sur deux années.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -610,8 +690,8 @@ export function Statistiques(): React.JSX.Element {
           </div>
           <p className="mt-2 flex items-start gap-2 text-xs text-slate-400">
             <BarChart3 className="mt-0.5 h-4 w-4 shrink-0" />
-            Ces graphiques se remplissent automatiquement au fur et à mesure de tes
-            pointages dans la page Paiements.
+            Ces graphiques se remplissent automatiquement au fur et à mesure de tes pointages dans
+            la page Paiements.
           </p>
         </section>
       </div>

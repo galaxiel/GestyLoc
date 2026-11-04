@@ -1,0 +1,13 @@
+# Fin de ligne normalisées en LF dans le dépôt (CRLF uniquement dans le
+# working tree Windows via autocrlf) — evite les mega-diffs prettier.
+* text=auto eol=lf
+
+# Binaires : ne jamais toucher
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.exe binary

@@ -1,16 +1,39 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, Home, User, Wallet, TrendingUp, Printer, FileUp,
-  ExternalLink, Trash2, Loader2, CheckCircle2
+  ArrowLeft,
+  Home,
+  User,
+  Wallet,
+  TrendingUp,
+  Printer,
+  FileUp,
+  ExternalLink,
+  Trash2,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react'
-import type { Paiement, DocumentRow } from '@shared/types'
+import type { Paiement, DocumentRow, BailRevision } from '@shared/types'
 import { IRL_INSEE, IRL_TRIMESTRES, valeurIrl } from '@shared/irl-insee'
 import { nomBien } from '@shared/labels'
 import { Mail } from 'lucide-react'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, formatSurface, libelleStatut, formatPeriode } from '../lib/format'
+import pdfMake from 'pdfmake/build/pdfmake'
+import vfsFonts from 'pdfmake/build/vfs_fonts'
+import type { TDocumentDefinitions } from 'pdfmake/interfaces'
+
+/* Branchement des polices embarquées (forme du module variable selon la version) */
+/* eslint-disable @typescript-eslint/no-explicit-any -- formes de module variables */
+const vfsBail =
+  (vfsFonts as any)?.pdfMake?.vfs ??
+  (vfsFonts as any)?.default?.pdfMake?.vfs ??
+  (vfsFonts as any)?.vfs ??
+  (vfsFonts as any)?.default?.vfs ??
+  vfsFonts
+;(pdfMake as any).vfs = vfsBail
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const cardCls =
   'rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950'
@@ -36,8 +59,15 @@ export function BailDetail(): React.JSX.Element {
   // --- Email d'assurance (SMTP configuré ?) ---
   const [smtpOk, setSmtpOk] = useState(false)
   const [bailleurNom, setBailleurNom] = useState('')
+  const [bailleurProfil, setBailleurProfil] = useState<{
+    nom_complet: string
+    adresse: string
+    code_postal?: string
+    ville?: string
+  } | null>(null)
   const [assuranceEnCours, setAssuranceEnCours] = useState(false)
   const [assuranceMsg, setAssuranceMsg] = useState<string | null>(null)
+  const [contratEnCours, setContratEnCours] = useState(false)
 
   useEffect(() => {
     void ipc.email
@@ -46,9 +76,36 @@ export function BailDetail(): React.JSX.Element {
       .catch(() => setSmtpOk(false))
     void ipc.parametres
       .getBailleur()
-      .then((b) => setBailleurNom(b?.nom_complet ?? ''))
-      .catch(() => setBailleurNom(''))
+      .then((b) => {
+        setBailleurNom(b?.nom_complet ?? '')
+        setBailleurProfil(b)
+      })
+      .catch(() => {
+        setBailleurNom('')
+        setBailleurProfil(null)
+      })
   }, [])
+
+  /** Génère le contrat de location PRÉ-REMPLI (modèle PDF indicatif, loi 1989). */
+  const genererContrat = async (): Promise<void> => {
+    if (!row) return
+    setContratEnCours(true)
+    try {
+      const doc = (await ipc.contrat.pdf({
+        row,
+        bailleur: bailleurProfil
+      })) as unknown as TDocumentDefinitions
+      pdfMake.createPdf(doc).getBase64(async (base64: string) => {
+        const nom = `contrat_location_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${row.bail.date_debut_bail ?? ''}.pdf`
+        const chemin = await ipc.quittances.save(base64, nom)
+        if (chemin) window.alert(`Contrat enregistré : ${chemin}`)
+      })
+    } catch (err) {
+      window.alert(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setContratEnCours(false)
+    }
+  }
 
   /** Envoie l'email de demande d'attestation d'assurance au locataire. */
   const demanderAssurance = async (): Promise<void> => {
@@ -62,9 +119,7 @@ export function BailDetail(): React.JSX.Element {
     try {
       const [annee, mois, jour] = (bail.date_debut_bail ?? '').split('-')
       const anniversaire =
-        annee && mois && jour
-          ? `${jour}/${mois} de chaque année`
-          : 'à la date anniversaire du bail'
+        annee && mois && jour ? `${jour}/${mois} de chaque année` : 'à la date anniversaire du bail'
       await ipc.email.send(
         row.locataire.email,
         `Attestation d'assurance locative — ${nomBien(bien)}`,
@@ -79,7 +134,14 @@ export function BailDetail(): React.JSX.Element {
           `Cordialement,
 ${bailleurNom || 'Le bailleur'}`
       )
-      setAssuranceMsg(`Demande d'attestation envoyée à ${row.locataire.email}.`)
+      // Traçage (migration 0013) : la demande est datée — l'alerte
+      // d'anniversaire ne repart pas si elle a moins de 11 mois.
+      const aujourdhui = new Date().toISOString().slice(0, 10)
+      await ipc.baux.update(row.bail.id, { assurance_demandee_le: aujourdhui })
+      await refresh()
+      setAssuranceMsg(
+        `Demande d'attestation envoyée à ${row.locataire.email} (tracée au ${aujourdhui.split('-').reverse().join('/')}).`
+      )
     } catch (err) {
       setAssuranceMsg(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
     } finally {
@@ -94,31 +156,46 @@ ${bailleurNom || 'Le bailleur'}`
   const [irlNouveau, setIrlNouveau] = useState<string>('')
   const [revisionMsg, setRevisionMsg] = useState<string | null>(null)
   const [revisant, setRevisant] = useState(false)
+  // IRL de référence affiché (pré-rempli depuis la table INSEE embarquée).
+  // IMPORTANT : déclaré AVANT tout return conditionnel — un hook après un
+  // early-return change l'ordre des hooks entre rendus (bug latent corrigé).
+  const [irlReferenceDisplay, setIrlReferenceDisplay] = useState<number | null>(null)
 
   // Pré-remplissage depuis le bail : trimestre de référence parsé du texte libre
   useEffect(() => {
     if (!row) return
     const trimTxt = row.bail.trimestre_reference ?? ''
-    const t = trimTxt.match(/[1234]/)
+    const t = trimTxt.match(/\bT([1-4])\b/)
     const a = trimTxt.match(/(19|20)\d{2}/)
-    setTRef(t ? t[0] : '')
+    setTRef(t ? t[1] : '')
     setAnneeRef(a ? a[0] : '')
     if (t && a) {
-      const v = valeurIrl(`${a[0]}-Q${t[0]}`)
+      const v = valeurIrl(`${a[0]}-Q${t[1]}`)
       if (v !== null) setIrlReferenceDisplay(v)
     }
     if (row.bail.irl_nouveau) setIrlNouveau(String(row.bail.irl_nouveau))
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- Historique paiements + documents ---
+  // --- Historique paiements + documents + révisions ---
   const [paiements, setPaiements] = useState<Paiement[]>([])
   const [docs, setDocs] = useState<DocumentRow[]>([])
+  const [revisions, setRevisions] = useState<BailRevision[]>([])
   const [docEnCours, setDocEnCours] = useState(false)
 
   useEffect(() => {
     if (!row) return
-    void ipc.paiements.listByBail(row.bail.id).then(setPaiements).catch(() => setPaiements([]))
-    void ipc.documents.list(row.bail.id).then(setDocs).catch(() => setDocs([]))
+    void ipc.paiements
+      .listByBail(row.bail.id)
+      .then(setPaiements)
+      .catch(() => setPaiements([]))
+    void ipc.documents
+      .list(row.bail.id)
+      .then(setDocs)
+      .catch(() => setDocs([]))
+    void ipc.revisions
+      .listByBail(row.bail.id)
+      .then(setRevisions)
+      .catch(() => setRevisions([]))
   }, [row?.bail.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!row) {
@@ -140,9 +217,6 @@ ${bailleurNom || 'Le bailleur'}`
   const { bail, bien, locataire } = row
 
   // --- Calcul de la révision IRL (piloté par les trimestres) ---
-  const [irlReferenceDisplay, setIrlReferenceDisplay] = useState<number | null>(null)
-  void setIrlReferenceDisplay // initialisé via les selects pré-remplis ci-dessus
-
   const irlRef = irlReferenceDisplay ?? bail.irl_reference
   const irlNouv = Number(irlNouveau.replace(',', '.'))
   const loyerHcActuel = bail.loyer_hc
@@ -158,17 +232,19 @@ ${bailleurNom || 'Le bailleur'}`
     revisionPossible && loyerHcActuel !== null
       ? Math.round(loyerHcActuel * (irlNouv / (irlRef as number)) * 100) / 100
       : null
-  const tauxPct =
-    revisionPossible ? Math.round((irlNouv / (irlRef as number) - 1) * 100000) / 1000 : null
+  const tauxPct = revisionPossible
+    ? Math.round((irlNouv / (irlRef as number) - 1) * 100000) / 1000
+    : null
 
   // Validation de la paire : même trimestre, un an d'écart (révision annuelle légale)
   const pairIllégale =
     nouveauTrim !== '' &&
     tRef !== '' &&
     anneeRef !== '' &&
-    nouveauTrim !== `${anneeRef}-Q${tRef}`.replace(String(Number(anneeRef)), String(Number(anneeRef) + 1))
+    nouveauTrim !==
+      `${anneeRef}-Q${tRef}`.replace(String(Number(anneeRef)), String(Number(anneeRef) + 1))
 
-    /** Applique la révision : met à jour le loyer et l'historique IRL. */
+  /** Applique la révision : met à jour le loyer et l'historique IRL. */
   const appliquerRevision = async (): Promise<void> => {
     if (nouveauLoyerHc === null || tauxPct === null) return
     // Anti-ré-application : si l'IRL nouveau choisi est déjà celui enregistré
@@ -194,6 +270,17 @@ ${bailleurNom || 'Le bailleur'}`
         taux_irl: tauxPct,
         nouveau_loyer_hc: nouveauLoyerHc,
         date_derniere_revision: new Date().toISOString().slice(0, 10)
+      })
+      // Trace dans l'historique des révisions (migration 0012) — le simulateur
+      // pourra comparer loyer théorique vs réellement appliqué.
+      await ipc.revisions.create({
+        bail_id: bail.id,
+        date_revision: new Date().toISOString().slice(0, 10),
+        ancien_loyer_hc: loyerHcActuel,
+        nouveau_loyer_hc: nouveauLoyerHc,
+        irl_reference: irlRef,
+        irl_nouveau: irlNouv,
+        taux: tauxPct
       })
       await refresh()
       // Réinitialise la sélection : impossible de re-cliquer « Appliquer »
@@ -248,6 +335,19 @@ ${bailleurNom || 'Le bailleur'}`
             <Printer className="h-4 w-4" /> Quittance
           </button>
           <button
+            onClick={() => void genererContrat()}
+            disabled={contratEnCours}
+            title="Générer le contrat de location pré-rempli depuis cette fiche (modèle PDF indicatif, loi 1989)"
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {contratEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileUp className="h-4 w-4" />
+            )}
+            Contrat
+          </button>
+          <button
             onClick={() => void demanderAssurance()}
             disabled={assuranceEnCours}
             title={
@@ -257,7 +357,11 @@ ${bailleurNom || 'Le bailleur'}`
             }
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {assuranceEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+            {assuranceEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Mail className="h-4 w-4" />
+            )}
             Assurance
           </button>
         </div>
@@ -294,6 +398,15 @@ ${bailleurNom || 'Le bailleur'}`
           <Info label="Téléphone" valeur={locataire.telephone ?? '—'} />
           <Info label="Début du bail" valeur={formatDate(bail.date_debut_bail)} />
           <Info label="Fin du bail" valeur={formatDate(bail.date_fin_bail)} />
+          {!bail.occupation_gratuite && (
+            <Info
+              label="Paiement du loyer"
+              valeur={`le ${bail.jour_paiement ?? 1} de chaque mois`}
+            />
+          )}
+          {bail.assurance_demandee_le && (
+            <Info label="Attestation demandée le" valeur={formatDate(bail.assurance_demandee_le)} />
+          )}
         </div>
 
         {/* Le loyer */}
@@ -309,7 +422,10 @@ ${bailleurNom || 'Le bailleur'}`
               <Info label="Charges" valeur={formatEuro(bail.charges)} />
               <Info label="Loyer CC" valeur={formatEuro(bail.loyer_cc)} />
               <Info label="Loyer HC / m²" valeur={formatEuro(bail.loyer_metre_carre_hc)} />
-              <Info label="Annuel HC / CC" valeur={`${formatEuro(bail.loyer_annuel_hc)} / ${formatEuro(bail.loyer_annuel_cc)}`} />
+              <Info
+                label="Annuel HC / CC"
+                valeur={`${formatEuro(bail.loyer_annuel_hc)} / ${formatEuro(bail.loyer_annuel_cc)}`}
+              />
               <Info label="Frais agence" valeur={formatEuro(bail.frais_agence)} />
             </>
           )}
@@ -323,9 +439,9 @@ ${bailleurNom || 'Le bailleur'}`
             <TrendingUp className="h-4 w-4 text-primary-500" /> Révision annuelle du loyer (IRL)
           </h2>
           <p className="mb-4 text-xs text-slate-400">
-            Choisis le trimestre de référence (celui du bail, souvent le trimestre de
-            signature), puis le trimestre IRL à appliquer. Les valeurs officielles INSEE
-            sont embarquées dans l'application — aucun internet requis.
+            Choisis le trimestre de référence (celui du bail, souvent le trimestre de signature),
+            puis le trimestre IRL à appliquer. Les valeurs officielles INSEE sont embarquées dans
+            l’application — aucun internet requis.
             {bail.date_derniere_revision &&
               ` Dernière révision : ${formatDate(bail.date_derniere_revision)}.`}
           </p>
@@ -346,7 +462,9 @@ ${bailleurNom || 'Le bailleur'}`
                 >
                   <option value="">T…</option>
                   {['1', '2', '3', '4'].map((t) => (
-                    <option key={t} value={t}>T{t}</option>
+                    <option key={t} value={t}>
+                      T{t}
+                    </option>
                   ))}
                 </select>
                 <select
@@ -410,22 +528,65 @@ ${bailleurNom || 'Le bailleur'}`
               disabled={!revisionPossible || revisant}
               className="flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {revisant ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {revisant ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
               Appliquer la révision
             </button>
           </div>
           {pairIllégale && (
             <p className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
-              ⚠ {nouveauTrim} n'est pas le même trimestre que la référence un an plus tard
-              ({tRef ? `T${tRef} ${Number(anneeRef) + 1}` : '—'}) : ce n'est pas une paire de
+              ⚠ {nouveauTrim} n’est pas le même trimestre que la référence un an plus tard (
+              {tRef ? `T${tRef} ${Number(anneeRef) + 1}` : '—'}) : ce n’est pas une paire de
               révision annuelle légale.
             </p>
           )}
-          {revisionMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{revisionMsg}</p>}
+          {revisionMsg && (
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{revisionMsg}</p>
+          )}
+          {revisions.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Historique des révisions ({revisions.length})
+              </h3>
+              <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+                    <tr>
+                      <th className="px-4 py-2">Appliquée le</th>
+                      <th className="px-4 py-2 text-right">Ancien loyer HC</th>
+                      <th className="px-4 py-2 text-right">Nouveau loyer HC</th>
+                      <th className="px-4 py-2 text-right">IRL réf. → nouv.</th>
+                      <th className="px-4 py-2 text-right">Taux</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {revisions.map((rev) => (
+                      <tr key={rev.id} className="border-t border-slate-200 dark:border-slate-800">
+                        <td className="px-4 py-2">{formatDate(rev.date_revision)}</td>
+                        <td className="px-4 py-2 text-right">{formatEuro(rev.ancien_loyer_hc)}</td>
+                        <td className="px-4 py-2 text-right">{formatEuro(rev.nouveau_loyer_hc)}</td>
+                        <td className="px-4 py-2 text-right text-xs text-slate-500 dark:text-slate-400">
+                          {rev.irl_reference !== null && rev.irl_nouveau !== null
+                            ? `${rev.irl_reference} → ${rev.irl_nouveau}`
+                            : '—'}
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {rev.taux !== null ? `${rev.taux} %` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-            {/* Historique des paiements */}
+      {/* Historique des paiements */}
       {!bail.occupation_gratuite && (
         <div>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -473,7 +634,11 @@ ${bailleurNom || 'Le bailleur'}`
             disabled={docEnCours}
             className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            {docEnCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+            {docEnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileUp className="h-4 w-4" />
+            )}
             Joindre
           </button>
         </div>
@@ -494,7 +659,11 @@ ${bailleurNom || 'Le bailleur'}`
                     <ExternalLink className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => void ipc.documents.remove(d.id).then(() => ipc.documents.list(bail.id).then(setDocs))}
+                    onClick={() =>
+                      void ipc.documents
+                        .remove(d.id)
+                        .then(() => ipc.documents.list(bail.id).then(setDocs))
+                    }
                     className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800"
                   >
                     <Trash2 className="h-4 w-4" />

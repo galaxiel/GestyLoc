@@ -18,7 +18,14 @@ export function getSmtpConfig(): SmtpConfig | null {
 export function getSmtpConfigPublic(): Omit<SmtpConfig, 'mot_de_passe'> & { configure: boolean } {
   const cfg = getSmtpConfig()
   if (!cfg || !cfg.host || !cfg.utilisateur) {
-    return { configure: false, host: '', port: 587, secure: false, utilisateur: '', expediteur_nom: '' }
+    return {
+      configure: false,
+      host: '',
+      port: 587,
+      secure: false,
+      utilisateur: '',
+      expediteur_nom: ''
+    }
   }
   return {
     configure: true,
@@ -60,9 +67,7 @@ export async function envoyerEmail(
 ): Promise<void> {
   const cfg = getSmtpConfig()
   if (!cfg) throw new Error('SMTP non configuré — renseigne-le dans les Paramètres')
-  const from = cfg.expediteur_nom
-    ? `"${cfg.expediteur_nom}" <${cfg.utilisateur}>`
-    : cfg.utilisateur
+  const from = cfg.expediteur_nom ? `"${cfg.expediteur_nom}" <${cfg.utilisateur}>` : cfg.utilisateur
   await transporter(cfg).sendMail({
     from,
     to: destinataire,

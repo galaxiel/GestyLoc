@@ -91,15 +91,17 @@ export function Depenses(): React.JSX.Element {
     await refresh()
   }
 
-    const bienRow = (bienId: number | null) =>
+  const bienRow = (bienId: number | null): (typeof locations)[number] | undefined =>
     locations.find((r) => r.bien.id === bienId)
   const bienDesignation = (bienId: number | null): string => {
     const r = bienRow(bienId)
-    return r ? libelleBien({
-      type_bien: r.bien.type_bien,
-      designation: r.bien.designation,
-      locataire: r.locataire.nom_complet
-    }) : '—'
+    return r
+      ? libelleBien({
+          type_bien: r.bien.type_bien,
+          designation: r.bien.designation,
+          locataire: r.locataire.nom_complet
+        })
+      : '—'
   }
 
   // Totaux par catégorie pour l'année sélectionnée
@@ -128,7 +130,9 @@ export function Depenses(): React.JSX.Element {
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Bien</span>
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Bien
+            </span>
             <select value={bienId} onChange={(e) => setBienId(e.target.value)} className={inputCls}>
               <option value="">— Aucun / global —</option>
               {triParLibelle(locations, (r) => r.locataire.nom_complet).map((r) => (
@@ -143,7 +147,9 @@ export function Depenses(): React.JSX.Element {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Catégorie</span>
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Catégorie
+            </span>
             <select
               value={categorie}
               onChange={(e) => setCategorie(e.target.value as CategorieDepense)}
@@ -157,7 +163,9 @@ export function Depenses(): React.JSX.Element {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Montant (€)</span>
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Montant (€)
+            </span>
             <input
               type="number"
               step="0.01"
@@ -167,21 +175,40 @@ export function Depenses(): React.JSX.Element {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Date</span>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Date
+            </span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Notes</span>
+            <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              Notes
+            </span>
             <div className="flex gap-2">
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputCls}
+              />
               <button
                 onClick={() => void ajouter()}
                 disabled={enCours || montant.trim() === '' || montantInvalide}
                 aria-label="Ajouter la dépense"
-                title={montantInvalide ? 'Le montant doit être un nombre positif' : 'Ajouter la dépense'}
+                title={
+                  montantInvalide ? 'Le montant doit être un nombre positif' : 'Ajouter la dépense'
+                }
                 className="shrink-0 rounded-lg bg-primary-600 px-3 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-40"
               >
-                {enCours ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {enCours ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
               </button>
             </div>
           </label>
@@ -222,8 +249,7 @@ export function Depenses(): React.JSX.Element {
           ))}
         </select>
         <span className="text-sm text-slate-500 dark:text-slate-400">
-          {filtres.length} dépense(s) — total :{' '}
-          <strong>{formatEuro(totalFiltre)}</strong>
+          {filtres.length} dépense(s) — total : <strong>{formatEuro(totalFiltre)}</strong>
         </span>
         {parCategorie.length > 0 && (
           <span className="text-xs text-slate-400">
@@ -272,8 +298,8 @@ export function Depenses(): React.JSX.Element {
             {filtres.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
-                  Aucune dépense enregistrée. Saisis tes travaux, taxe foncière, assurance…
-                  pour calculer la rentabilité réelle.
+                  Aucune dépense enregistrée. Saisis tes travaux, taxe foncière, assurance… pour
+                  calculer la rentabilité réelle.
                 </td>
               </tr>
             )}

@@ -19,8 +19,7 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 - **Loyers & IRL** : loyers HC/CC, loyer au m², loyer annuel, frais d'agence —
   avec un outil de **révision annuelle guidée** qui calcule le nouveau loyer à
   partir de l'IRL au centime près
-- **Quittances** : génération de quittances conformes (article 21, loi de
-  1989) en **PDF** ou **impression directe** — à l'unité ou **toutes d'un
+- **Quittances** : génération de quittances conformes (article 21, loi de 1989) en **PDF** ou **impression directe** — à l'unité ou **toutes d'un
   coup** pour un mois donné
 - **Suivi des paiements** : pointez chaque loyer comme payé, partiel, en
   retard ou impayé
@@ -41,12 +40,12 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 **Quel fichier télécharger ?** Une release contient 5 fichiers — un seul t'intéresse
 généralement :
 
-| Fichier | Pour qui |
-|---|---|
-| `gestyloc-x.y.z-setup.exe` | 👤 **Toi** — l'installateur classique (recommandé) |
-| `GestyLoc-x.y.z-portable.zip` | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
-| `GestyLoc-portable.zip` | 👤 **Toi** — la version portable complète (voir ci-dessus) |
-| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les |
+| Fichier                               | Pour qui                                                                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `gestyloc-x.y.z-setup.exe`            | 👤 **Toi** — l'installateur classique (recommandé)                                                                      |
+| `GestyLoc-x.y.z-portable.zip`         | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
+| `GestyLoc-portable.zip`               | 👤 **Toi** — la version portable complète (voir ci-dessus)                                                              |
+| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les                                           |
 
 Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
 versions au démarrage, vous propose de les télécharger, et installe au

@@ -16,12 +16,16 @@ export function mediane(valeurs: number[]): number | null {
 }
 
 /** Quartiles (méthode médiane des moitiés, suffisant sur de petits effectifs). */
-export function quartiles(valeurs: number[]): { q1: number | null; med: number | null; q3: number | null } {
+export function quartiles(valeurs: number[]): {
+  q1: number | null
+  med: number | null
+  q3: number | null
+} {
   const v = valeurs.filter((x) => !isNaN(x)).sort((a, b) => a - b)
   const n = v.length
   if (n === 0) return { q1: null, med: null, q3: null }
   const moitie = Math.floor(n / 2)
-  const inferieure = n % 2 === 0 ? v.slice(0, moitie) : v.slice(0, moitie)
+  const inferieure = v.slice(0, moitie)
   const superieure = n % 2 === 0 ? v.slice(moitie) : v.slice(moitie + 1)
   return { q1: mediane(inferieure), med: mediane(v), q3: mediane(superieure) }
 }
@@ -46,10 +50,20 @@ export interface BienPourRatio {
 export interface Segment {
   type: string
   unite: 'm2' | 'emplacement'
-  n: number
+  n: number // effectif du parc (tous biens, calculables ou non)
   loyersCc: number
   surface: number
-  ratios: { designation: string; locataire: string; bailId: number; valeur: number; base: number }[]
+  // Ratios CALCULABLES uniquement : un bien sans surface (segment m2) ou
+  // sans loyer est exclu du ratio — un 0 fictif fausserait médiane/quartiles
+  // et créerait de faux « suspects » à -100 %.
+  ratios: {
+    designation: string
+    locataire: string
+    bailId: number
+    valeur: number
+    base: number
+    surface: number // 0 pour un segment « emplacement »
+  }[]
   med: number | null
   q1: number | null
   q3: number | null
@@ -67,10 +81,20 @@ export function segmentsParType(biens: BienPourRatio[]): Segment[] {
   for (const [type, liste] of map) {
     const unite = uniteReference(type)
     const ratios = liste
-      .map((b) => {
+      .flatMap((b) => {
         const denom = unite === 'm2' ? (b.surface_m2 ?? 0) : 1
-        const valeur = denom > 0 && b.baseMensuelle !== null ? Math.round((b.baseMensuelle / denom) * 100) / 100 : 0
-        return { designation: b.designation, locataire: b.locataire, bailId: b.bailId, valeur, base: b.baseMensuelle ?? 0 }
+        if (b.baseMensuelle === null || denom <= 0) return []
+        const valeur = Math.round((b.baseMensuelle / denom) * 100) / 100
+        return [
+          {
+            designation: b.designation,
+            locataire: b.locataire,
+            bailId: b.bailId,
+            valeur,
+            base: b.baseMensuelle,
+            surface: unite === 'm2' ? (b.surface_m2 ?? 0) : 0
+          }
+        ]
       })
       .sort((a, b) => b.valeur - a.valeur)
     const qs = quartiles(ratios.map((r) => r.valeur))
@@ -112,8 +136,13 @@ export function suspects(sgs: Segment[], seuilPct = 15): Suspect[] {
   for (const seg of sgs) {
     if (seg.med === null || seg.n < 3) continue // R3 : trop peu de biens
     for (const r of seg.ratios) {
-      const ecart = Math.round(((r.valeur / seg.med - 1) * 100) * 100) / 100
+      const ecart = Math.round((r.valeur / seg.med - 1) * 100 * 100) / 100
       if (ecart <= -seuilPct) {
+        // Écart d'unité corrigé : en segment m2, (med - valeur) est un écart
+        // €/m²/MOIS — le vrai manque annuel le multiplie par 12 ET par la
+        // surface du bien. En segment emplacement : × 12 directement.
+        const manqueMensuel = seg.med - r.valeur
+        const coefAnnuel = seg.unite === 'm2' ? 12 * r.surface : 12
         out.push({
           designation: r.designation,
           locataire: r.locataire,
@@ -122,7 +151,7 @@ export function suspects(sgs: Segment[], seuilPct = 15): Suspect[] {
           valeur: r.valeur,
           medianeSegment: seg.med,
           ecartPct: ecart,
-          manqueAGagnerAnnuel: Math.round((seg.med - r.valeur) * 12 * 100) / 100
+          manqueAGagnerAnnuel: Math.round(manqueMensuel * coefAnnuel * 100) / 100
         })
       }
     }
@@ -154,6 +183,15 @@ export interface ResultatSimulationBail {
   revisionsJouees: number
 }
 
+/** Parse 'yyyy-mm-dd' en date LOCALE (new Date(iso) lirait l'UTC minuit :
+ * décalage d'un jour sur les fuseaux négatifs). Null si invalide. */
+function parseIsoLocal(s: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s)
+  if (!m) return null
+  const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))
+  return isNaN(d.getTime()) ? null : d
+}
+
 /**
  * Simule « et si j'avais révisé chaque année à l'anniversaire depuis l'année de
  * départ ». IRL = valeurs réelles INSEE (map "Q" -> { [trimestre]: valeur }) ou
@@ -167,8 +205,8 @@ export function simulerRattrapageIrl(
 ): ResultatSimulationBail[] {
   const anneeCourante = new Date().getFullYear()
   return baux.map((b) => {
-    const debut = new Date(b.dateDebutBail)
-    if (isNaN(debut.getTime()) || b.loyerHcActuel <= 0) {
+    const debut = parseIsoLocal(b.dateDebutBail)
+    if (debut === null || b.loyerHcActuel <= 0) {
       return {
         bailId: b.bailId,
         designation: b.designation,
@@ -182,15 +220,18 @@ export function simulerRattrapageIrl(
     }
     // Trimestre d'indexation : celui de référence du bail, sinon celui de l'anniversaire.
     let trimestre = 1 + Math.floor(debut.getMonth() / 3)
-    const matchRef = (b.trimestreRef ?? '').match(/[1234]/)
-    if (matchRef) trimestre = parseInt(matchRef[0], 10)
+    // Ancré : « T3 2023 » → 3 (le motif nu [1234] attraperait le « 2 » de 2023).
+    const matchRef = (b.trimestreRef ?? '').match(/\bT([1-4])\b/)
+    if (matchRef) trimestre = parseInt(matchRef[1], 10)
 
     let loyer = b.loyerHcActuel
     let revisions = 0
     // On rejoue chaque anniversaire de l'année de départ à l'année courante.
-    // Anniversaire = même mois/jour que le début du bail.
+    // Anniversaire = même mois/jour que le début du bail (jour borné au
+    // dernier du mois : un bail du 29/02 a son anniversaire le 28/02).
     for (let y = anneeDepart; y <= anneeCourante; y++) {
-      const anniversaire = new Date(y, debut.getMonth(), debut.getDate())
+      const dernierJour = new Date(y, debut.getMonth() + 1, 0).getDate()
+      const anniversaire = new Date(y, debut.getMonth(), Math.min(debut.getDate(), dernierJour))
       if (anniversaire <= debut) continue // première année : pas encore d'échéance
       if (anniversaire > new Date()) continue // échéance future : pas jouée
       let ratio: number | null = null

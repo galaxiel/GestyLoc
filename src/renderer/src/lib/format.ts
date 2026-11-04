@@ -25,8 +25,18 @@ export function formatSurface(m2: number | null | undefined): string {
 export function formatPeriode(periode: string): string {
   const [y, m] = periode.split('-')
   const mois = [
-    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre'
   ]
   const idx = parseInt(m, 10) - 1
   if (isNaN(idx) || !mois[idx]) return periode

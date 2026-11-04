@@ -23,10 +23,7 @@ import { BienDetail } from './pages/BienDetail'
  * Pare-chocs : une erreur de rendu affiche le message au lieu d'une page
  * blanche silencieuse (bug signalé : « l'onglet Quittances ne s'affiche pas »).
  */
-class ErrorBoundary extends Component<
-  { children: React.ReactNode },
-  { erreur: Error | null }
-> {
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { erreur: Error | null }> {
   state = { erreur: null as Error | null }
   static getDerivedStateFromError(erreur: Error): { erreur: Error } {
     return { erreur }
@@ -38,9 +35,7 @@ class ErrorBoundary extends Component<
           <h2 className="mb-2 font-bold text-red-700 dark:text-red-300">
             Une erreur est survenue dans cette page
           </h2>
-          <p className="mb-3 text-sm text-red-700 dark:text-red-300">
-            {this.state.erreur.message}
-          </p>
+          <p className="mb-3 text-sm text-red-700 dark:text-red-300">{this.state.erreur.message}</p>
           <button
             onClick={() => {
               this.setState({ erreur: null })
@@ -62,7 +57,18 @@ function RaccourcisClavier(): null {
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return
-      const routes = ['/', '/biens', '/paiements', '/quittances', '/documents', '/statistiques', '/simulateur', '/depenses', '/regularisation', '/parametres']
+      const routes = [
+        '/',
+        '/biens',
+        '/paiements',
+        '/quittances',
+        '/documents',
+        '/statistiques',
+        '/simulateur',
+        '/depenses',
+        '/regularisation',
+        '/parametres'
+      ]
       const n = parseInt(e.key, 10)
       if (n >= 1 && n <= routes.length) {
         e.preventDefault()
@@ -87,21 +93,21 @@ function App(): React.JSX.Element {
           <Sidebar />
           <main className="flex-1 overflow-y-auto p-6">
             <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/biens" element={<BiensLocataires />} />
-              <Route path="/baux/:id" element={<BailDetail />} />
-              <Route path="/biens/:id" element={<BienDetail />} />
-              <Route path="/paiements" element={<Paiements />} />
-              <Route path="/quittances" element={<Quittances />} />
-              <Route path="/documents" element={<Documents />} />
-              <Route path="/statistiques" element={<Statistiques />} />
-              <Route path="/simulateur" element={<Simulateur />} />
-              <Route path="/depenses" element={<Depenses />} />
-              <Route path="/regularisation" element={<Regularisation />} />
-              <Route path="/parametres" element={<Parametres />} />
-              <Route path="*" element={<Dashboard />} />
-            </Routes>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/biens" element={<BiensLocataires />} />
+                <Route path="/baux/:id" element={<BailDetail />} />
+                <Route path="/biens/:id" element={<BienDetail />} />
+                <Route path="/paiements" element={<Paiements />} />
+                <Route path="/quittances" element={<Quittances />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/statistiques" element={<Statistiques />} />
+                <Route path="/simulateur" element={<Simulateur />} />
+                <Route path="/depenses" element={<Depenses />} />
+                <Route path="/regularisation" element={<Regularisation />} />
+                <Route path="/parametres" element={<Parametres />} />
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
             </ErrorBoundary>
           </main>
         </div>

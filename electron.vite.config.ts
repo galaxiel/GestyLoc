@@ -20,7 +20,16 @@ export default defineConfig({
     // migrate.ts : Vite les inline directement dans le bundle JS.
     // Aucune copie de fichiers à gérer → robuste en dev ET en production.
   },
-  preload: {},
+  preload: {
+    resolve: {
+      alias: {
+        // Même alias que main/renderer : un import VALEUR de shared/ dans le
+        // preload casserait le build sans cet alias (les imports `import
+        // type` passaient par effacement, pas les imports réels).
+        '@shared': resolve('shared')
+      }
+    }
+  },
   renderer: {
     resolve: {
       alias: {

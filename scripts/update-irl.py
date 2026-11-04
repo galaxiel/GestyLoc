@@ -22,7 +22,7 @@ ts = f'''// ====================================================================
 // GitHub Action trimestriel `Mise à jour IRL`).
 // ============================================================================
 
-/** Clé "2024-T3" -> valeur 144.51. */
+/** Clé "2024-Q3" -> valeur (ex : 2024-Q3 = 144.51). */
 export const IRL_INSEE: Readonly<Record<string, number>> = {{
 {lignes}
 }}

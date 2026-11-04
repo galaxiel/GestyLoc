@@ -1,20 +1,44 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Wallet, Home, AlertTriangle, CalendarClock, Plus, Receipt,
-  ChevronDown, ChevronRight, Coins
+  Wallet,
+  Home,
+  AlertTriangle,
+  CalendarClock,
+  Plus,
+  Receipt,
+  ChevronDown,
+  ChevronRight,
+  Coins
 } from 'lucide-react'
-import type { Alerte, Paiement } from '@shared/types'
+import type { Alerte, Paiement, BienLocationRow } from '@shared/types'
+import { montantAttendu, detailProrata, joursDeRetard } from '@shared/echeancier'
 import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro, formatDate, periodeCourante } from '../lib/format'
 import { nomBien } from '@shared/labels'
 
 const groupeStyle: Record<Alerte['type'], { titre: string; couleur: string }> = {
-  fin_bail: { titre: 'Fins de bail', couleur: 'border-red-300 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300' },
-  revision_irl: { titre: 'Révisions IRL en attente', couleur: 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300' },
-  impaye: { titre: 'Loyers impayés', couleur: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300' },
-  assurance: { titre: 'Assurances à demander', couleur: 'border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-500/40 dark:bg-teal-500/10 dark:text-teal-300' }
+  fin_bail: {
+    titre: 'Fins de bail',
+    couleur:
+      'border-red-300 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300'
+  },
+  revision_irl: {
+    titre: 'Révisions IRL en attente',
+    couleur:
+      'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300'
+  },
+  impaye: {
+    titre: 'Loyers impayés',
+    couleur:
+      'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300'
+  },
+  assurance: {
+    titre: 'Assurances à demander',
+    couleur:
+      'border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-500/40 dark:bg-teal-500/10 dark:text-teal-300'
+  }
 }
 
 const severiteUrgente: Record<Alerte['severite'], boolean> = {
@@ -24,7 +48,13 @@ const severiteUrgente: Record<Alerte['severite'], boolean> = {
 }
 
 /** Groupe d'alertes repliable. */
-function GroupeAlertes({ type, alertes }: { type: Alerte['type']; alertes: Alerte[] }): React.JSX.Element | null {
+function GroupeAlertes({
+  type,
+  alertes
+}: {
+  type: Alerte['type']
+  alertes: Alerte[]
+}): React.JSX.Element | null {
   const [ouvert, setOuvert] = useState(false)
   if (alertes.length === 0) return null
   const style = groupeStyle[type]
@@ -36,11 +66,14 @@ function GroupeAlertes({ type, alertes }: { type: Alerte['type']; alertes: Alert
         onClick={() => setOuvert(!ouvert)}
         className="flex w-full items-center gap-2 p-3 text-left text-sm font-medium"
       >
-        {ouvert ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+        {ouvert ? (
+          <ChevronDown className="h-4 w-4 shrink-0" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0" />
+        )}
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span className="flex-1">
-          {style.titre} — {alertes.length}{' '}
-          {alertes.length > 1 ? 'alertes' : 'alerte'}{' '}
+          {style.titre} — {alertes.length} {alertes.length > 1 ? 'alertes' : 'alerte'}{' '}
           {nbUrgentes > 0 && <span className="font-semibold">dont {nbUrgentes} urgente(s)</span>}
         </span>
       </button>
@@ -69,11 +102,11 @@ export function Dashboard(): React.JSX.Element {
 
   // --- Trésorerie du mois ---
   const bauxPayants = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
-  const attenduCeMois = bauxPayants.reduce(
-    (s, r) => s + (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)),
-    0
-  )
   const periode = periodeCourante()
+  // Montant attendu par bail : loyer CC plein, PRORATISÉ au premier mois
+  // (entrée dans les lieux en cours de mois) — cf. shared/echeancier.ts.
+  const attenduDe = (r: BienLocationRow): number => montantAttendu(r.bail, periode) ?? 0
+  const attenduCeMois = bauxPayants.reduce((s, r) => s + attenduDe(r), 0)
   const encaisseCeMois = paiements
     .filter((p) => p.periode === periode && (p.statut === 'paye' || p.statut === 'partiel'))
     .reduce((s, p) => s + p.montant_paye, 0)
@@ -84,6 +117,10 @@ export function Dashboard(): React.JSX.Element {
   const nbImpayes = paiements.filter((p) => p.statut === 'retard' || p.statut === 'impaye').length
 
   const bauxActifs = locations.filter((r) => r.bail.actif)
+  // Compteurs cohérents : un bien = 1 entrée même s'il a plusieurs baux
+  // (anciens baux inactifs ne comptent pas) ; loués + gratuits = total.
+  const nbBiensGeres = new Set(bauxActifs.map((r) => r.bien.id)).size
+  const nbGratuits = locations.filter((r) => r.bail.actif && r.bail.occupation_gratuite).length
   const totalLoyerCcMensuel = bauxPayants.reduce(
     (s, r) => s + (r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)),
     0
@@ -91,7 +128,12 @@ export function Dashboard(): React.JSX.Element {
 
   // --- Alertes groupées par type ---
   const alertesGroupees = useMemo(() => {
-    const groupes: Record<Alerte['type'], Alerte[]> = { fin_bail: [], revision_irl: [], impaye: [], assurance: [] }
+    const groupes: Record<Alerte['type'], Alerte[]> = {
+      fin_bail: [],
+      revision_irl: [],
+      impaye: [],
+      assurance: []
+    }
     for (const a of alertes) groupes[a.type].push(a)
     return groupes
   }, [alertes])
@@ -143,7 +185,9 @@ export function Dashboard(): React.JSX.Element {
               <Coins className="h-5 w-5 text-slate-400" />
             </div>
             <div className="mt-2 text-2xl font-bold">{formatEuro(attenduCeMois)}</div>
-            <div className="mt-1 text-xs text-slate-400">{bauxPayants.length} bail(s) payant(s)</div>
+            <div className="mt-1 text-xs text-slate-400">
+              {bauxPayants.length} bail(s) payant(s)
+            </div>
           </div>
           <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-500/40 dark:bg-emerald-500/10">
             <div className="flex items-center justify-between">
@@ -165,9 +209,7 @@ export function Dashboard(): React.JSX.Element {
             <div className="mt-2 text-2xl font-bold text-amber-700 dark:text-amber-300">
               {formatEuro(resteAEncaisser)}
             </div>
-            <div className="mt-1 text-xs text-amber-600/70 dark:text-amber-400/70">
-              ce mois-ci
-            </div>
+            <div className="mt-1 text-xs text-amber-600/70 dark:text-amber-400/70">ce mois-ci</div>
           </div>
           <div className="rounded-xl border border-red-300 bg-red-50 p-4 dark:border-red-500/40 dark:bg-red-500/10">
             <div className="flex items-center justify-between">
@@ -184,6 +226,91 @@ export function Dashboard(): React.JSX.Element {
         </div>
       </section>
 
+      {/* Calendrier des échéances de loyer (échéancier réel) */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Échéances de loyer — {periodeCourante().replace('-', '/')}
+        </h2>
+        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+              <tr>
+                <th className="px-4 py-2">Bien</th>
+                <th className="px-4 py-2">Locataire</th>
+                <th className="px-4 py-2 text-right">Montant dû</th>
+                <th className="px-4 py-2">Loyer dû le</th>
+                <th className="px-4 py-2">État du mois</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bauxPayants
+                .slice()
+                .sort((a, b) => (a.bail.jour_paiement ?? 1) - (b.bail.jour_paiement ?? 1))
+                .map((r) => {
+                  const p = paiements.find((x) => x.bail_id === r.bail.id && x.periode === periode)
+                  const retard = joursDeRetard(periode, r.bail.jour_paiement, 0)
+                  const aJour = p?.statut === 'paye' || p?.statut === 'partiel'
+                  const etat = aJour
+                    ? {
+                        label: p?.statut === 'partiel' ? 'Partiel' : 'Payé',
+                        cls: 'text-emerald-600 dark:text-emerald-400'
+                      }
+                    : p?.statut === 'retard' || p?.statut === 'impaye' || retard > 0
+                      ? {
+                          label: `En retard (${Math.max(retard, 0)} j)`,
+                          cls: 'text-red-500 font-semibold'
+                        }
+                      : {
+                          label: 'À pointer',
+                          cls: 'text-slate-500 dark:text-slate-400'
+                        }
+                  return (
+                    <tr
+                      key={r.bail.id}
+                      className="cursor-pointer border-t border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"
+                      onClick={() => navigate(`/baux/${r.bail.id}`)}
+                    >
+                      <td className="px-4 py-2">
+                        <div className="font-medium">
+                          <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                            {r.bien.type_bien}
+                          </span>
+                          {nomBien(r.bien)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {r.locataire.nom_complet}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {formatEuro(attenduDe(r))}
+                        {detailProrata(r.bail, periode) && (
+                          <div className="text-[11px] font-semibold text-sky-600 dark:text-sky-400">
+                            prorata {detailProrata(r.bail, periode)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
+                        le {r.bail.jour_paiement ?? 1}
+                        {retard > 0 && !aJour && (
+                          <span className="ml-1 text-xs text-red-500">⏱</span>
+                        )}
+                      </td>
+                      <td className={`px-4 py-2 ${etat.cls}`}>{etat.label}</td>
+                    </tr>
+                  )
+                })}
+              {bauxPayants.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                    Aucun bail payant actif.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Indicateurs du parc */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
@@ -192,21 +319,21 @@ export function Dashboard(): React.JSX.Element {
             <Wallet className="h-5 w-5 text-emerald-500" />
           </div>
           <div className="mt-2 text-2xl font-bold">{formatEuro(totalLoyerCcMensuel)}</div>
-          <div className="mt-1 text-xs text-slate-400">soit {formatEuro(totalLoyerCcMensuel * 12)}/an</div>
+          <div className="mt-1 text-xs text-slate-400">
+            soit {formatEuro(totalLoyerCcMensuel * 12)}/an
+          </div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-500 dark:text-slate-400">Biens gérés</span>
             <Home className="h-5 w-5 text-violet-500" />
           </div>
-          <div className="mt-2 text-2xl font-bold">{locations.length}</div>
+          <div className="mt-2 text-2xl font-bold">{nbBiensGeres}</div>
           <div className="mt-1 text-xs text-slate-400">
             {bauxPayants.length} loué(s)
-            {locations.filter((r) => r.bail.actif && r.bail.occupation_gratuite).length >
-              0 && ` + ${locations.filter((r) => r.bail.actif && r.bail.occupation_gratuite).length} gratuit(s)`}
+            {nbGratuits > 0 && ` + ${nbGratuits} gratuit(s)`}
             {' · '}
-            {locations
-              .filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
+            {bauxPayants
               .reduce((sum, r) => sum + (r.bien.surface_m2 ?? 0), 0)
               .toLocaleString('fr-FR')}{' '}
             m² loués
@@ -215,7 +342,9 @@ export function Dashboard(): React.JSX.Element {
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-500 dark:text-slate-400">Alertes actives</span>
-            <AlertTriangle className={`h-5 w-5 ${alertes.length > 0 ? 'text-amber-500' : 'text-slate-300'}`} />
+            <AlertTriangle
+              className={`h-5 w-5 ${alertes.length > 0 ? 'text-amber-500' : 'text-slate-300'}`}
+            />
           </div>
           <div className="mt-2 text-2xl font-bold">{alertes.length}</div>
           <div className="mt-1 text-xs text-slate-400">
@@ -276,12 +405,13 @@ export function Dashboard(): React.JSX.Element {
                         {nomBien(r.bien)}
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-sm font-medium text-slate-300 dark:text-slate-200">
+                    <td className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                       {r.locataire.nom_complet}
                     </td>
                     <td className="px-4 py-2 text-sm text-slate-400">
                       {[r.bien.adresse, r.bien.code_postal, r.bien.ville]
-                        .filter(Boolean).join(', ') || '—'}
+                        .filter(Boolean)
+                        .join(', ') || '—'}
                     </td>
                     <td className="px-4 py-2">
                       {formatDate(r.bail.date_fin_bail)}
@@ -294,7 +424,9 @@ export function Dashboard(): React.JSX.Element {
                       )}
                     </td>
                     <td className="px-4 py-2 text-right font-medium">
-                      {formatEuro(r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0))}
+                      {formatEuro(
+                        r.bail.loyer_cc ?? (r.bail.loyer_hc ?? 0) + (r.bail.charges ?? 0)
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -6,10 +6,7 @@ import type { RegularisationCharges } from '@shared/types'
 /** Repository : régularisation annuelle des charges (provisions vs réelles). */
 export const regularisationRepository = {
   list(): RegularisationCharges[] {
-    return getDb()
-      .select()
-      .from(regularisationsCharges)
-      .all() as RegularisationCharges[]
+    return getDb().select().from(regularisationsCharges).all() as RegularisationCharges[]
   },
 
   get(bailId: number, annee: number): RegularisationCharges | undefined {
@@ -17,10 +14,7 @@ export const regularisationRepository = {
       .select()
       .from(regularisationsCharges)
       .where(
-        and(
-          eq(regularisationsCharges.bail_id, bailId),
-          eq(regularisationsCharges.annee, annee)
-        )
+        and(eq(regularisationsCharges.bail_id, bailId), eq(regularisationsCharges.annee, annee))
       )
       .get() as RegularisationCharges | undefined
   },

@@ -1,12 +1,27 @@
 import { differenceInCalendarDays, parseISO, isValid } from 'date-fns'
 import { paiementRepository } from '../repositories/paiement.repository'
+import { parametresRepository } from '../repositories/parametres.repository'
+import { joursDeRetard, echeanceIso } from '@shared/echeancier'
 import type { Alerte, BienLocationRow } from '@shared/types'
+
+/** Période 'yyyy-mm' du mois courant (même format que les paiements). */
+function periodeDuJour(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** Marge (en jours) tolérée après le jour de paiement avant alerte de retard. */
+export function margeRetardJours(): number {
+  const cfg = parametresRepository.get<{ marge_retard_jours?: number }>('echeancier')
+  const m = cfg?.marge_retard_jours
+  return typeof m === 'number' && m >= 0 ? Math.trunc(m) : 0
+}
 
 /**
  * Service de calcul des alertes du dashboard :
  *  - fins de bail approchantes (< 90 jours) ou dépassées
  *  - révisions de loyer IRL/ICC à faire (pas révisé depuis > 1 an)
  *  - loyers impayés sur les périodes récentes
+ *  - loyer du mois courant non pointé après le jour de paiement (+ marge)
  */
 export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
   const alertes: Alerte[] = []
@@ -50,11 +65,7 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
         : null
       if (isValid(debut)) {
         // Anniversaire de cette année (même jour/mois que le début du bail).
-        const anniversaire = new Date(
-          aujourdhui.getFullYear(),
-          debut.getMonth(),
-          debut.getDate()
-        )
+        const anniversaire = new Date(aujourdhui.getFullYear(), debut.getMonth(), debut.getDate())
         const dejaPasse = anniversaire <= aujourdhui
         const reviseDepuisAnniversaire =
           derniereRevision !== null && isValid(derniereRevision) && derniereRevision >= anniversaire
@@ -70,16 +81,21 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
     }
 
     // --- Assurance : demander l'attestation ~30 jours avant l'anniversaire ---
+    // Sauf si une demande a déjà été envoyée il y a moins de 11 mois
+    // (traçage migration 0013 : ne pas relancer pour rien).
     if (row.bail.date_debut_bail) {
       const debut = parseISO(row.bail.date_debut_bail)
       if (isValid(debut)) {
-        const anniversaire = new Date(
-          aujourdhui.getFullYear(),
-          debut.getMonth(),
-          debut.getDate()
-        )
+        const anniversaire = new Date(aujourdhui.getFullYear(), debut.getMonth(), debut.getDate())
         const joursAvant = differenceInCalendarDays(anniversaire, aujourdhui)
-        if (joursAvant >= 0 && joursAvant <= 30) {
+        const derniereDemande = row.bail.assurance_demandee_le
+          ? parseISO(row.bail.assurance_demandee_le)
+          : null
+        const demandeRecente =
+          derniereDemande !== null &&
+          isValid(derniereDemande) &&
+          differenceInCalendarDays(aujourdhui, derniereDemande) < 330
+        if (joursAvant >= 0 && joursAvant <= 30 && !demandeRecente) {
           alertes.push({
             type: 'assurance',
             severite: 'info',
@@ -104,6 +120,30 @@ export function computeAlertes(rows: BienLocationRow[]): Alerte[] {
           bail_id: row.bail.id
         })
       }
+    }
+  }
+
+  // --- Échéancier réel : loyer du mois courant non encaissé après l'échéance ---
+  // Alerte seulement si AUCUN pointage payé/partiel pour la période courante
+  // et si on a dépassé le jour de paiement (+ marge configurable, paramètres
+  // clé 'echeancier' → { marge_retard_jours }). Les pointages retard/impayé
+  // explicites sont déjà couverts par la boucle ci-dessus.
+  const marge = margeRetardJours()
+  const periode = periodeDuJour(aujourdhui)
+  for (const row of rows) {
+    if (!row.bail.actif || row.bail.occupation_gratuite) continue
+    const pointe = paiements.find((p) => p.bail_id === row.bail.id && p.periode === periode)
+    if (pointe && (pointe.statut === 'paye' || pointe.statut === 'partiel')) continue
+    if (pointe && (pointe.statut === 'retard' || pointe.statut === 'impaye')) continue
+    const retard = joursDeRetard(periode, row.bail.jour_paiement, marge, aujourdhui)
+    if (retard > 0) {
+      const echeance = echeanceIso(periode, row.bail.jour_paiement)
+      alertes.push({
+        type: 'impaye',
+        severite: retard > 15 ? 'urgent' : 'warning',
+        message: `Loyer non encaissé depuis le ${echeance.split('-')[2]}/${echeance.split('-')[1]} (retard de ${retard} j) — ${row.locataire.nom_complet} (${row.bien.designation})`,
+        bail_id: row.bail.id
+      })
     }
   }
 

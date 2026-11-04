@@ -16,3 +16,6 @@ out
 *.sqlite
 *.sqlite-journal
 *.db
+
+# bundle généré par le harnais BDD (npm run test:db)
+scripts/test-db/bundle.mjs

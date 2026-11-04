@@ -13,9 +13,7 @@ export const bienRepository = {
   },
 
   getById(id: number): Bien | undefined {
-    return getDb().select().from(biens).where(eq(biens.id, id)).get() as
-      | Bien
-      | undefined
+    return getDb().select().from(biens).where(eq(biens.id, id)).get() as Bien | undefined
   },
 
   create(input: CreateBienInput): Bien {

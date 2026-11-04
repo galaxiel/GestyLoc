@@ -52,7 +52,12 @@ export const bailRepository = {
   },
 
   update(id: number, input: Partial<CreateBailInput>): Bail | undefined {
-    const fields = input
+    // Sécurité : les clés étrangères ne changent JAMAIS en édition (bug
+    // historique v1.0→v1.12 : « bien_id: 0 » → FOREIGN KEY constraint failed).
+    // Le renderer les exclut déjà ; on les retire aussi ici (défense en profondeur).
+    const { bien_id: _b, locataire_id: _l, ...fields } = input
+    void _b
+    void _l
     return getDb()
       .update(baux)
       .set({ ...fields, updated_at: new Date().toISOString() })
