@@ -29,8 +29,10 @@ Détail de ce problème de compilation : voir `AGENTS.md` §2.
 
 ```bash
 npm run dev          # développement
-npm test             # tests vitest
+npm test             # tests vitest (70 tests — modules purs de shared/)
+npm run test:db      # tests BDD via Electron (8 tests — repositories, alertes)
 npm run typecheck    # TypeScript strict (obligatoire avant commit)
+npm run lint         # ESLint — 0 erreur / 0 warning exigé
 npm run build        # typecheck + build production
 npm run build:win    # installeur NSIS dans dist/
 ```
@@ -94,14 +96,14 @@ Rôle des fichiers générés (conventions **non renommables** : `electron-updat
 lit ces chemins exacts, les renommer casserait les mises à jour de toutes les
 installations existantes) :
 
-| Asset | Rôle |
-|---|---|
-| `GestyLoc-x.y.z-setup.exe` | L'installateur NSIS (téléchargé par les utilisateurs) |
-| `GestyLoc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé) |
-| `latest.yml` | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512 |
-| `GestyLoc-portable.zip` | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
+| Asset                               | Rôle                                                                                                                    |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `GestyLoc-x.y.z-setup.exe`          | L'installateur NSIS (téléchargé par les utilisateurs)                                                                   |
+| `GestyLoc-x.y.z-setup.exe.blockmap` | Carte des blocs → mises à jour différentielles (ne retélécharger que ce qui a changé)                                   |
+| `latest.yml`                        | Manifeste lu au démarrage par chaque install : version courante, fichier à télécharger, empreinte SHA512                |
+| `GestyLoc-portable.zip`             | Version portable : l'app complète (win-unpacked + marqueur PORTABLE) dans un dossier — données stockées à côté de l'exe |
 
- Depuis la v1.11.3, le workflow publie lui-même les fichiers (le publish
+Depuis la v1.11.3, le workflow publie lui-même les fichiers (le publish
 d'electron-builder, buggé — il créait deux drafts et perdait le blockmap —
 a été remplacé par un upload déterministe) et **échoue explicitement si un
 fichier manque**. Une release valide = **exactement 4 assets** : la liste du
@@ -133,10 +135,14 @@ GH_TOKEN=ton_token npx electron-builder --win --publish always
 
 ## Points spécifiques
 
-- **Tests** : `npm test` (vitest) — 19 tests sur les utilitaires partagés
+- **Tests** : `npm test` (vitest, 70 tests — modules purs de `shared/`) et
+  `npm run test:db` (harnais Electron, 8 tests — repositories/alertes ; better-
+  sqlite3 ne charge que dans Electron, détail dans `AGENTS.md` §2)
+- **Lint** : `npm run lint` — 0 erreur / 0 warning exigé (aussi bloquant dans
+  la CI de release)
 - **Table IRL** : `shared/irl-insee.ts` est régénérée automatiquement chaque
   trimestre par le workflow `update-irl.yml` (script : `scripts/update-irl.py`)
-- **Migrations** : fichiers SQL numérotés `0001` → `0010`, appliqués au
+- **Migrations** : fichiers SQL numérotés `0001` → `0013`, appliqués au
   démarrage de l'app (détails : `AGENTS.md` §5)
 - **Pièges runtime** : `window.prompt()` inexistant dans Electron ; clés
   étrangères jamais envoyées en UPDATE (détails : `AGENTS.md` §8)

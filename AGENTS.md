@@ -15,21 +15,26 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.15.0** (dernière release publiée : v1.15.0, le 26/10/2026) (voir
-https://github.com/galaxiel/GestyLoc/releases). Les données réelles de
-l'utilisateur (16 baux) sont déjà importées dans sa base locale. Les versions
-v1.0 à v1.15 sont livrées — considère toute case cochée de `ROADMAP.md`
-comme faite, ne la refais pas.
+État actuel : **v1.15.0 publiée** (26/10/2026, dernier commit `main`) + **chantier
+v1.16-dev — 2 sessions (03/11 et 04/11/2026) — VALIDÉ, NON COMMITÉ** (72 fichiers
+dans le working tree local : échéancier réel, rapprochement bancaire + v2,
+avis d'échéance, relances, contrat pré-rempli, traçage assurance, baux_revisions,
+lint vert, harnais BDD — détail : ROADMAP « Session 03/11/2026 » et « Session
+04/11/2026 »). ⚠️ Un clone frais du dépôt GitHub NE CONTIENT PAS ce chantier :
+il vit uniquement dans le working tree de cette machine jusqu'au commit (3
+commits logiques proposés dans le rapport de session). Les données réelles de
+l'utilisateur (16 baux) sont déjà importées dans sa base locale. Considère toute
+case cochée de `ROADMAP.md` comme faite, ne la refais pas.
 
 ## 2. Stack et versions (IMPORTANT — compatibilités fragiles)
 
-| Élément | Version | Pourquoi c'est critique |
-|---|---|---|
-| Electron | **40.9.3** (`^40.9.3` dans package.json) | Choisi car le binaire était disponible ; `better-sqlite3@11` **ne compile PAS** contre Electron 39+ (API V8 `GetIsolate` supprimée). Ne pas descendre. |
-| better-sqlite3 | **12.11.1 minimum** | La v12 utilise **Node-API** (stable entre versions). Ne jamais repasser en v11. |
-| Node.js local | 26.3.1 | Aucun binaire précompilé better-sqlite3 pour Node 26 → la compilation échoue si le module est compilé pour Node. Il DOIT être compilé pour **Electron**. |
-| React / TS | 19.x / 5.9 | Standard. |
-| Tailwind | **v3.4** (pas v4) | Choix délibéré pour stabilité. Ne pas migrer en v4 sans raison. |
+| Élément        | Version                                  | Pourquoi c'est critique                                                                                                                                  |
+| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Electron       | **40.9.3** (`^40.9.3` dans package.json) | Choisi car le binaire était disponible ; `better-sqlite3@11` **ne compile PAS** contre Electron 39+ (API V8 `GetIsolate` supprimée). Ne pas descendre.   |
+| better-sqlite3 | **12.11.1 minimum**                      | La v12 utilise **Node-API** (stable entre versions). Ne jamais repasser en v11.                                                                          |
+| Node.js local  | 26.3.1                                   | Aucun binaire précompilé better-sqlite3 pour Node 26 → la compilation échoue si le module est compilé pour Node. Il DOIT être compilé pour **Electron**. |
+| React / TS     | 19.x / 5.9                               | Standard.                                                                                                                                                |
+| Tailwind       | **v3.4** (pas v4)                        | Choix délibéré pour stabilité. Ne pas migrer en v4 sans raison.                                                                                          |
 
 **Si `npm install` échoue sur better-sqlite3** (erreur node-gyp/MSBuild) :
 
@@ -97,7 +102,7 @@ Exemple : ajouter une entité « Contrat d'assurance ». Dans l'ordre :
 3. Générer la migration : `npm run db:generate` → produit un `.sql` dans
    `src/main/database/migrations/`
 4. `src/main/database/migrate.ts` : ajouter `import xxxSql from './migrations/000N_xxx.sql?raw'`
-   + entrée `{ id: '000N', name: 'xxx', sql: xxxSql }` **à la fin de la liste**
+   - entrée `{ id: '000N', name: 'xxx', sql: xxxSql }` **à la fin de la liste**
 5. `src/main/repositories/assurance.repository.ts` : requêtes Drizzle typées
 6. `src/main/database/ipc.ts` : handler `handle('db:assurances:list', () => …)`
 7. `src/preload/index.ts` : méthode typée dans `api.db` (+ type retourné)
@@ -125,6 +130,9 @@ traçées dans la table `_migrations`. Règles :
 ```bash
 npm run dev          # dev (HMR, DevTools ouverts)
 npm run typecheck    # tsc node + web — OBLIGATOIRE avant commit
+npm run lint         # eslint — 0 erreur / 0 warning exigé (aussi en CI release)
+npm test             # vitest — 70 tests (modules purs de shared/)
+npm run test:db      # harnais BDD via Electron — 8 tests repositories/alertes
 npm run build        # typecheck + build electron-vite
 npm run build:win    # typecheck + build + installeur NSIS dans dist/
 npm run build:unpack # build + dossier non packagé (test rapide sans installeur)
@@ -132,18 +140,19 @@ npm run db:generate  # génère une migration depuis schema.ts (drizzle-kit)
 ```
 
 Les tests vitest (`npm test`, dossier `tests/`) couvrent les utilitaires purs
-de `shared/csv.ts` et `shared/stats.ts` — 19 tests. Ils tournent
+de `shared/csv.ts`, `shared/stats.ts`, `shared/echeancier.ts`,
+`shared/rapprochement.ts` et `shared/relances.ts` — 70 tests. Ils tournent
 sur Node pur : ne les fais PAS importer des modules qui chargent
-better-sqlite3 (incompatibilité de moteur, voir §2 et la section
-« Problématique du harnais de test » de ROADMAP.md). Pour fumer-tester un
-module qui touche la BDD : écrire un script temporaire et le lancer avec
+better-sqlite3 (incompatibilité de moteur, voir §2). Pour la BDD, utiliser
+le harnais `npm run test:db` (§8, session 2) — pas besoin de script ad hoc.
+Pour fumer-tester rapidement un module qui touche la BDD : écrire un script temporaire et le lancer avec
 `./node_modules/.bin/electron script.js` (le module natif ne charge que dans
 Electron), puis supprimer le script.
 
 ## 7. Auto-mise-à-jour et releases
 
 - `electron-builder.yml` → `publish: github, owner: galaxiel, repo: GestyLoc,
-  releaseType: draft`.
+releaseType: draft`.
 - L'updater vérifie au lancement **en production seulement** (désactivé en dev
   via `is.dev`). Flux : check → notif native + event IPC → téléchargement sur
   accord utilisateur → install au redémarrage. `autoDownload: false` est
@@ -206,6 +215,7 @@ généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
   PNG) + `resources/icon.png` (256 px, importé par main/index.ts)
 
 ### Ajouts v1.4 -> v1.9 (ne pas refaire)
+
 - **Statistiques recharts** (encaissements 12 mois, camembert, comparaison
   annuelle, 6 KPI dont taux d'occupation/impayés/charges) + section
   **Patrimoine & rentabilité** (valeur vénale par bien, rentabilité brute/nette,
@@ -242,11 +252,13 @@ généré que pour les cibles d'installation (NSIS), **pas** pour `--dir`. Un
   canal `data:audit`, UI dans Paramètres), licence PolyForm Noncommercial
 
 ### 🚨 Piège historique à connaître (bug v1.0->v1.12, corrigé)
+
 Le formulaire d'édition de bail envoyait `bien_id: 0, locataire_id: 0` dans le
 payload d'UPDATE → `FOREIGN KEY constraint failed`. Règle : **les clés
 étrangères ne changent jamais en édition** — les exclure du payload
 (`const { bien_id, locataire_id, ...champs } = input`). Idem pour toute
 nouvelle table avec FK.
+
 - **Statistiques 2.0 + Simulateur** (v1.10-1.11) : segmentation par type
   avec unités propres (€/m² logements, €/emplacement garages), médiane/
   quartiles, liste des suspects (> 15 % sous la médiane), simulateur de
@@ -263,7 +275,106 @@ nouvelle table avec FK.
   loyer non pointé) + confirmation art. 21 si génération sans pointage
 - **Alertes** : assurance à demander (30 j avant l'anniversaire du bail)
 
+### Chantier v1.16-dev (03/11/2026, NON PUBLIÉ — à publier après validation)
+
+- **Échéancier réel** : `baux.jour_paiement` (migration 0011, défaut 1),
+  prorata du 1er mois en **jours civils** (`shared/echeancier.ts`, 12 tests —
+  module pur utilisé par main ET renderer), calendrier des échéances sur le
+  Dashboard, colonne « Montant dû / Échéance » dans Paiements, alerte de retard
+  (jour de paiement + marge, paramètre `echeancier` = `{ marge_retard_jours }`,
+  réglable dans Paramètres).
+- **Rapprochement bancaire** : `shared/rapprochement.ts` (12 tests, pur) +
+  section « Rapprochement bancaire » de la page Paiements. Le CSV du relevé est
+  lu **dans le renderer via FileReader** (aucun fs, aucune IPC nouvelle) —
+  parsing (séparateur `;`/`,` + BOM auto) puis matching montant ± 1 ct ×
+  (période pointée, mois de l'opération, mois précédents) × nom du locataire ;
+  ambigu = « à revoir ». La validation en masse upsert des paiements statut
+  `paye`, `reference` = libellé bancaire, `notes` = 'Rapprochement bancaire'.
+- **`shared/rapprochement.ts`** et **`shared/echeancier.ts`** : modules purs
+  testés, même contrat que `csv.ts`/`stats.ts` — ne pas y importer Node/Electron.
+- **Table `baux_revisions`** (migration 0012) : historique des révisions,
+  alimentée par `BailDetail.appliquerRevision()`, canal `db:revisions:*`,
+  repository `bail-revision.repository.ts`. Affichée dans la fiche bail.
+- **Reçu de paiement refondu** (`recu.service.ts`) : contrat `RecuParams` =
+  `{ row, bailleur: ProfilBailleur | null, periode, montantRecu, modePaiement }`
+  (profil structuré rue/CP/ville, plus de `adresseBailleur` string) ; montant
+  attendu PRORATISÉ via `montantAttendu()`.
+- **Durcissement sécurité** : `window.electron` (electronAPI) n'est PLUS exposé
+  au renderer — il donnait un `ipcRenderer` brut sur tous les canaux. Toute
+  l'app passe par `window.api` ; `app.getVersion` est exposé via
+  `api.app.getVersion()` (Sidebar et Parametres utilisent ça). `index.d.ts` ne
+  déclare plus `window.electron`. Si un jour il faut un nouveau canal, l'ajouter
+  DANS l'objet `api` du preload, jamais via un accès générique.
+- **schema.ts reflète EXACTEMENT les migrations** : `quittances.reference_number`
+  - index uniques `idx_quittances_bail_periode` / `idx_quittances_reference`
+    (0006/0010) sont déclarés dans schema.ts avec `uniqueIndex()`/`index()` —
+    sinon un futur `db:generate` produirait des DROP destructeurs (bug corrigé
+    le 03/11/2026).
+- **`shared/csv.ts`** : `parseCsv` détecte le séparateur (`;` Excel-fr vs `,`)
+  et strippe le BOM — l'import accepte désormais les exports Excel-fr ;
+  `frDate` refuse les dates fantômes (31/02/2024 → null) ; `csvCell` échappe `\r`.
+- **`shared/stats.ts`** : un bien sans surface (segment m2) ou sans loyer est
+  EXCLU des ratios (plus de faux « suspects » à −100 %) ; `manqueAGagnerAnnuel`
+  est en euros RÉELS (€/m²/mois × 12 × surface) ; dates parsées en local
+  (`parseIsoLocal`), anniversaire 29/02 borné au 28/02, trimestre ancré
+  `/\bT([1-4])\b/`.
+- **`referenceQuittance()`** lève si `periode` ≠ `yyyy-mm` (protège l'index unique).
+- **Tests : 61** (csv, stats, echeancier, rapprochement). Release workflow :
+  `npm ci` + `npm test` avant build (bloque une release rouge).
+- **Environnement de dev de la machine** (npm récent) : les scripts postinstall
+  sont BLOQUÉS par défaut (`npm install-scripts`) — après un `npm install`
+  neuf : approuver electron/better-sqlite3/esbuild, `npx electron-rebuild -f
+-w better-sqlite3` (sinon NODE_MODULE_VERSION 147 vs 143), et si le binaire
+  Electron ne se télécharge pas : le zipper manuellement depuis
+  github.com/electron/electron/releases (v40.9.3, win32-x64) vers
+  `node_modules/electron/dist` + `path.txt` = `electron.exe`.
+
+### Chantier v1.16-dev — session 2 (04/11/2026, même release à venir)
+
+- **Avis d'échéance** (`Quittances.tsx`, `construireAvisEcheance`) : rappel du
+  loyer À VENIR du mois suivant, même référence QUITT, document distinct de la
+  quittance. Échéancier réel intégré : montant proratisé (`montantAttendu`) +
+  date d'échéance = jour de paiement du bail (`echeanceIso`). Sauvegardé SANS
+  trace dans l'historique des quittances (ce n'est pas une quittance).
+- **Relances d'impayés** (`shared/relances.ts` — pur, 5 tests + bouton ✉ dans
+  Paiements) : 3 niveaux (courtoise / ferme / mise en demeure), objet + corps
+  préremplis, l'utilisateur relit puis : email (SMTP), copie presse-papiers, ou
+  lettre PDF (`construireLettreRelance` dans Paiements). JAMAIS d'envoi auto.
+- **Contrat de location pré-rempli** (`contrat.service.ts` côté main, canal
+  `contrat:pdf`, bouton « Contrat » de la fiche bail) : modèle indicatif loi
+  1989 nu (3 ans) / meublé (1 an), jour de paiement et prorata intégrés,
+  mention « modèle à adapter » — GestyLoc ne rédige pas de contrat définitif.
+- **Traçage assurance** (migration 0013, `baux.assurance_demandee_le`) : datée
+  par `demanderAssurance()` de la fiche bail après envoi réussi ; l'alerte
+  anniversaire est SUPPRIMÉE si la dernière demande a moins de 330 jours.
+- **Rapprochement v2 (règles mémorisées)** : paramètre `rapprochement` =
+  `{ regles: { cléLibellé → bailId } }` où `cleRegle()` = libellé normalisé
+  SANS chiffres. Passées en 4e argument de `proposerPointages` : une règle
+  reconnue prime sur le nom (confiance haute, motif « Règle mémorisée ») et
+  lève l'ambiguïté de montant. Sauvegardées à chaque validation en masse ;
+  bouton « Oublier les règles » dans la section.
+- **Simulateur** : colonne « Dernière révision appliquée » (baux_revisions via
+  `db:revisions:list-all` → `ipc.revisions.listAll()`) : comparatif théorique
+  (simulation) vs réellement appliqué, bail par bail.
+- **Lint VERT (0/0)** : `.gitattributes` (`* text=auto eol=lf`) + prettier
+  `endOfLine: auto` ; 2 règles OFF documentées dans eslint.config.mjs
+  (`react-hooks/set-state-in-effect` — pattern de chargement voulu — et
+  `react/prop-types` — TS couvre) ; disables BLOCS pour le branchement
+  pdfmake/vfs (les `// eslint-disable-next-line` mono-ligne ne couvrent PAS
+  les chaînes multi-lignes — piège récurrent de ce repo) ; `npm run lint`
+  dans la CI de release. `scripts/test-db/bundle.mjs` est ignoré du lint.
+- **Harnais tests BDD** : `npm run test:db` = esbuild (bundle ESM, externals
+  electron/better-sqlite3, alias @shared) + `electron scripts/test-db/bundle.mjs`.
+  Le bundle redirige `app.setPath('userData')` vers un dossier TEMPORAIRE
+  (jamais la vraie base !), applique les .sql réels, 8 assertions sur
+  repositories + alertes + paramètres. Tests de date volontairement bornés
+  (pas de flaky) : les calculs calendaires purs restent dans vitest.
+  ⚠️ Éviter les `await import()` dynamiques dans ce harnais (esbuild renomme
+  mal les bindings) : imports statiques.
+- **Tests : 70 vitest + 8 BDD.**
+
 ### 🚨 Pièges runtime à connaître
+
 - **`window.prompt()` n'existe PAS dans Electron** — toute saisie se fait
   par un modal React (le bug « marquer partiel » venait de là)
 - **Clés étrangères** : jamais envoyées dans un UPDATE (le formulaire de
@@ -275,11 +386,17 @@ nouvelle table avec FK.
 ## 9. Prochaines étapes
 
 Lire `ROADMAP.md` (source de vérité). Restants :
+
+- **Publier v1.16.0** : valider le chantier du 03/11/2026 dans l'app réelle
+  (16 baux : vérifier le pointage proratisé du premier mois, tester le
+  rapprochement avec un vrai relevé CSV de la banque), puis bump + tag + release
 - Corriger les IRL des 15-16 baux importés (paires non légales héritées du
   tableur — l'outil embarqué de la fiche bail le fait en 2 min chacun)
 - Avis d'échéance (document distinct, souhait de l'UIA)
-- Traçage des demandes d'assurance envoyées
-- Compteurs cohérents loués/gratuits, recherche globale, duplication de bail
+- Traçage des demandes d'assurance envoyées (le reçu refondu et
+  `baux_revisions` posent le décor)
+- Sauvegarde auto hebdomadaire, notifications Windows, décomptes en lot,
+  export 2044 PDF (Finition P3)
 - Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing)
 - Vagues produit : bail pré-rempli, relances, état des lieux, SEPA/portail
 - Licence : PolyForm Noncommercial (usage commercial réservé au SAS projet)
