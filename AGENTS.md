@@ -15,7 +15,7 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.16.1 publiée** (06/11/2026, tag `v1.16.1`, `main`) — v1.16.0
+État actuel : **v1.17.1 publiée** (06/11/2026, tag `v1.17.1`, `main`) — v1.17.0
 (échéancier réel, rapprochement bancaire + v2, avis d'échéance, relances,
 contrat pré-rempli, traçage assurance, table `baux_revisions`, lint vert,
 harnais BDD) puis v1.16.1 (outillage uniquement : générateur + fixtures de
@@ -130,8 +130,9 @@ traçées dans la table `_migrations`. Règles :
 npm run dev          # dev (HMR, DevTools ouverts)
 npm run typecheck    # tsc node + web — OBLIGATOIRE avant commit
 npm run lint         # eslint — 0 erreur / 0 warning exigé (aussi en CI release)
-npm test             # vitest — 70 tests (modules purs de shared/)
-npm run test:db      # harnais BDD via Electron — 8 tests repositories/alertes
+npm test             # vitest — 118 tests (modules purs de shared/ + format renderer)
+npm run test:db      # harnais BDD via Electron — 40 tests, 1 fichier par entité
+npm run test:coverage # couverture shared/ (seuils bloquants 80/70/80) — cf. docs/tests/ETAT-HARNAIS.md
 npm run build        # typecheck + build electron-vite
 npm run build:win    # typecheck + build + installeur NSIS dans dist/
 npm run build:unpack # build + dossier non packagé (test rapide sans installeur)
@@ -140,11 +141,16 @@ npm run db:generate  # génère une migration depuis schema.ts (drizzle-kit)
 
 Les tests vitest (`npm test`, dossier `tests/`) couvrent les utilitaires purs
 de `shared/csv.ts`, `shared/stats.ts`, `shared/echeancier.ts`,
-`shared/rapprochement.ts` et `shared/relances.ts` — 70 tests. Ils tournent
+`shared/rapprochement.ts` et `shared/relances.ts` — 118 tests (couverture
+shared/ : 98,31 % lignes / 85,62 % branches, seuils 80/70/80 bloquants via
+`npm run test:coverage`). Ils tournent
 sur Node pur : ne les fais PAS importer des modules qui chargent
 better-sqlite3 (incompatibilité de moteur, voir §2). Pour la BDD, utiliser
 le harnais `npm run test:db` (§8, session 2) — pas besoin de script ad hoc.
-Pour fumer-tester rapidement un module qui touche la BDD : écrire un script temporaire et le lancer avec
+Pour tester la BDD, ajouter un fichier dans scripts/test-db/ (1 fichier par
+entité, auto-contenu, enregistré dans main.ts — cf. docs/tests/ETAT-HARNAIS.md
+pour l'état complet, les preuves de mutation et les défauts documentés). Pour
+fumer-tester rapidement un module qui touche la BDD : écrire un script temporaire et le lancer avec
 `./node_modules/.bin/electron script.js` (le module natif ne charge que dans
 Electron), puis supprimer le script.
 

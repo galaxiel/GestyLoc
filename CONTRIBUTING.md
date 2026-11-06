@@ -29,8 +29,9 @@ Détail de ce problème de compilation : voir `AGENTS.md` §2.
 
 ```bash
 npm run dev          # développement
-npm test             # tests vitest (70 tests — modules purs de shared/)
-npm run test:db      # tests BDD via Electron (8 tests — repositories, alertes)
+npm test             # tests vitest (118 tests — modules purs de shared/ + format)
+npm run test:db      # tests BDD via Electron (40 tests — 1 fichier par entité)
+npm run test:coverage # couverture de shared/ (seuils bloquants 80 % lignes)
 node scripts/gen_demo_30.mjs   # régénère fixtures/demo-30/ (seed 20261106, --dry-run dispo)
 node scripts/check_demo_30.mjs # vérifie les 30 dossiers de démo (13 invariants, base temporaire)
 npm run typecheck    # TypeScript strict (obligatoire avant commit)
@@ -170,11 +171,12 @@ GH_TOKEN=ton_token npx electron-builder --win --publish always
 
 ## Points spécifiques
 
-- **Tests** : `npm test` (vitest, 70 tests — modules purs de `shared/`) et
+- **Tests** : `npm test` (vitest, 118 tests) et
   `npm run test:db` (harnais Electron, 8 tests — repositories/alertes ; better-
   sqlite3 ne charge que dans Electron, détail dans `AGENTS.md` §2) et
   `node scripts/check_demo_30.mjs` (30 dossiers de démo — jamais la base
-  réelle, cf. `fixtures/demo-30/README.md`)
+  réelle, cf. `fixtures/demo-30/README.md`). État complet du harnais, preuves
+  de mutation et défauts documentés : `docs/tests/ETAT-HARNAIS.md`
 - **Lint** : `npm run lint` — 0 erreur / 0 warning exigé (aussi bloquant dans
   la CI de release)
 - **Table IRL** : `shared/irl-insee.ts` est régénérée automatiquement chaque

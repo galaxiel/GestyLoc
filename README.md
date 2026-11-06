@@ -40,11 +40,11 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 **Quel fichier télécharger ?** Une release contient 4 fichiers — un seul t'intéresse
 généralement :
 
-| Fichier | Pour qui |
-|---|---|
-| `gestyloc-x.y.z-setup.exe` | 👤 **Toi** — l'installateur classique (recommandé) |
-| `GestyLoc-x.y.z-portable.zip` | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
-| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les |
+| Fichier                               | Pour qui                                                                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `gestyloc-x.y.z-setup.exe`            | 👤 **Toi** — l'installateur classique (recommandé)                                                                      |
+| `GestyLoc-x.y.z-portable.zip`         | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
+| `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les                                           |
 
 Les mises à jour sont **automatiques** : le logiciel vérifie les nouvelles
 versions au démarrage, vous propose de les télécharger, et installe au
@@ -92,6 +92,8 @@ GestyLoc est construit avec Electron, React, TypeScript et SQLite
 
 - `CONTRIBUTING.md` : installer l'environnement, comprendre l'architecture,
   publier une version
+- `docs/tests/ETAT-HARNAIS.md` : état des tests (118 unitaires + 40 base de
+  données, couverture ≥ 80 % sur les modules partagés, preuves de mutation)
 - `ROADMAP.md` : ce qui est fait et ce qui est prévu
 - `AGENTS.md` : note de passation technique (pour développeurs et agents LLM)
 

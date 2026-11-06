@@ -17,6 +17,12 @@
 > preload, + 10 bugs corrigés (audit externe). Détails dans les cases cochées
 > ci-dessous — publié en v1.16.0 le 04/11/2026 (tag `v1.16.0`, rituel CONTRIBUTING).
 >
+> **🔖 Session 06/11/2026 (soir) — v1.17.0 et v1.17.1** : v1.17.0 = remise à
+> zéro de l'application (Paramètres → Zone de danger, sauvegarde automatique
+> avant effacement, double confirmation) ; v1.17.1 = harnais de tests étendu
+> (118 vitest + 40 BDD, couverture shared/ 98,31 % lignes avec seuils
+> bloquants, 10 preuves de mutation) — état complet : docs/tests/ETAT-HARNAIS.md.
+>
 > **🔖 Session 06/11/2026 — v1.16.1 (outillage uniquement, code de l'app inchangé)** :
 > générateur déterministe de 30 dossiers locatifs synthétiques
 > (`scripts/gen_demo_30.mjs`, seed 20261106), fixtures `fixtures/demo-30/`
