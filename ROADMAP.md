@@ -17,6 +17,14 @@
 > preload, + 10 bugs corrigés (audit externe). Détails dans les cases cochées
 > ci-dessous — publié en v1.16.0 le 04/11/2026 (tag `v1.16.0`, rituel CONTRIBUTING).
 >
+> **🔖 Session 06/11/2026 — v1.16.1 (outillage uniquement, code de l'app inchangé)** :
+> générateur déterministe de 30 dossiers locatifs synthétiques
+> (`scripts/gen_demo_30.mjs`, seed 20261106), fixtures `fixtures/demo-30/`
+> (baux.csv au format d'import, paiements.csv au format d'export, manifest),
+> vérificateur `scripts/check_demo_30.mjs` (13 invariants sur base
+> TEMPORAIRE — jamais la base réelle %APPDATA%), limites métier documentées
+> dans fixtures/demo-30/README.md.
+>
 > **🔖 Session 04/11/2026 — compléments (même v1.16.0)** : avis d'échéance,
 > relances d'impayés (3 niveaux + lettre PDF), contrat de location pré-rempli,
 > traçage des demandes d'assurance (migration 0013), rapprochement v2 (règles
@@ -130,39 +138,39 @@
 - [x] Étendre les tests : 19 → 61 (échéancier, rapprochement, CSV Excel-fr/BOM,
       dates fantômes, stats segments) — _les repositories et le service d'alertes
       restent à couvrir_
-- [x] Étendre les tests aux repositories et au service d'alertes — *harnais
-  Electron `npm run test:db` (scripts/test-db/) : base temporaire, migrations
-  réelles, 8 assertions (FK factice ignorée en UPDATE, reference/notes d'upsert,
-  révisions, paramètres, alertes retard/impayé/occupation-gratuite, marge
-  échéancier). La voie libsql reste ouverte pour intégrer ça à vitest un jour.*
+- [x] Étendre les tests aux repositories et au service d'alertes — _harnais
+      Electron `npm run test:db` (scripts/test-db/) : base temporaire, migrations
+      réelles, 8 assertions (FK factice ignorée en UPDATE, reference/notes d'upsert,
+      révisions, paramètres, alertes retard/impayé/occupation-gratuite, marge
+      échéancier). La voie libsql reste ouverte pour intégrer ça à vitest un jour._
 - [x] **Lint** : 0 erreur / 0 warning — les 43 erreurs corrigées (dont un vrai
-  bug latent : hook useState après return conditionnel dans BailDetail ;
-  impureté de rendu dans BienDetail), `.gitattributes` (eol=lf) + prettier
-  `endOfLine: auto` (fin des 10 k warnings CRLF), et `npm run lint` est passé
-  dans la CI de release (bloque une release sale).
+      bug latent : hook useState après return conditionnel dans BailDetail ;
+      impureté de rendu dans BienDetail), `.gitattributes` (eol=lf) + prettier
+      `endOfLine: auto` (fin des 10 k warnings CRLF), et `npm run lint` est passé
+      dans la CI de release (bloque une release sale).
 
 ## 🔮 Pistes produit (nécessitent une décision, pas des bugs)
 
-- [x] **Bail pré-rempli généré** (nu/meublé, loi 1989) — *bouton « Contrat » de
-  la fiche bail : parties, désignation, durée légale, loyer + jour de paiement,
-  dépôt, IRL, annexes, signatures — modèle indicatif à relire*
+- [x] **Bail pré-rempli généré** (nu/meublé, loi 1989) — _bouton « Contrat » de
+      la fiche bail : parties, désignation, durée légale, loyer + jour de paiement,
+      dépôt, IRL, annexes, signatures — modèle indicatif à relire_
 - [x] **Relances d'impayés** (courtoise / ferme / mise en demeure — email
-  prérempli + copie + lettre PDF) — *bouton ✉ sur les lignes retard/impayé de
-  Paiements, 3 templates testés dans `shared/relances.ts`, jamais d'envoi
-  automatique*
+      prérempli + copie + lettre PDF) — _bouton ✉ sur les lignes retard/impayé de
+      Paiements, 3 templates testés dans `shared/relances.ts`, jamais d'envoi
+      automatique_
 - [x] **Avis d'échéance** : document distinct de la quittance (rappel du loyer à
-  venir AVANT paiement, même référence QUITT) — *bouton dans la page Quittances
-  pour le mois suivant, échéancier réel intégré (prorata + jour de paiement)*
+      venir AVANT paiement, même référence QUITT) — _bouton dans la page Quittances
+      pour le mois suivant, échéancier réel intégré (prorata + jour de paiement)_
 - **État des lieux numérique** (photos + PDF) — gros chantier
 - **Modèles de lettres** (congé, augmentation, EDL) — petit
 - **Prélèvement SEPA / portail locataire / sync bancaire** — gros, oriente vers
   le SaaS
 - **IA locale (Ollama)** pour lecture de factures / questions sur le parc —
   l'axe « local souverain », différenciant
-- [x] **Assurances : traçage des demandes envoyées** — *migration 0013
-  (baux.assurance_demandee_le), tracée à chaque envoi de l'email d'assurance,
-  affichée sur la fiche bail ; l'alerte anniversaire ne repart pas si la
-  demande a moins de 11 mois*
+- [x] **Assurances : traçage des demandes envoyées** — _migration 0013
+      (baux.assurance_demandee_le), tracée à chaque envoi de l'email d'assurance,
+      affichée sur la fiche bail ; l'alerte anniversaire ne repart pas si la
+      demande a moins de 11 mois_
 - **Signature de code (SmartScreen)** : les installs affichent « Windows a
   protégé votre ordinateur » (app non signée). Contournement immédiat :
   « Informations complémentaires → Exécuter quand même ». Solutions : Azure

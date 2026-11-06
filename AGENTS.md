@@ -15,11 +15,13 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.16.0 publiée** (04/11/2026, tag `v1.16.0`, `main`) — échéancier
-réel, rapprochement bancaire + v2, avis d'échéance, relances, contrat pré-rempli,
-traçage assurance, table `baux_revisions`, lint vert, harnais BDD. Le chantier
-v1.16 est **commité et livré** : un clone frais du dépôt le contient, et les
-détails sont dans ROADMAP (« Session 03/11/2026 » et « Session 04/11/2026 »).
+État actuel : **v1.16.1 publiée** (06/11/2026, tag `v1.16.1`, `main`) — v1.16.0
+(échéancier réel, rapprochement bancaire + v2, avis d'échéance, relances,
+contrat pré-rempli, traçage assurance, table `baux_revisions`, lint vert,
+harnais BDD) puis v1.16.1 (outillage uniquement : générateur + fixtures de
+30 dossiers synthétiques + vérificateur, code de l'app inchangé). Tout est
+**commité et livré** : un clone frais du dépôt le contient. Détails dans
+ROADMAP (« Session 03/11/2026 », « Session 04/11/2026 », « Session 06/11/2026 »).
 Les données réelles de l'utilisateur (16 baux) sont déjà importées dans sa base
 locale. Considère toute case cochée de `ROADMAP.md` comme faite, ne la refais pas.
 
@@ -299,7 +301,7 @@ nouvelle table avec FK.
   loyer non pointé) + confirmation art. 21 si génération sans pointage
 - **Alertes** : assurance à demander (30 j avant l'anniversaire du bail)
 
-### Chantier v1.16-dev (03/11/2026, NON PUBLIÉ — à publier après validation)
+### Chantier v1.16-dev (03/11/2026, livré en v1.16.0)
 
 - **Échéancier réel** : `baux.jour_paiement` (migration 0011, défaut 1),
   prorata du 1er mois en **jours civils** (`shared/echeancier.ts`, 12 tests —
@@ -353,7 +355,7 @@ nouvelle table avec FK.
   github.com/electron/electron/releases (v40.9.3, win32-x64) vers
   `node_modules/electron/dist` + `path.txt` = `electron.exe`.
 
-### Chantier v1.16-dev — session 2 (04/11/2026, même release à venir)
+### Chantier v1.16-dev — session 2 (04/11/2026, livré en v1.16.0)
 
 - **Avis d'échéance** (`Quittances.tsx`, `construireAvisEcheance`) : rappel du
   loyer À VENIR du mois suivant, même référence QUITT, document distinct de la
@@ -396,6 +398,34 @@ nouvelle table avec FK.
   ⚠️ Éviter les `await import()` dynamiques dans ce harnais (esbuild renomme
   mal les bindings) : imports statiques.
 - **Tests : 70 vitest + 8 BDD.**
+
+### Outillage démo/tests (06/11/2026, livré en v1.16.1 — code de l'app inchangé)
+
+- **`scripts/gen_demo_30.mjs`** : générateur DÉTERMINISTE de 30 dossiers
+  locatifs synthétiques (`--seed`, défaut 20261106 ; `--out` ; `--dry-run`).
+  Même seed → fichiers identiques au bit près (PRNG mulberry32, démo figée à
+  novembre 2026, aucune date courante). Sorties dans `fixtures/demo-30/` :
+  `baux.csv` (format d'import de l'app, mapping par index 0..20), `paiements.csv`
+  (format d'export, bail_id = ordre de ligne de baux.csv sur base neuve),
+  `dossiers.json` (manifest : compléments post-import + valeurs attendues),
+  `README.md` (les 30 dossiers + limites).
+- **`scripts/check_demo_30.mjs`** : vérificateur — régénère les fixtures et
+  compare au bit près, puis importe baux.csv dans une base SQLite TEMPORAIRE
+  (patron du harnais test:db : `app.setPath('userData')` vers un tmpdir) avec
+  les vraies migrations, applique les compléments du manifest (dépôt, type de
+  charges, congés, révisions IRL, régularisations, fusion de colocation),
+  charge paiements.csv, et prouve 13 invariants avec le VRAI code de l'app
+  (`shared/echeancier.ts`, `alertes.service.ts`). Sortie : tableau 30 lignes,
+  exit 0. La base temporaire est SUPPRIMÉE à la fin.
+- **⚠️ Garde-fous non négociables** : ne JAMAIS lire/écrire
+  `%APPDATA%\gestyloc\data\app.db` (16 baux réels du propriétaire) — tout le
+  harnais passe par une base temporaire ; aucune donnée personnelle réelle
+  dans les fixtures (noms 100 % fictifs, indices IRL publics INSEE tirés de
+  `shared/irl-insee.ts`) ; calculs du générateur volontairement indépendants
+  du code de l'app (c'est ce qui rend le test de non-régression meaningful) ;
+  limites métier documentées dans `fixtures/demo-30/README.md` (colocation =
+  2 baux fusionnés post-import, restitution du dépôt non modélisée, paliers
+  d'alerte = nombre d'alertes, taux_irl corrigé post-import).
 
 ### 🚨 Pièges runtime à connaître
 

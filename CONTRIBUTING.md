@@ -31,6 +31,8 @@ Détail de ce problème de compilation : voir `AGENTS.md` §2.
 npm run dev          # développement
 npm test             # tests vitest (70 tests — modules purs de shared/)
 npm run test:db      # tests BDD via Electron (8 tests — repositories, alertes)
+node scripts/gen_demo_30.mjs   # régénère fixtures/demo-30/ (seed 20261106, --dry-run dispo)
+node scripts/check_demo_30.mjs # vérifie les 30 dossiers de démo (13 invariants, base temporaire)
 npm run typecheck    # TypeScript strict (obligatoire avant commit)
 npm run lint         # ESLint — 0 erreur / 0 warning exigé
 npm run build        # typecheck + build production
@@ -170,7 +172,9 @@ GH_TOKEN=ton_token npx electron-builder --win --publish always
 
 - **Tests** : `npm test` (vitest, 70 tests — modules purs de `shared/`) et
   `npm run test:db` (harnais Electron, 8 tests — repositories/alertes ; better-
-  sqlite3 ne charge que dans Electron, détail dans `AGENTS.md` §2)
+  sqlite3 ne charge que dans Electron, détail dans `AGENTS.md` §2) et
+  `node scripts/check_demo_30.mjs` (30 dossiers de démo — jamais la base
+  réelle, cf. `fixtures/demo-30/README.md`)
 - **Lint** : `npm run lint` — 0 erreur / 0 warning exigé (aussi bloquant dans
   la CI de release)
 - **Table IRL** : `shared/irl-insee.ts` est régénérée automatiquement chaque
