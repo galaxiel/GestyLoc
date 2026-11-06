@@ -99,3 +99,107 @@ describe('csvCell / versCsv', () => {
     expect(csv).toContain('Dupont;650')
   })
 })
+
+// ============================================================================
+// Priorité 4 — aller-retour export → import = IDENTITÉ : ce que l'export
+// écrit (versCsv, Excel-fr ; + BOM), le parseur doit le relire à l'identique
+// (parseCsv + frNombre + frDate). C'est le contrat export ↔ import.
+// ============================================================================
+
+import { versCsv as versCsvExport } from '../shared/csv'
+
+describe('aller-retour export → import (contrat export ↔ import)', () => {
+  it('baux : désignation avec ; et virgules décimales survit au round-trip', () => {
+    const ligne = [
+      'Appartement T3; étage 2',
+      'Appartement',
+      'Jean Dupont',
+      '15/03/2023',
+      '31/03/2026',
+      '',
+      'T1 2023',
+      'false',
+      '65.5',
+      '10.2',
+      '500',
+      '60',
+      '560',
+      '141.03',
+      '144.51',
+      '2.468',
+      '510',
+      '',
+      '6000',
+      '6720',
+      '1200'
+    ]
+    const csv = versCsvExport(['ID', 'Type'], [ligne.slice(0, 2)])
+    const relu = parseCsv(csv)
+    expect(relu[1]).toEqual(ligne.slice(0, 2))
+  })
+
+  it('montants : versCsv → parseCsv → frNombre = valeur d origine', () => {
+    // En-têtes multi-colonnes comme l'export réel (paiements) : la détection
+    // de séparateur se fait sur la première ligne.
+    const montants = [500, 60, 560, 650.5, 0.01, 1200.25, 7868.55]
+    const lignes = montants.map((m) => [
+      '1',
+      '2026-11',
+      String(m),
+      '2026-11-03',
+      'paye',
+      'Virement',
+      ''
+    ])
+    const csv = versCsvExport(
+      [
+        'bail_id',
+        'periode',
+        'montant_paye',
+        'date_paiement',
+        'statut',
+        'mode_paiement',
+        'reference'
+      ],
+      lignes
+    )
+    const relus = parseCsv(csv).slice(1)
+    expect(relus.map((l) => frNombre(l[2]))).toEqual(montants)
+  })
+
+  it('dates : versCsv → parseCsv → frDate = ISO d origine', () => {
+    const dates = ['2023-03-15', '2026-02-28', '2024-02-29']
+    const fr = dates.map((d) => d.split('-').reverse().join('/'))
+    const lignes = fr.map((d) => ['1', d, '450', '', 'paye', '', ''])
+    const csv = versCsvExport(
+      [
+        'bail_id',
+        'date_paiement',
+        'montant_paye',
+        'periode',
+        'statut',
+        'mode_paiement',
+        'reference'
+      ],
+      lignes
+    )
+    const relus = parseCsv(csv).slice(1)
+    expect(relus.map((l) => frDate(l[1]))).toEqual(dates)
+  })
+
+  it('cellules avec retour à la ligne (notes) : round-trip exact', () => {
+    const notes = 'Ligne 1\nLigne 2; avec point-virgule\net "guillemets"'
+    const csv = versCsvExport(['notes'], [[notes]])
+    const relu = parseCsv(csv)
+    expect(relu[1][0]).toBe(notes)
+  })
+
+  it('BOM + séparateur ; : le propre export de l app se relit sans ambiguïté', () => {
+    const csv = versCsv(['a', 'b'], [['1', '2']])
+    expect(csv.charCodeAt(0)).toBe(0xfeff)
+    expect(parseCsv(csv)).toEqual([
+      ['a', 'b'],
+      ['1', '2']
+    ])
+  })
+})
