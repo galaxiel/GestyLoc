@@ -318,6 +318,8 @@ export const ipc = {
     exportCsv: (): Promise<string | null> => unwrap(window.api.data.exportCsv()),
     backupCreate: (): Promise<string | null> => unwrap(window.api.data.backupCreate()),
     backupRestore: (): Promise<boolean> => unwrap(window.api.data.backupRestore()),
+    reset: (): Promise<string> =>
+      unwrap(window.api.data.reset() as Promise<{ ok: boolean; data?: string; error?: string }>),
     importPreview: (): Promise<{
       nbLignes: number
       apercu: {

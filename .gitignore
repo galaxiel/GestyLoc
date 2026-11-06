@@ -20,3 +20,4 @@ out
 # bundle généré par le harnais BDD (npm run test:db)
 scripts/test-db/bundle.mjs
 scripts/check_demo_30/bundle.mjs
+lint-report.json

@@ -1,5 +1,5 @@
 import { dialog, BrowserWindow, app } from 'electron'
-import { copyFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, rmSync } from 'fs'
 import { join, basename } from 'path'
 import { getDbPath, getRawConnection, closeDb } from '../database/connection'
 import { versCsv } from '@shared/csv'
@@ -213,4 +213,42 @@ export async function restaurerSauvegarde(): Promise<boolean> {
   app.relaunch()
   app.exit(0)
   return true
+}
+
+// ----------------------------------------------------------------------------
+// Remise à zéro : efface TOUTES les données (baux, locataires, paiements,
+// quittances tracées, régularisations, dépenses, documents joints) et relance
+// l'app, qui repart sur une base neuve (les migrations rejouent au démarrage).
+// Filet de sécurité : une sauvegarde COMPLÈTE est créée automatiquement juste
+// avant l'effacement (dans userData/backups/) — restaurable via le bouton
+// « Restaurer une sauvegarde » de Paramètres. La base réelle du propriétaire
+// n'est touchée QUE par cette action explicite déclenchée depuis l'UI.
+// ----------------------------------------------------------------------------
+export function remettreAZero(): string {
+  // 1) Sauvegarde automatique complète (WAL checkpointé avant la copie).
+  const dossierBackup = join(app.getPath('userData'), 'backups')
+  if (!existsSync(dossierBackup)) mkdirSync(dossierBackup, { recursive: true })
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const sauvegarde = join(dossierBackup, `avant_remise_a_zero_${stamp}.db`)
+  getRawConnection().pragma('wal_checkpoint(TRUNCATE)')
+  copyFileSync(getDbPath(), sauvegarde)
+  log.warn(`REMISE À ZÉRO — sauvegarde complète créée avant effacement : ${sauvegarde}`)
+
+  // 2) Ferme la connexion, efface la base et ses résidus WAL/SHM.
+  closeDb()
+  unlinkSync(getDbPath())
+  for (const ext of ['-wal', '-shm']) {
+    const p = getDbPath() + ext
+    if (existsSync(p)) unlinkSync(p)
+  }
+
+  // 3) Efface les documents joints (sinon fichiers orphelins sans bail).
+  const dossierDocuments = join(app.getPath('userData'), 'documents')
+  if (existsSync(dossierDocuments)) rmSync(dossierDocuments, { recursive: true, force: true })
+
+  // 4) Relance : l'app repart sur une base neuve, migrations rejouées.
+  log.warn('Base et documents supprimés — relance de l’application.')
+  app.relaunch()
+  app.exit(0)
+  return sauvegarde
 }

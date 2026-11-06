@@ -19,7 +19,12 @@ import {
   listQuittances,
   enregistrerQuittance
 } from '../services/quittance.service'
-import { exporterCsv, creerSauvegarde, restaurerSauvegarde } from '../services/donnees.service'
+import {
+  exporterCsv,
+  creerSauvegarde,
+  restaurerSauvegarde,
+  remettreAZero
+} from '../services/donnees.service'
 import { previewImport, commitImport } from '../services/import.service'
 import { recupererIndices, type TypeIndice } from '../services/indices.service'
 import { construireRecu } from '../services/recu.service'
@@ -191,6 +196,7 @@ export function registerDatabaseHandlers(): void {
   handle('data:export-csv', () => exporterCsv())
   handle('data:backup-create', () => creerSauvegarde())
   handle('data:backup-restore', () => restaurerSauvegarde())
+  handle('data:reset', () => remettreAZero())
   handle('data:import-preview', () => previewImport())
   handle('data:import-commit', () => commitImport())
 

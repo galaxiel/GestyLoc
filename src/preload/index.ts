@@ -226,6 +226,7 @@ const api = {
     exportCsv: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:export-csv'),
     backupCreate: (): Promise<IpcResult<string | null>> => ipcRenderer.invoke('data:backup-create'),
     backupRestore: (): Promise<IpcResult<boolean>> => ipcRenderer.invoke('data:backup-restore'),
+    reset: (): Promise<IpcResult<string>> => ipcRenderer.invoke('data:reset'),
     importPreview: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-preview'),
     importCommit: (): Promise<IpcResult<unknown>> => ipcRenderer.invoke('data:import-commit')
   }

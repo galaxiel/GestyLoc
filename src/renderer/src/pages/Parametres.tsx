@@ -14,7 +14,8 @@ import {
   Send,
   FolderOpen,
   Stethoscope,
-  CalendarClock
+  CalendarClock,
+  Trash2
 } from 'lucide-react'
 import type { ConstatAudit } from '@shared/audit'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
@@ -35,6 +36,10 @@ export function Parametres(): React.JSX.Element {
 
   // --- Données : export / import / sauvegarde ---
   const [dataMsg, setDataMsg] = useState<string | null>(null)
+  // Remise à zéro : modal de double confirmation (l'action est définitive ;
+  // une sauvegarde complète est néanmoins créée automatiquement avant).
+  const [resetOuvert, setResetOuvert] = useState(false)
+  const [resetConfirme, setResetConfirme] = useState(false)
   const [dataEnCours, setDataEnCours] = useState<string | null>(null)
 
   const executer = async (nom: string, action: () => Promise<string | null>): Promise<void> => {
@@ -628,6 +633,30 @@ export function Parametres(): React.JSX.Element {
         {dataMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{dataMsg}</p>}
       </div>
 
+      {/* Zone de danger : remise à zéro */}
+      <div className="rounded-xl border border-red-300 bg-red-50/50 p-6 dark:border-red-500/40 dark:bg-red-500/5">
+        <h2 className="mb-1 flex items-center gap-2 font-semibold text-red-700 dark:text-red-300">
+          <Trash2 className="h-4 w-4" /> Remise à zéro
+        </h2>
+        <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+          Efface <strong>toutes</strong> les données de l’application (biens, locataires, baux,
+          paiements, quittances tracées, régularisations, dépenses, documents joints) et redémarre
+          sur une base vide — pour repartir de zéro ou charger les données de démonstration.
+        </p>
+        <button
+          onClick={() => {
+            setResetConfirme(false)
+            setResetOuvert(true)
+          }}
+          disabled={dataEnCours !== null}
+          className="flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40"
+        >
+          <Trash2 className="h-4 w-4" />
+          Remettre l’application à zéro…
+        </button>
+        {dataMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{dataMsg}</p>}
+      </div>
+
       {/* Mise à jour */}
       <div className={cardCls}>
         <h2 className="mb-3 font-semibold">Mise à jour</h2>
@@ -659,6 +688,67 @@ export function Parametres(): React.JSX.Element {
         </div>
         {message && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{message}</p>}
       </div>
+
+      {/* Modal : remise à zéro (double confirmation) */}
+      {resetOuvert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <h2 className="mb-2 flex items-center gap-2 text-lg font-bold text-red-700 dark:text-red-300">
+              <Trash2 className="h-5 w-5" /> Remettre l’application à zéro ?
+            </h2>
+            <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+              Sera effacé définitivement : tous les biens, locataires, baux, paiements et leur
+              historique, les quittances tracées, les régularisations de charges, les dépenses et
+              les documents joints.
+            </p>
+            <p className="mb-4 rounded-lg border border-emerald-300 bg-emerald-50 p-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+              🔒 Une <strong>sauvegarde complète</strong> sera créée automatiquement juste avant
+              l’effacement (dossier <code>backups</code> de l’application). Si tu te trompes :
+              Paramètres → Restaurer une sauvegarde.
+            </p>
+            <label className="mb-4 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={resetConfirme}
+                onChange={(e) => setResetConfirme(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded"
+              />
+              <span>
+                Je comprends que <strong>toutes les données actuelles seront effacées</strong> et
+                que l’application va redémarrer sur une base vide.
+              </span>
+            </label>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setResetOuvert(false)}
+                className="rounded-lg border border-slate-300 px-4 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setResetConfirme(false)
+                  setResetOuvert(false)
+                  setDataMsg(
+                    'Remise à zéro en cours… sauvegarde puis redémarrage sur une base vide.'
+                  )
+                  void ipc.data
+                    .reset()
+                    .catch((err: unknown) =>
+                      setDataMsg(
+                        `Erreur : ${err instanceof Error ? err.message : String(err)} (l'app n'a pas été effacée)`
+                      )
+                    )
+                }}
+                disabled={!resetConfirme}
+                className="rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Effacer et redémarrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
