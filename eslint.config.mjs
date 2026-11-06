@@ -43,5 +43,14 @@ export default defineConfig(
       'react/prop-types': 'off'
     }
   },
+  {
+    // Scripts Node en JavaScript pur (générateurs/harnais sans TypeScript) :
+    // les annotations de retour TS y sont syntaxiquement impossibles.
+    files: ['scripts/**/*.mjs'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-require-imports': 'off'
+    }
+  },
   eslintConfigPrettier
 )

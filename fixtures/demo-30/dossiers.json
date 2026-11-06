@@ -1,0 +1,3859 @@
+{
+  "genere_le": "seed=20261106",
+  "refMoisCourant": "2026-11",
+  "noteBailIds": "paiements.csv référence les bail_id par ORDRE DE LIGNE de baux.csv sur une base neuve (autoincrement, import dans l’ordre).",
+  "dossiers": [
+    {
+      "id": "D01",
+      "famille": "simple",
+      "designation": "Appartement T3 — 18 des Écureuils, Nevers",
+      "type": "Appartement",
+      "locataires": [
+        "Alice Tissot-Vidal"
+      ],
+      "bail": {
+        "debut": "2024-06-20",
+        "fin": null,
+        "meuble": false,
+        "surface": 44,
+        "hc": 454,
+        "charges": 87,
+        "cc": 541
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D1"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D1"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D1"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D1"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D1"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D1"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D1"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D1"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D1"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D1"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D1"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 541,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D1"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D01#1"
+      ]
+    },
+    {
+      "id": "D02",
+      "famille": "simple",
+      "designation": "Studio meublé — 21 Basse des Vignes, Villeurbanne",
+      "type": "Studio",
+      "locataires": [
+        "Damien Verdier"
+      ],
+      "bail": {
+        "debut": "2022-12-05",
+        "fin": null,
+        "meuble": true,
+        "surface": 80,
+        "hc": 713,
+        "charges": 46,
+        "cc": 759
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D2"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D2"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D2"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D2"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D2"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D2"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D2"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D2"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D2"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D2"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D2"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 759,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D2"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D02#1"
+      ]
+    },
+    {
+      "id": "D03",
+      "famille": "simple",
+      "designation": "Appartement T2 — 10 du Mûrier, Valence",
+      "type": "Appartement",
+      "locataires": [
+        "Inès Pujol"
+      ],
+      "bail": {
+        "debut": "2023-03-15",
+        "fin": null,
+        "meuble": false,
+        "surface": 48,
+        "hc": 557,
+        "charges": 66,
+        "cc": 623
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D3"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D3"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D3"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D3"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D3"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D3"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D3"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D3"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D3"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D3"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D3"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 623,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D3"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D03#1"
+      ]
+    },
+    {
+      "id": "D04",
+      "famille": "simple",
+      "designation": "Garage en rez-de-chaussée — 19 de la Petite Forêt, Quimper",
+      "type": "Garage",
+      "locataires": [
+        "Hugo Pujol"
+      ],
+      "bail": {
+        "debut": "2023-03-15",
+        "fin": null,
+        "meuble": false,
+        "surface": 21,
+        "hc": 65,
+        "charges": 0,
+        "cc": 65
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D4"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D4"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D4"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D4"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D4"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D4"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D4"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D4"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D4"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D4"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D4"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 65,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D4"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D04#1"
+      ]
+    },
+    {
+      "id": "D05",
+      "famille": "simple",
+      "designation": "Maison de ville T4 — 21 du Puits Carré, Quimper",
+      "type": "Maison",
+      "locataires": [
+        "Damien Lambertin"
+      ],
+      "bail": {
+        "debut": "2023-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 47,
+        "hc": 713,
+        "charges": 49,
+        "cc": 762
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D5"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D5"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D5"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D5"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D5"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D5"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D5"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D5"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D5"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D5"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D5"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 762,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D5"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D05#1"
+      ]
+    },
+    {
+      "id": "D06",
+      "famille": "simple",
+      "designation": "Studio étudiant — 36 de la Petite Forêt, Villeurbanne",
+      "type": "Studio",
+      "locataires": [
+        "Chloé Solère"
+      ],
+      "bail": {
+        "debut": "2023-11-01",
+        "fin": null,
+        "meuble": true,
+        "surface": 88,
+        "hc": 774,
+        "charges": 91,
+        "cc": 865
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D6"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D6"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D6"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D6"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D6"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D6"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D6"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D6"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D6"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D6"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D6"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 865,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D6"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D06#1"
+      ]
+    },
+    {
+      "id": "D07",
+      "famille": "simple",
+      "designation": "Appartement T4 — 34 de la Petite Forêt, Nevers",
+      "type": "Appartement",
+      "locataires": [
+        "Hugo Solère"
+      ],
+      "bail": {
+        "debut": "2023-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 49,
+        "hc": 737,
+        "charges": 32,
+        "cc": 769
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D7"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D7"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D7"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D7"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D7"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D7"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D7"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D7"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D7"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D7"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D7"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 769,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D7"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D07#1"
+      ]
+    },
+    {
+      "id": "D08",
+      "famille": "simple",
+      "designation": "Box fermé — 32 des Écureuils, Nevers",
+      "type": "Garage",
+      "locataires": [
+        "Hugo Ravard"
+      ],
+      "bail": {
+        "debut": "2022-08-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 27,
+        "hc": 94,
+        "charges": 0,
+        "cc": 94
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D8"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D8"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D8"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D8"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D8"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D8"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D8"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D8"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D8"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D8"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D8"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 94,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D8"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D08#1"
+      ]
+    },
+    {
+      "id": "D09",
+      "famille": "simple",
+      "designation": "Appartement T3 duplex — 9 du Puits Carré, Quimper",
+      "type": "Appartement",
+      "locataires": [
+        "Bruno Tissot-Vidal"
+      ],
+      "bail": {
+        "debut": "2024-06-20",
+        "fin": null,
+        "meuble": false,
+        "surface": 61,
+        "hc": 563,
+        "charges": 26,
+        "cc": 589
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D9"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D9"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D9"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D9"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D9"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D9"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D9"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D9"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D9"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D9"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D9"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 589,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D9"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D09#1"
+      ]
+    },
+    {
+      "id": "D10",
+      "famille": "simple",
+      "designation": "Local artisan (atelier) — 13 du Mûrier, Villeurbanne",
+      "type": "Local",
+      "locataires": [
+        "Hugo Castaing"
+      ],
+      "bail": {
+        "debut": "2023-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 22,
+        "hc": 107,
+        "charges": 0,
+        "cc": 107
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D10"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D10"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D10"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D10"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D10"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D10"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D10"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D10"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D10"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D10"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D10"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 107,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D10"
+        }
+      ],
+      "attendus": {
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Bail actif, 12 périodes pointées « payé » → quittances générables, aucune alerte de loyer.",
+      "refsBail": [
+        "D10#1"
+      ]
+    },
+    {
+      "id": "D11",
+      "famille": "prorata",
+      "designation": "Appartement entrée 01 2026-03 — 37 du Puits Carré, Blois",
+      "type": "Appartement",
+      "locataires": [
+        "Bruno Verdier"
+      ],
+      "bail": {
+        "debut": "2026-03-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 68,
+        "hc": 480,
+        "charges": 60,
+        "cc": 540
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2026-03",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D11"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D11"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D11"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D11"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D11"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D11"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D11"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D11"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 540,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D11"
+        }
+      ],
+      "attendus": {
+        "prorataPremierMois": 540,
+        "fraction": "plein (entrée le 1er)",
+        "nbPaiements": 9,
+        "quittancePossible": true
+      },
+      "resultat": "Entrée le 1ᵉʳ → loyer plein (540 €), branche « pas de prorata » du calcul.",
+      "refsBail": [
+        "D11#1"
+      ]
+    },
+    {
+      "id": "D12",
+      "famille": "prorata",
+      "designation": "Appartement entrée 15 2026-04 — 1 du Mûrier, Villeurbanne",
+      "type": "Appartement",
+      "locataires": [
+        "Bruno Solère"
+      ],
+      "bail": {
+        "debut": "2026-04-15",
+        "fin": null,
+        "meuble": false,
+        "surface": 34,
+        "hc": 620,
+        "charges": 60,
+        "cc": 680
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2026-04",
+          "montant": 362.67,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D12"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D12"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D12"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D12"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D12"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D12"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D12"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 680,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D12"
+        }
+      ],
+      "attendus": {
+        "prorataPremierMois": 362.67,
+        "fraction": "16/30 j",
+        "nbPaiements": 8,
+        "quittancePossible": true
+      },
+      "resultat": "1ᵉʳ mois attendu = prorata 16/30 j = 362.67 €, pointé « payé » sans être un partiel.",
+      "refsBail": [
+        "D12#1"
+      ]
+    },
+    {
+      "id": "D13",
+      "famille": "prorata",
+      "designation": "Appartement entrée 28 2026-01 — 9 des Écureuils, Blois",
+      "type": "Appartement",
+      "locataires": [
+        "Jules Oberlin"
+      ],
+      "bail": {
+        "debut": "2026-01-28",
+        "fin": null,
+        "meuble": false,
+        "surface": 64,
+        "hc": 540,
+        "charges": 60,
+        "cc": 600
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2026-01",
+          "montant": 77.42,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D13"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D13"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D13"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D13"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D13"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D13"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D13"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D13"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D13"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D13"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D13"
+        }
+      ],
+      "attendus": {
+        "prorataPremierMois": 77.42,
+        "fraction": "4/31 j",
+        "nbPaiements": 11,
+        "quittancePossible": true
+      },
+      "resultat": "1ᵉʳ mois attendu = prorata 4/31 j = 77.42 €, pointé « payé » sans être un partiel.",
+      "refsBail": [
+        "D13#1"
+      ]
+    },
+    {
+      "id": "D14",
+      "famille": "prorata",
+      "designation": "Appartement entrée 30 2026-09 — 5 Basse des Vignes, Nevers",
+      "type": "Appartement",
+      "locataires": [
+        "Chloé Pujol"
+      ],
+      "bail": {
+        "debut": "2026-09-30",
+        "fin": null,
+        "meuble": false,
+        "surface": 38,
+        "hc": 540,
+        "charges": 60,
+        "cc": 600
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2026-09",
+          "montant": 20,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D14"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D14"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 600,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D14"
+        }
+      ],
+      "attendus": {
+        "prorataPremierMois": 20,
+        "fraction": "1/30 j",
+        "nbPaiements": 3,
+        "quittancePossible": true
+      },
+      "resultat": "1ᵉʳ mois attendu = prorata 1/30 j = 20 €, pointé « payé » sans être un partiel.",
+      "refsBail": [
+        "D14#1"
+      ]
+    },
+    {
+      "id": "D15",
+      "famille": "revision",
+      "designation": "Appartement révisé 2023 — 4 du Mûrier, Quimper",
+      "type": "Appartement",
+      "locataires": [
+        "Chloé Oberlin"
+      ],
+      "bail": {
+        "debut": "2023-10-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 61,
+        "hc": 671.9,
+        "charges": 70,
+        "cc": 741.9,
+        "irlReference": 148.06,
+        "irlNouveau": 148.06,
+        "trimestreReference": "T3 2026"
+      },
+      "complements": {
+        "revisions": [
+          {
+            "date": "2024-10-01",
+            "ancienHc": 640,
+            "irlRef": 141.03,
+            "irlNouv": 144.51,
+            "nouvelHc": 655.79,
+            "trimestreRef": "T3 2024",
+            "taux": 2.468
+          },
+          {
+            "date": "2026-10-01",
+            "ancienHc": 655.79,
+            "irlRef": 144.51,
+            "irlNouv": 148.06,
+            "nouvelHc": 671.9,
+            "trimestreRef": "T3 2026",
+            "taux": 2.457
+          }
+        ],
+        "dateDerniereRevision": "2026-10-01",
+        "tauxIrl": 2.457,
+        "trimestreReference": "T3 2026"
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D15"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D15"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D15"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D15"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D15"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D15"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D15"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D15"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D15"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D15"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D15"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 741.9,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D15"
+        }
+      ],
+      "attendus": {
+        "revisionAttendue": 671.9,
+        "alerteRevision": false,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "2 révisions appliquées (2024 puis 2026, 2025 sautée — cas réel) : loyer = HC × (IRL nouv / IRL ref) au centime à chaque étape ; plus d’alerte.",
+      "refsBail": [
+        "D15#1"
+      ]
+    },
+    {
+      "id": "D16",
+      "famille": "revision",
+      "designation": "Appartement révisé 2024 — 39 des Écureuils, Villeurbanne",
+      "type": "Appartement",
+      "locataires": [
+        "Éloise Solère"
+      ],
+      "bail": {
+        "debut": "2024-10-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 50,
+        "hc": 528.17,
+        "charges": 70,
+        "cc": 598.17,
+        "irlReference": 148.06,
+        "irlNouveau": 148.06,
+        "trimestreReference": "T3 2026"
+      },
+      "complements": {
+        "revisions": [
+          {
+            "date": "2026-10-01",
+            "ancienHc": 520,
+            "irlRef": 145.77,
+            "irlNouv": 148.06,
+            "nouvelHc": 528.17,
+            "trimestreRef": "T3 2026",
+            "taux": 1.571
+          }
+        ],
+        "dateDerniereRevision": "2026-10-01",
+        "tauxIrl": 1.571,
+        "trimestreReference": "T3 2026"
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D16"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D16"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D16"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D16"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D16"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D16"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D16"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D16"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D16"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D16"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D16"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 598.17,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D16"
+        }
+      ],
+      "attendus": {
+        "revisionAttendue": 528.17,
+        "alerteRevision": false,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "1 révision appliquée à l’anniversaire 2026 : nouveau HC = ancien HC × (IRL nouv / IRL ref), au centime ; plus d’alerte.",
+      "refsBail": [
+        "D16#1"
+      ]
+    },
+    {
+      "id": "D17",
+      "famille": "revision",
+      "designation": "Appartement révisé 2023 — 7 Basse des Vignes, Quimper",
+      "type": "Appartement",
+      "locataires": [
+        "Éloise Tissot-Vidal"
+      ],
+      "bail": {
+        "debut": "2023-04-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 53,
+        "hc": 580,
+        "charges": 70,
+        "cc": 650,
+        "irlReference": 141.03,
+        "irlNouveau": null,
+        "trimestreReference": "T1 2023"
+      },
+      "complements": {
+        "revisions": [],
+        "dateDerniereRevision": null,
+        "tauxIrl": null,
+        "trimestreReference": "T1 2023"
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D17"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D17"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D17"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D17"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D17"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D17"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D17"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D17"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D17"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D17"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D17"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 650,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D17"
+        }
+      ],
+      "attendus": {
+        "revisionAttendue": null,
+        "alerteRevision": true,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "IRL de référence renseigné, aucune révision appliquée depuis le début → alerte « révision IRL à l’anniversaire ».",
+      "refsBail": [
+        "D17#1"
+      ]
+    },
+    {
+      "id": "D18",
+      "famille": "revision",
+      "designation": "Appartement révisé 2022 — 15 de la Petite Forêt, Villeurbanne",
+      "type": "Appartement",
+      "locataires": [
+        "Farid Tissot-Vidal"
+      ],
+      "bail": {
+        "debut": "2022-10-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 78,
+        "hc": 512.34,
+        "charges": 70,
+        "cc": 582.34,
+        "irlReference": 144.51,
+        "irlNouveau": 144.51,
+        "trimestreReference": "T3 2024"
+      },
+      "complements": {
+        "revisions": [
+          {
+            "date": "2025-10-01",
+            "ancienHc": 500,
+            "irlRef": 141.03,
+            "irlNouv": 144.51,
+            "nouvelHc": 512.34,
+            "trimestreRef": "T3 2024",
+            "taux": 2.468
+          }
+        ],
+        "dateDerniereRevision": "2025-10-01",
+        "tauxIrl": 2.468,
+        "trimestreReference": "T3 2024"
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D18"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D18"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D18"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D18"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D18"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D18"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D18"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D18"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D18"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D18"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D18"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 582.34,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D18"
+        }
+      ],
+      "attendus": {
+        "revisionAttendue": 512.34,
+        "alerteRevision": true,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Dernière révision = anniversaire 2025 (taux IRL de l’année précédente) → anniversaire 2026 raté, alerte.",
+      "refsBail": [
+        "D18#1"
+      ]
+    },
+    {
+      "id": "D19",
+      "famille": "partiel",
+      "designation": "Appartement paiement partiel — 17 Basse des Vignes, Nevers",
+      "type": "Appartement",
+      "locataires": [
+        "Éloise Verdier"
+      ],
+      "bail": {
+        "debut": "2024-05-10",
+        "fin": null,
+        "meuble": false,
+        "surface": 71,
+        "hc": 587,
+        "charges": 55,
+        "cc": 642
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D19"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D19"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D19"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D19"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D19"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D19"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D19"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D19"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D19"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D19"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 353.1,
+          "statut": "partiel",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "RECU-2026-10-D19"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 642,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D19"
+        }
+      ],
+      "attendus": {
+        "partiel": {
+          "periode": "2026-10",
+          "montant": 353.1,
+          "attenduPlein": 642
+        },
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Période 2026-10 pointée « partiel » à 353.1 € (sur 642 €) → REÇU de paiement, pas de quittance pour cette période.",
+      "refsBail": [
+        "D19#1"
+      ]
+    },
+    {
+      "id": "D20",
+      "famille": "partiel",
+      "designation": "Appartement paiement partiel — 16 des Écureuils, Nevers",
+      "type": "Appartement",
+      "locataires": [
+        "Alice Oberlin"
+      ],
+      "bail": {
+        "debut": "2023-02-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 71,
+        "hc": 561,
+        "charges": 55,
+        "cc": 616
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D20"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D20"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D20"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D20"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D20"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D20"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D20"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D20"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D20"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 369.6,
+          "statut": "partiel",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "RECU-2026-09-D20"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D20"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 616,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D20"
+        }
+      ],
+      "attendus": {
+        "partiel": {
+          "periode": "2026-09",
+          "montant": 369.6,
+          "attenduPlein": 616
+        },
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Période 2026-09 pointée « partiel » à 369.6 € (sur 616 €) → REÇU de paiement, pas de quittance pour cette période.",
+      "refsBail": [
+        "D20#1"
+      ]
+    },
+    {
+      "id": "D21",
+      "famille": "partiel",
+      "designation": "Appartement paiement partiel — 29 du Puits Carré, Villeurbanne",
+      "type": "Appartement",
+      "locataires": [
+        "Inès Verdier"
+      ],
+      "bail": {
+        "debut": "2024-05-10",
+        "fin": null,
+        "meuble": false,
+        "surface": 70,
+        "hc": 697,
+        "charges": 55,
+        "cc": 752
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D21"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D21"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D21"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D21"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D21"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D21"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D21"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D21"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D21"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D21"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 300.8,
+          "statut": "partiel",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "RECU-2026-10-D21"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 752,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D21"
+        }
+      ],
+      "attendus": {
+        "partiel": {
+          "periode": "2026-10",
+          "montant": 300.8,
+          "attenduPlein": 752
+        },
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Période 2026-10 pointée « partiel » à 300.8 € (sur 752 €) → REÇU de paiement, pas de quittance pour cette période.",
+      "refsBail": [
+        "D21#1"
+      ]
+    },
+    {
+      "id": "D22",
+      "famille": "impaye",
+      "designation": "Maison impayé 1 mois — 23 Basse des Vignes, Quimper",
+      "type": "Maison",
+      "locataires": [
+        "Inès Castaing"
+      ],
+      "bail": {
+        "debut": "2022-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 98,
+        "hc": 584,
+        "charges": 65,
+        "cc": 649
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-01",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-02",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-03",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-04",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-05",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-06",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-07",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-08",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-09",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-10",
+          "montant": 649,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-11",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        }
+      ],
+      "attendus": {
+        "nbMoisImpayes": 1,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "1 période(s) pointée(s) « impayé » → 1 alerte(s) « impayé » au Dashboard (pas d'intensité croissante : cf. limites).",
+      "refsBail": [
+        "D22#1"
+      ]
+    },
+    {
+      "id": "D23",
+      "famille": "impaye",
+      "designation": "Maison impayé 2 mois — 21 du Puits Carré, Valence",
+      "type": "Maison",
+      "locataires": [
+        "Chloé Verdier"
+      ],
+      "bail": {
+        "debut": "2022-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 110,
+        "hc": 631,
+        "charges": 65,
+        "cc": 696
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-01",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-02",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-03",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-04",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-05",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-06",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-07",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-08",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-09",
+          "montant": 696,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-10",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-11",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        }
+      ],
+      "attendus": {
+        "nbMoisImpayes": 2,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "2 période(s) pointée(s) « impayé » → 2 alerte(s) « impayé » au Dashboard (pas d'intensité croissante : cf. limites).",
+      "refsBail": [
+        "D23#1"
+      ]
+    },
+    {
+      "id": "D24",
+      "famille": "impaye",
+      "designation": "Maison impayé 3 mois — 17 du Puits Carré, Quimper",
+      "type": "Maison",
+      "locataires": [
+        "Inès Tissot-Vidal"
+      ],
+      "bail": {
+        "debut": "2022-11-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 94,
+        "hc": 652,
+        "charges": 65,
+        "cc": 717
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-01",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-02",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-03",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-04",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-05",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-06",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-07",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-08",
+          "montant": 717,
+          "statut": "paye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-09",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-10",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        },
+        {
+          "periode": "2026-11",
+          "montant": 0,
+          "statut": "impaye",
+          "date": null,
+          "mode": null,
+          "ref": null
+        }
+      ],
+      "attendus": {
+        "nbMoisImpayes": 3,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "3 période(s) pointée(s) « impayé » → 3 alerte(s) « impayé » au Dashboard (pas d'intensité croissante : cf. limites).",
+      "refsBail": [
+        "D24#1"
+      ]
+    },
+    {
+      "id": "D25",
+      "famille": "conge",
+      "designation": "Appartement congé en cours — 24 du Puits Carré, Valence",
+      "type": "Appartement",
+      "locataires": [
+        "Chloé Lambertin"
+      ],
+      "bail": {
+        "debut": "2023-12-20",
+        "fin": "2026-12-20",
+        "meuble": false,
+        "surface": 58,
+        "hc": 660,
+        "charges": 80,
+        "cc": 740
+      },
+      "complements": {
+        "depotGarantie": 740,
+        "congéEnCours": true
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D25"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D25"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D25"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D25"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D25"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D25"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D25"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D25"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D25"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D25"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D25"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 740,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D25"
+        }
+      ],
+      "attendus": {
+        "joursAvantFin": 44,
+        "alerteFinBail": true,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Congé donné, fin dans ~44 jours → alerte « fin de bail », dépôt de garantie enregistré (restitution non modélisée).",
+      "refsBail": [
+        "D25#1"
+      ]
+    },
+    {
+      "id": "D26",
+      "famille": "conge",
+      "designation": "Appartement congé terminé — 25 du Mûrier, Villeurbanne",
+      "type": "Appartement",
+      "locataires": [
+        "Farid Solère"
+      ],
+      "bail": {
+        "debut": "2022-07-01",
+        "fin": "2026-07-31",
+        "meuble": false,
+        "surface": 52,
+        "hc": 590,
+        "charges": 75,
+        "cc": 665
+      },
+      "complements": {
+        "depotGarantie": 665,
+        "actif": false,
+        "congéTerminé": true
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D26"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D26"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D26"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D26"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D26"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D26"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D26"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 665,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D26"
+        }
+      ],
+      "attendus": {
+        "actif": false,
+        "alerteFinBail": false,
+        "nbPaiements": 8,
+        "quittancePossible": true
+      },
+      "resultat": "Bail clos (actif=false via complément — l’import force actif=1) → hors alertes, dépôt de 665 € à restituer (non modélisé).",
+      "refsBail": [
+        "D26#1"
+      ]
+    },
+    {
+      "id": "D27",
+      "famille": "regularisation",
+      "designation": "Appartement charges provisionnelles — 21 Basse des Vignes, Quimper",
+      "type": "Appartement",
+      "locataires": [
+        "Jules Castaing"
+      ],
+      "bail": {
+        "debut": "2022-09-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 85,
+        "hc": 506,
+        "charges": 92,
+        "cc": 598
+      },
+      "complements": {
+        "typeCharges": "provisionnelles",
+        "regularisations": [
+          {
+            "annee": 2025,
+            "chargesReelles": 844
+          }
+        ]
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D27"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D27"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D27"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D27"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D27"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D27"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D27"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D27"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D27"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D27"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D27"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 598,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D27"
+        }
+      ],
+      "attendus": {
+        "provisionsAnnee2025": 1104,
+        "chargesReelles2025": 844,
+        "ecart": 260,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Charges provisionnelles (92 €/mois) + régularisation 2025 : réelles 844 €, écart 260 € (décompte PDF art. 23).",
+      "refsBail": [
+        "D27#1"
+      ]
+    },
+    {
+      "id": "D28",
+      "famille": "regularisation",
+      "designation": "Appartement charges provisionnelles — 13 de la Petite Forêt, Valence",
+      "type": "Appartement",
+      "locataires": [
+        "Damien Pujol"
+      ],
+      "bail": {
+        "debut": "2023-06-15",
+        "fin": null,
+        "meuble": false,
+        "surface": 82,
+        "hc": 609,
+        "charges": 78,
+        "cc": 687
+      },
+      "complements": {
+        "typeCharges": "provisionnelles",
+        "regularisations": [
+          {
+            "annee": 2025,
+            "chargesReelles": 1076
+          }
+        ]
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D28"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D28"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D28"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D28"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D28"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D28"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D28"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D28"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D28"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D28"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D28"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 687,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D28"
+        }
+      ],
+      "attendus": {
+        "provisionsAnnee2025": 936,
+        "chargesReelles2025": 1076,
+        "ecart": -140,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Charges provisionnelles (78 €/mois) + régularisation 2025 : réelles 1076 €, écart -140 € (décompte PDF art. 23).",
+      "refsBail": [
+        "D28#1"
+      ]
+    },
+    {
+      "id": "D29",
+      "famille": "parking",
+      "designation": "Parking extérieur sans charges — 9 Basse des Vignes, Nevers",
+      "type": "Parking",
+      "locataires": [
+        "Jules Pujol"
+      ],
+      "bail": {
+        "debut": "2023-04-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 12,
+        "hc": 45,
+        "charges": null,
+        "cc": 45
+      },
+      "complements": {},
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2025-12-03",
+          "mode": "Espèces",
+          "ref": "ESP-2025-12-D29"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-01-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-01-D29"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-02-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-02-D29"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-03-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-03-D29"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-04-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-04-D29"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-05-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-05-D29"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-06-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-06-D29"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-07-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-07-D29"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-08-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-08-D29"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-09-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-09-D29"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-10-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-10-D29"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 45,
+          "statut": "paye",
+          "date": "2026-11-03",
+          "mode": "Espèces",
+          "ref": "ESP-2026-11-D29"
+        }
+      ],
+      "attendus": {
+        "chargesNulles": true,
+        "attenduPlein": 45,
+        "nbPaiements": 12,
+        "quittancePossible": true
+      },
+      "resultat": "Parking sans charges (colonne vide à l'import) → attendu = loyer CC = HC = 45 €, aucune régularisation possible.",
+      "refsBail": [
+        "D29#1"
+      ]
+    },
+    {
+      "id": "D30",
+      "famille": "colocation",
+      "designation": "Appartement en colocation (2 baux) — 9 rue du Mûrier, Blois",
+      "type": "Appartement",
+      "locataires": [
+        "Gwenn Tissot-Vidal",
+        "Bruno Ravard"
+      ],
+      "bail": {
+        "debut": "2024-09-01",
+        "fin": null,
+        "meuble": false,
+        "surface": 74,
+        "hc": 640,
+        "charges": 90,
+        "cc": 730
+      },
+      "complements": {
+        "colocation": true,
+        "repartition": [
+          365,
+          365
+        ]
+      },
+      "paiements": [
+        {
+          "periode": "2025-12",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2025-12-05",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2025-12",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2025-12-05",
+          "mode": "Virement",
+          "ref": "VIR-2025-12-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-01-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-01",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-01-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-01-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-02-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-02",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-02-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-02-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-03-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-03",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-03-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-03-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-04-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-04",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-04-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-04-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-05-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-05",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-05-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-05-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-06-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-06",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-06-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-06-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-07-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-07",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-07-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-07-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-08-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-08",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-08-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-08-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-09-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-09",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-09-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-09-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-10-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-10",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-10-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-10-D30B",
+          "locataire": "LOC31"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-11-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D30A",
+          "locataire": "LOC30"
+        },
+        {
+          "periode": "2026-11",
+          "montant": 365,
+          "statut": "paye",
+          "date": "2026-11-05",
+          "mode": "Virement",
+          "ref": "VIR-2026-11-D30B",
+          "locataire": "LOC31"
+        }
+      ],
+      "attendus": {
+        "nbBaux": 2,
+        "nbBiens": 1,
+        "nbPaiements": 24,
+        "quittancePossible": true
+      },
+      "resultat": "1 bien, 2 baux (1 par colocataire, moitié du loyer chacun) → 2 quittances par période possibles.",
+      "refsBail": [
+        "D30#1",
+        "D30#2"
+      ]
+    }
+  ]
+}
