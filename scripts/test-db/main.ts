@@ -46,7 +46,11 @@ console.log(
 )
 
 // 3) Les fichiers de test par entité (imports dynamiques après le setPath).
+const { registreBienTests } = await import('./bien.test')
 const { registreBailTests } = await import('./bail.test')
+const { registreLocataireTests } = await import('./locataire.test')
+const { registreDepenseTests } = await import('./depense.test')
+const { registreRegularisationTests } = await import('./regularisation.test')
 const { registrePaiementTests } = await import('./paiement.test')
 const { registreBailRevisionTests } = await import('./bail-revision.test')
 const { registreParametresTests } = await import('./parametres.test')
@@ -56,7 +60,11 @@ const { registreEcheancierTests } = await import('./echeancier.test')
 const { registreAuditTests } = await import('./audit.test')
 
 console.log('\n=== Repositories ===')
+await registreBienTests(test)
 await registreBailTests(test)
+await registreLocataireTests(test)
+await registreDepenseTests(test)
+await registreRegularisationTests(test)
 await registrePaiementTests(test)
 await registreBailRevisionTests(test)
 await registreParametresTests(test)
