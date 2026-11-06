@@ -5,7 +5,10 @@
 // Mêmes familles et format que le jeu visible (CONTRAT §7), quotas doublés.
 // ============================================================================
 
-const out = new URL('./cas-scelle-2000.json', import.meta.url).pathname.replace(/^\/(\w:)/, '$1')
+import { writeFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+const out = join(dirname(fileURLToPath(import.meta.url)), 'cas-scelle-2000.json')
 let seed = 777777
 
 function mulberry32(s) {
@@ -218,8 +221,7 @@ for (let i = 0; i < 80; i++) {
   )
 }
 
-const fs = await import('node:fs')
-fs.writeFileSync(
+writeFileSync(
   out,
   JSON.stringify(
     {
