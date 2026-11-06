@@ -203,3 +203,100 @@ describe('simulerRattrapageIrl', () => {
     expect(r[0].revisionsJouees).toBe(0)
   })
 })
+
+// ============================================================================
+// Priorité 1 (risque financier) — chaînes de révision IRL : arrondi au
+// centime À CHAQUE étape (règle codée), indices réels INSEE (shared/irl-insee.ts),
+// anniversaire 29 février (année bissextile), trimestre de référence ancré.
+// ============================================================================
+
+describe('chaînes de révision IRL (priorité 1)', () => {
+  it('chaîne 2024 → 2025 → 2026 avec indices réels : arrondi au centime À CHAQUE révision', () => {
+    // Indices publics INSEE (shared/irl-insee.ts). Le simulateur rejoue les
+    // anniversaires année par année : chaque ratio = T(n) année précédente /
+    // T(n) cette année, avec arrondi au centime entre chaque étape.
+    const map = new Map([
+      ['2023-Q3', 141.03],
+      ['2024-Q3', 144.51],
+      ['2025-Q3', 145.77],
+      ['2026-Q3', 148.06]
+    ])
+    const r = simulerRattrapageIrl(
+      [
+        {
+          bailId: 1,
+          designation: 'chaîne',
+          locataire: 'X',
+          loyerHcActuel: 640,
+          dateDebutBail: '2023-10-01',
+          trimestreRef: 'T3 2023'
+        }
+      ],
+      2024,
+      map,
+      null
+    )
+    const etape1 = Math.round(640 * (144.51 / 141.03) * 100) / 100
+    const etape2 = Math.round(etape1 * (145.77 / 144.51) * 100) / 100
+    const etape3 = Math.round(etape2 * (148.06 / 145.77) * 100) / 100
+    expect(r[0].loyerSimule).toBe(etape3)
+    expect(r[0].revisionsJouees).toBe(3)
+    // NOTE : la preuve de l'arrondi intermédiaire est donnée par la mutation
+    // (retrait du round2 dans simulerRattrapageIrl → ce test échoue, cf.
+    // docs/tests/ETAT-HARNAIS.md). Sur cette chaîne, le résultat coïncide
+    // avec un calcul en une fois — l'arrondi est absorbé sur ces valeurs.
+  })
+
+  it('anniversaire 29 février : révisé le 28/02 les années non bissextiles', () => {
+    // Bail débuté le 29/02/2024 — l'anniversaire 2025 tombe le 28/02.
+    const map = new Map([
+      ['2024-Q1', 130],
+      ['2025-Q1', 133.25]
+    ])
+    const r = simulerRattrapageIrl(
+      [
+        {
+          bailId: 2,
+          designation: 'bissex',
+          locataire: 'X',
+          loyerHcActuel: 400,
+          dateDebutBail: '2024-02-29',
+          trimestreRef: 'T1 2024'
+        }
+      ],
+      2025,
+      map,
+      null
+    )
+    // L'anniversaire 2025 (28/02/2025, borné) est joué : ratio 133.25/130.
+    expect(r[0].revisionsJouees).toBe(1)
+    expect(r[0].loyerSimule).toBe(Math.round(400 * (133.25 / 130) * 100) / 100)
+  })
+
+  it('le trimestre de référence est ANCRÉ (« T3 2023 » → 3, pas le 2 de 2023)', () => {
+    const map = new Map([
+      ['2023-Q3', 141.03],
+      ['2024-Q3', 144.51],
+      ['2023-Q2', 139.96], // piège : si le parse attrapait « 2 », il lirait cette paire
+      ['2024-Q2', 143.45]
+    ])
+    const r = simulerRattrapageIrl(
+      [
+        {
+          bailId: 3,
+          designation: 'ancrage',
+          locataire: 'X',
+          loyerHcActuel: 400,
+          dateDebutBail: '2023-10-01',
+          trimestreRef: 'T3 2023'
+        }
+      ],
+      2024,
+      map,
+      null
+    )
+    // Si le parse attrapait « 2 » (de 2023), le ratio serait 143.45/139.96.
+    expect(r[0].loyerSimule).toBe(Math.round(400 * (144.51 / 141.03) * 100) / 100)
+    expect(r[0].loyerSimule).not.toBe(Math.round(400 * (143.45 / 139.96) * 100) / 100)
+  })
+})
