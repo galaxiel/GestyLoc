@@ -21,3 +21,4 @@ out
 scripts/test-db/bundle.mjs
 scripts/check_demo_30/bundle.mjs
 lint-report.json
+coverage/
