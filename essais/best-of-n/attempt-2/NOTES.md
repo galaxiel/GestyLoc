@@ -1,0 +1,7 @@
+# NOTES — attempt-2
+
+1. **Sondes `date_fin_bail` (40 cas)** : ignorées par le calcul — P6 pose que le mois de départ est dû entier et aucune règle citée ne définit de prorata de sortie ; la sonde observe les divergences, elle ne crée pas une règle. Hésitation principale : honorer `date_fin_bail` aurait été « plus juste » humainement, mais non sourcé dans le contrat.
+2. **Indices ≤ 0** : R6 ne cite que « l'indice précédent ≤ 0 » ; je saute aussi la révision si l'indice **courant** ≤ 0 (un indice nul/négatif n'existe pas à l'INSEE, et un ratio nul annulerait le loyer). Aucun cas du jeu visible n'a d'indice ≤ 0 → choix sans effet mesurable, mais défendable sous R6 (« indice manque » = non exploitable).
+3. **Dates de début inexistantes** (prorata : `2026-02-31`, `2025-02-29`…) : extraction du jour par regex + bornage P4, jamais de `new Date(iso)` (qui reporterait au mois suivant). En révision, aucune date inexistante n'est générée ; l'analyse Date locale (report éventuel) est conservée par prudence, comme la référence.
+4. **`tauxFixeAnnuel = 0`** : ratio = 1 → révision « jouée » avec loyer inchangé (R7 littéral). Champs **absents** vs null (`loyer_hc`/`charges`) : traités comme non renseignés (P1) — le code actuel distinguerait `undefined` → 0 ; divergence théorique seulement si une clé manque (jamais le cas du jeu).
+5. Borne « aujourd'hui » laissée sur `new Date()` (R10 : non injectable dans la signature ; gel §4 = 2026-11-06, date système correcte).

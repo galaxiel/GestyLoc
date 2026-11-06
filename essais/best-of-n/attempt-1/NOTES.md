@@ -1,0 +1,7 @@
+# NOTES — Tentative 1
+
+1. **Sonde `date_fin_bail` (P6)** : ignorée volontairement. Le contrat fixe « mois de départ dû ENTIER » ; inventer un prorata de sortie obligerait à trancher du non-déterminé (jour de départ compté ? jours civils ou dixièmes ?) — ajouter une règle absente du contrat me semblait pire que suivre la règle écrite.
+2. **R6 appliqué à la lettre** : un indice COURANT présent mais ≤ 0 donne un ratio (la règle ne cite que « l'indice précédent ≤ 0 ») ; le code actuel le saute via le test falsy `cour`. Hésité, aucun cas (visible ou plausible) ne l'atteint — indices réels jamais nuls.
+3. **R7 strict** : une map IRL non null (même vide) prime, le taux fixe est ignoré — 15 cas visibles portent les deux, c'est explicitement le piège.
+4. **Table IRL embarquée mais non utilisée par le calcul** : seule la map fournie fait foi (R2/R6) — un fallback silencieux sur les vraies valeurs INSEE viderait de son sens la famille « indices manquants ».
+5. **Parsing/robustesse** : périodes validées strictement (`yyyy-mm`, mois 1-12 → sinon mois plein), champs tolérants à `undefined` (champ absent ≠ « renseigné », P1), `joursDansMois` en arithmétique pure. Résultat : **0 divergence bit à bit avec le code actuel sur les 500 cas visibles** (vérifié contre une copie oracle) — mes divergences sémantiques ne se déclenchent que sur des coins que les données conformes n'atteignent pas ; 12 cas revérifiés par recalcul indépendant.
