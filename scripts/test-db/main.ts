@@ -52,6 +52,7 @@ const { registreBailRevisionTests } = await import('./bail-revision.test')
 const { registreParametresTests } = await import('./parametres.test')
 const { registreAlertesImpayeTests } = await import('./alertes-impaye.test')
 const { registreAlertesIrlTests } = await import('./alertes-irl.test')
+const { registreEcheancierTests } = await import('./echeancier.test')
 // Lot 4 : registreAuditTests (audit.service) — ajouté avec le lot audit.
 
 console.log('\n=== Repositories ===')
@@ -63,6 +64,7 @@ await registreParametresTests(test)
 console.log('\n=== Services ===')
 await registreAlertesImpayeTests(test)
 await registreAlertesIrlTests(test)
+await registreEcheancierTests(test)
 
 // 4) Nettoyage + verdict — la base temporaire est SUPPRIMÉE.
 const base = join(dossierTest, 'data', 'app.db')
