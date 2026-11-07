@@ -17,6 +17,14 @@
 > preload, + 10 bugs corrigés (audit externe). Détails dans les cases cochées
 > ci-dessous — publié en v1.16.0 le 04/11/2026 (tag `v1.16.0`, rituel CONTRIBUTING).
 >
+> **🔖 Session 06-07/11/2026 — étude Best-of-N (branche `essais/best-of-n`, non
+> fusionnée)** : contrat gelé + 8 tentatives indépendantes par sous-agents +
+> jeu scellé de 2 000 cas + jugement par oracle. **Verdict : code actuel juste
+> sur 2 485/2 500 cas** (0 unanimité KO) ; 15 divergences = uniquement des
+> dates de début inexistantes (30/02, 31/06…) — ambiguïté de spec, à trancher
+> côté produit. 6 « NON DÉTERMINÉ » listés dans `docs/tests/BEST-OF-N.md`
+> (sur la branche). Détail : §Best-of-N de AGENTS.md.
+>
 > **🔖 Session 06/11/2026 (soir) — v1.17.0 et v1.17.1** : v1.17.0 = remise à
 > zéro de l'application (Paramètres → Zone de danger, sauvegarde automatique
 > avant effacement, double confirmation) ; v1.17.1 = harnais de tests étendu

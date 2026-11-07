@@ -16,12 +16,17 @@ de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
 État actuel : **v1.17.1 publiée** (06/11/2026, tag `v1.17.1`, `main`) — v1.17.0
-(échéancier réel, rapprochement bancaire + v2, avis d'échéance, relances,
-contrat pré-rempli, traçage assurance, table `baux_revisions`, lint vert,
-harnais BDD) puis v1.16.1 (outillage uniquement : générateur + fixtures de
-30 dossiers synthétiques + vérificateur, code de l'app inchangé). Tout est
-**commité et livré** : un clone frais du dépôt le contient. Détails dans
-ROADMAP (« Session 03/11/2026 », « Session 04/11/2026 », « Session 06/11/2026 »).
+(remise à zéro de l'app : Paramètres → Zone de danger, sauvegarde automatique
+avant effacement) puis v1.16.x (échéancier réel, rapprochement bancaire + v2,
+avis d'échéance, relances, contrat pré-rempli, traçage assurance, table
+`baux_revisions`, lint vert, harnais BDD, fixtures de 30 dossiers synthétiques).
+Tout est **commité et poussé** : un clone frais du dépôt le contient. Détails
+dans ROADMAP (« Session 03/11/2026 », « Session 04/11/2026 », « Session
+06/11/2026 »). **Étude Best-of-N** (révision IRL + prorata — verdict : code
+actuel juste, 15 divergences = ambiguïté de spec sur dates inexistantes,
+6 « NON DÉTERMINÉ » à trancher côté produit) : sur la branche
+`essais/best-of-n` (5 commits, poussée, NON fusionnée — fusion à la décision
+du propriétaire) ; verdict dans `docs/tests/BEST-OF-N.md` sur cette branche.
 Les données réelles de l'utilisateur (16 baux) sont déjà importées dans sa base
 locale. Considère toute case cochée de `ROADMAP.md` comme faite, ne la refais pas.
 
@@ -432,6 +437,32 @@ nouvelle table avec FK.
   limites métier documentées dans `fixtures/demo-30/README.md` (colocation =
   2 baux fusionnés post-import, restitution du dépôt non modélisée, paliers
   d'alerte = nombre d'alertes, taux_irl corrigé post-import).
+
+### Étude Best-of-N (06-07/11/2026, branche `essais/best-of-n` — NON fusionnée)
+
+- **Méthode** : contrat gelé (`essais/best-of-n/CONTRAT.md` sur la branche) →
+  8 tentatives indépendantes par sous-agents (limité à 2 simultanés —
+  relances en vagues, notées) → jeu scellé de 2 000 cas (seed 777777,
+  étanchéité prouvée : 0 trace dans les attempts) → jugement par un oracle
+  écrit indépendamment des règles du contrat.
+- **Verdict** : code actuel JUSTE sur 2 485/2 500 cas (unanimité 9 colonnes +
+  oracle). 0 « UNANIMITÉ KO ». 15 divergences — toutes sur des DATES DE DÉBUT
+  INEXISTANTES (30/02, 31/06, 29/02 non bissextile) : rollover `Date()`
+  (actuel + oracle + 6) vs rejet R8 (attempt-3) vs mois littéral
+  (attempt-6/7) → ambiguïté de spec NON DÉTERMINÉE, impact utilisateur nul
+  (champ date HTML). **Aucune fusion** : rien ne justifie de remplacer le code.
+- **6 « NON DÉTERMINÉ » à trancher côté produit** (liste complète dans
+  `docs/tests/BEST-OF-N.md` §5, sur la branche) : 1) date de début
+  invalide → rejet ou rollover ; 2) indice COURANT ≤ 0/manquant (R6 ne cite
+  que le précédent — 5 tentatives sautent aussi, le code actuel non) ; 3) prorata de sortie (aucune règle sourcée — sonde ignorée par les 8) ; 4) borne temporelle non injectable dans `simulerRattrapageIrl`
+  (`new Date()` interne) ; 5) taux fixe 0 compté comme révision jouée ; 6) méthode du prorata (jours civils vs dixièmes).
+- La branche contient aussi : `essais/best-of-n/attempt-1..8/` (les
+  implémentations candidates + NOTES), `jugement/matrice.json` (matrice
+  brute cas × implémentation), `jugement/oracle.mjs` (référence du contrat).
+  Tentative notable si le produit durcit un jour la validation d'import :
+  attempt-3 (rejet strict des dates inexistantes) ; attempt-4/8 (date
+  système gelée en constante → fonctions pures, utile si R10 devient
+  injectable).
 
 ### 🚨 Pièges runtime à connaître
 
