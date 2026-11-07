@@ -22,3 +22,5 @@ scripts/test-db/bundle.mjs
 scripts/check_demo_30/bundle.mjs
 lint-report.json
 coverage/
+essais/best-of-n/jugement/bundle-*.mjs
+essais/best-of-n/jugement/entry-*.ts
