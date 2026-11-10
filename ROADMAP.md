@@ -11,6 +11,14 @@
 > QUITT sur les quittances, audit de données, reçu pour paiement partiel.
 > Historique détaillé : voir les releases GitHub et l'historique git.
 >
+> **🔖 Session 10/11/2026 — Finition P3 (4 fonctionnalités, `main`, commitées non poussées)** :
+> sauvegarde automatique hebdomadaire (rotation 5, `shared/sauvegarde.ts`),
+> notification Windows des alertes urgentes au démarrage
+> (`shared/notifications.ts`), décomptes de régularisation en lot
+> (`shared/nom-fichier.ts`), export PDF du récap 2044 (`shared/fiscalite.ts`).
+> 4 modules purs ajoutés (27 tests), harnais 146 vitest + 42 BDD, lint 0/0,
+> démo 13 invariants. Commits `9f5cc6b`, `ecd4883`, `9c47673`, `1ac2535`.
+>
 > **🔖 Session 03/11/2026 — livré en v1.16.0** : échéancier
 > réel complet, rapprochement bancaire assisté, duplication de bail, recherche
 > globale, reçu refondu, historique des révisions, durcissement sécurité du
@@ -142,10 +150,23 @@
 - [x] Duplication d'un bail — _bouton ⧉ dans le tableau : ouvre le formulaire
       de CRÉATION pré-rempli (dates vidées, IRL nouveau/taux non copiés,
       bail actif) — idéal pour une relocation_
-- [ ] Sauvegarde automatique hebdomadaire (rotation des 5 dernières)
-- [ ] Notifications Windows au démarrage pour les alertes urgentes
-- [ ] Décomptes de régularisation en lot (un PDF par bail d'un coup)
-- [ ] Export PDF du récap 2044 (mode « comptable »)
+- [x] **Sauvegarde automatique hebdomadaire** (rotation des 5 dernières) —
+      _au démarrage, au plus une fois par 7 jours : copie dans
+      `userData/backups/auto_*.db`, rotation à 5 (règles pures dans
+      `shared/sauvegarde.ts`, 10 tests vitest + 2 BDD) ; date affichée dans
+      Paramètres_
+- [x] **Notifications Windows au démarrage** pour les alertes urgentes —
+      _notification native résumant les alertes `urgent` (impayés, bail expiré),
+      3 détaillées max puis « … et N autres » ; un clic ramène sur la fenêtre
+      (`shared/notifications.ts`, 4 tests)_
+- [x] **Décomptes de régularisation en lot** (un PDF par bail d'un coup) —
+      _bouton « Générer tous les décomptes » : un PDF par bail dont les charges
+      réelles sont saisies, dans un dossier choisi une fois, avec progression et
+      comptage des erreurs (nommage pur `shared/nom-fichier.ts`, 7 tests)_
+- [x] **Export PDF du récap 2044** (mode « comptable ») —
+      _bouton dans Statistiques : totaux, ventilation des recettes par bail,
+      comparatif micro-foncier vs réel et mentions ; calcul du récap extrait en
+      module pur `shared/fiscalite.ts` (6 tests), partagé écran/PDF_
 
 ### Dette technique
 

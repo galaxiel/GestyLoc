@@ -486,8 +486,11 @@ Lire `ROADMAP.md` (source de vérité). Restants :
 - Avis d'échéance (document distinct, souhait de l'UIA)
 - Traçage des demandes d'assurance envoyées (le reçu refondu et
   `baux_revisions` posent le décor)
-- Sauvegarde auto hebdomadaire, notifications Windows, décomptes en lot,
-  export 2044 PDF (Finition P3)
+- ~~Sauvegarde auto hebdomadaire, notifications Windows, décomptes en lot,
+  export 2044 PDF (Finition P3)~~ → **LIVRÉS** (session 10/11/2026, `main` :
+  `shared/sauvegarde.ts`, `notifications.ts`, `nom-fichier.ts`, `fiscalite.ts` ;
+  27 tests, harnais 146 vitest + 42 BDD ; commits `9f5cc6b`, `ecd4883`,
+  `9c47673`, `1ac2535` — non poussés)
 - Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing) —
   ⚠️ indisponible pour un particulier hors USA/Canada, cf. §7 « Pourquoi pas
   de signature de code »
