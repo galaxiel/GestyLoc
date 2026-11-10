@@ -23,7 +23,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
-    "test:db": "esbuild scripts/test-db/main.ts --bundle --platform=node --format=esm --external:electron --external:better-sqlite3 --alias:@shared=./shared --outfile=scripts/test-db/bundle.mjs && electron scripts/test-db/bundle.mjs",
+    "test:db": "esbuild scripts/test-db/main.ts --bundle --platform=node --format=esm --external:electron --external:better-sqlite3 --external:electron-log --alias:@shared=./shared --outfile=scripts/test-db/bundle.mjs && electron scripts/test-db/bundle.mjs",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

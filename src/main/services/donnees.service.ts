@@ -1,14 +1,29 @@
 import { dialog, BrowserWindow, app } from 'electron'
-import { copyFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, rmSync } from 'fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  writeFileSync,
+  unlinkSync,
+  rmSync
+} from 'fs'
 import { join, basename } from 'path'
 import { getDbPath, getRawConnection, closeDb } from '../database/connection'
 import { versCsv } from '@shared/csv'
+import {
+  nomSauvegardeAuto,
+  rotationSauvegardes,
+  sauvegardeDue,
+  type SauvegardeAutoState
+} from '@shared/sauvegarde'
 import { bailRepository } from '../repositories/bail.repository'
 import { bienRepository } from '../repositories/bien.repository'
 import { locataireRepository } from '../repositories/locataire.repository'
 import { paiementRepository } from '../repositories/paiement.repository'
 import { listQuittances } from './quittance.service'
 import log from 'electron-log'
+import { parametresRepository } from '../repositories/parametres.repository'
 
 // ----------------------------------------------------------------------------
 // Export CSV : toutes les tables dans un dossier choisi (Excel-fr ; + BOM).
@@ -251,4 +266,45 @@ export function remettreAZero(): string {
   app.relaunch()
   app.exit(0)
   return sauvegarde
+}
+
+// ----------------------------------------------------------------------------
+// Sauvegarde automatique hebdomadaire : au démarrage, au plus une fois par
+// semaine, une copie de la base est créée dans userData/backups/ et la
+// rotation conserve les 5 dernières (règles pures dans shared/sauvegarde.ts).
+// Fire-and-forget : jamais bloquante ni fatale, erreurs journalisées.
+// ----------------------------------------------------------------------------
+export function dossierSauvegardesAuto(): string {
+  return join(app.getPath('userData'), 'backups')
+}
+
+export function executerSauvegardeAuto(maintenant: Date = new Date()): string | null {
+  const param = parametresRepository.get<SauvegardeAutoState>('sauvegarde_auto')
+  if (!sauvegardeDue(param?.derniere ?? null, maintenant)) return null
+
+  const dossier = dossierSauvegardesAuto()
+  if (!existsSync(dossier)) mkdirSync(dossier, { recursive: true })
+
+  // Checkpoint WAL : tout flusher dans le .db avant la copie (comme pour les
+  // sauvegardes manuelles).
+  getRawConnection().pragma('wal_checkpoint(TRUNCATE)')
+  const fichier = join(dossier, nomSauvegardeAuto(maintenant))
+  copyFileSync(getDbPath(), fichier)
+
+  // Rotation : les fichiers hors format (avant_restauration_*, …) ne sont
+  // jamais touchés.
+  const { aSupprimer } = rotationSauvegardes(readdirSync(dossier))
+  for (const nom of aSupprimer) {
+    try {
+      unlinkSync(join(dossier, nom))
+    } catch {
+      log.warn(`Sauvegarde auto : impossible de supprimer ${nom}`)
+    }
+  }
+
+  parametresRepository.set('sauvegarde_auto', { derniere: maintenant.toISOString() })
+  log.info(
+    `Sauvegarde automatique créée : ${fichier} (rotation : ${aSupprimer.length} ancienne(s) supprimée(s))`
+  )
+  return fichier
 }

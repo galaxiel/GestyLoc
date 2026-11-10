@@ -20,6 +20,7 @@ import {
 import type { ConstatAudit } from '@shared/audit'
 import { UPDATER_EVENT, type UpdateAvailablePayload } from '../lib/updater'
 import { ipc } from '../lib/ipc'
+import { formatDate } from '../lib/format'
 
 const cardCls =
   'rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950'
@@ -77,6 +78,15 @@ export function Parametres(): React.JSX.Element {
       .getDbPath()
       .then((r) => setCheminBdd(r.data ?? null))
       .catch(() => setCheminBdd(null))
+  }, [])
+
+  // --- Sauvegarde automatique hebdomadaire (état persisté côté main) ---
+  const [sauvegardeAuto, setSauvegardeAuto] = useState<string | null>(null)
+  useEffect(() => {
+    void ipc.parametres
+      .get('sauvegarde_auto')
+      .then((v) => setSauvegardeAuto((v as { derniere?: string } | null)?.derniere ?? null))
+      .catch(() => setSauvegardeAuto(null))
   }, [])
 
   // --- Configuration Email (SMTP) ---
@@ -630,6 +640,13 @@ export function Parametres(): React.JSX.Element {
             Restaurer une sauvegarde
           </button>
         </div>
+        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+          Sauvegarde automatique hebdomadaire : copie de la base dans le dossier{' '}
+          <code className="text-xs">backups</code> des données (les 5 dernières conservées).{' '}
+          {sauvegardeAuto
+            ? `Dernière : ${formatDate(sauvegardeAuto.slice(0, 10))}.`
+            : 'Première copie au prochain démarrage.'}
+        </p>
         {dataMsg && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{dataMsg}</p>}
       </div>
 

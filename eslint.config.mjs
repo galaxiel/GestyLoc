@@ -12,7 +12,10 @@ export default defineConfig(
       '**/dist',
       '**/out',
       // Bundle généré par le harnais BDD (`npm run test:db`), jamais édité à la main
-      'scripts/test-db/bundle.mjs'
+      'scripts/test-db/bundle.mjs',
+      // Branches d'essais/études (ex : best-of-n) : bundles esbuild générés,
+      // jamais du code de l'app — hors périmètre du lint.
+      'essais/**'
     ]
   },
   tseslint.configs.recommended,

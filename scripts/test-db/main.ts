@@ -58,6 +58,7 @@ const { registreAlertesImpayeTests } = await import('./alertes-impaye.test')
 const { registreAlertesIrlTests } = await import('./alertes-irl.test')
 const { registreEcheancierTests } = await import('./echeancier.test')
 const { registreAuditTests } = await import('./audit.test')
+const { registreSauvegardeTests } = await import('./sauvegarde.test')
 
 console.log('\n=== Repositories ===')
 await registreBienTests(test)
@@ -74,6 +75,7 @@ await registreAlertesImpayeTests(test)
 await registreAlertesIrlTests(test)
 await registreEcheancierTests(test)
 await registreAuditTests(test)
+await registreSauvegardeTests(test)
 
 // 4) Nettoyage + verdict — la base temporaire est SUPPRIMÉE.
 const base = join(dossierTest, 'data', 'app.db')

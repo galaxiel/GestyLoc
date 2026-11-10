@@ -5,6 +5,7 @@ import { initAutoUpdater, checkForUpdates, downloadUpdate, quitAndInstall } from
 import { getDb, getDbPath, closeDb } from './database/connection'
 import { runMigrations } from './database/migrate'
 import { registerDatabaseHandlers } from './database/ipc'
+import { executerSauvegardeAuto } from './services/donnees.service'
 import icon from '../../resources/icon.png?asset'
 
 // ============================================================================
@@ -119,6 +120,19 @@ app.whenReady().then(() => {
       /* silencieux */
     })
   }
+
+  // ---- Sauvegarde automatique hebdomadaire ----
+  // Décalée pour ne pas concurrencer l'ouverture ; unref() pour ne jamais
+  // retenir l'app si elle se referme avant ; toute erreur est ignorée (une
+  // sauvegarde ratée ne doit jamais empêcher l'application de fonctionner).
+  const sauvegardeAuto = setTimeout(() => {
+    try {
+      executerSauvegardeAuto()
+    } catch (err) {
+      console.warn('Sauvegarde automatique hebdomadaire échouée :', err)
+    }
+  }, 15_000)
+  sauvegardeAuto.unref()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
