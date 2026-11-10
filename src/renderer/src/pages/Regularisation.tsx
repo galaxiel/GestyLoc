@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FileText, Loader2, Save } from 'lucide-react'
+import { FileText, FolderOpen, Loader2, Save } from 'lucide-react'
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfsFonts from 'pdfmake/build/vfs_fonts'
 import type { TDocumentDefinitions } from 'pdfmake/interfaces'
@@ -8,6 +8,7 @@ import { useStore } from '../hooks/useStore'
 import { ipc } from '../lib/ipc'
 import { formatEuro } from '../lib/format'
 import { nomBien } from '@shared/labels'
+import { nomFichierDecompte } from '@shared/nom-fichier'
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- formes de module variables */
 const vfs =
@@ -35,6 +36,12 @@ export function Regularisation(): React.JSX.Element {
   const [saving, setSaving] = useState<number | null>(null)
   const [pdfEnCours, setPdfEnCours] = useState<number | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [lot, setLot] = useState<{
+    enCours: boolean
+    fait: number
+    total: number
+    erreurs: number
+  } | null>(null)
 
   useEffect(() => {
     void ipc.regularisations
@@ -176,12 +183,62 @@ export function Regularisation(): React.JSX.Element {
         setTimeout(() => resolve(''), 30000)
       })
       if (!base64) return
-      const nom = `regularisation_charges_${row.locataire.nom_complet.replace(/\s+/g, '_')}_${annee}.pdf`
+      const nom = nomFichierDecompte(row.locataire.nom_complet, annee)
       const chemin = await ipc.quittances.save(base64, nom)
       setMessage(chemin ? `Décompte enregistré : ${chemin}` : 'Enregistrement annulé.')
     } finally {
       setPdfEnCours(null)
     }
+  }
+
+  /**
+   * Génération en lot : un décompte PDF par bail de l'année dont les charges
+   * réelles sont saisies, écrits dans un dossier choisi une seule fois.
+   */
+  const genererToutDecomptes = async (): Promise<void> => {
+    const bauxARegulariser = bauxPayants.filter((r) => chargesReellesDe(r.bail.id))
+    if (bauxARegulariser.length === 0) {
+      setMessage(`Aucune charge réelle saisie pour ${annee} — saisis-les d'abord dans le tableau.`)
+      return
+    }
+    const dossier = await ipc.quittances.chooseFolder()
+    if (!dossier) return
+
+    setLot({ enCours: true, fait: 0, total: bauxARegulariser.length, erreurs: 0 })
+    setMessage(null)
+
+    let erreurs = 0
+    for (let i = 0; i < bauxARegulariser.length; i++) {
+      const r = bauxARegulariser[i]
+      try {
+        const doc = decompteData(r.bail.id)
+        if (!doc) throw new Error('décompte indisponible')
+        const base64 = await new Promise<string>((resolve, reject) => {
+          pdfMake.createPdf(doc).getBase64((b64: string) => resolve(b64))
+          setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
+        })
+        await ipc.quittances.saveTo(
+          base64,
+          dossier,
+          nomFichierDecompte(r.locataire.nom_complet, annee)
+        )
+      } catch {
+        erreurs++
+      }
+      setLot({ enCours: true, fait: i + 1, total: bauxARegulariser.length, erreurs })
+    }
+
+    setLot({
+      enCours: false,
+      fait: bauxARegulariser.length,
+      total: bauxARegulariser.length,
+      erreurs
+    })
+    setMessage(
+      erreurs === 0
+        ? `${bauxARegulariser.length} décomptes générés dans : ${dossier}`
+        : `${bauxARegulariser.length - erreurs}/${bauxARegulariser.length} décomptes générés (${erreurs} erreur(s)) — dossier : ${dossier}`
+    )
   }
 
   const adressesParBail = new Map(
@@ -224,17 +281,32 @@ export function Regularisation(): React.JSX.Element {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold tracking-tight">Régularisation des charges</h1>
-        <select
-          value={annee}
-          onChange={(e) => setAnnee(Number(e.target.value))}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-        >
-          {[anneeEnCours, anneeEnCours - 1, anneeEnCours - 2].map((a) => (
-            <option key={a} value={a}>
-              Année {a}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => void genererToutDecomptes()}
+            disabled={lot?.enCours}
+            title="Générer un décompte PDF par bail de l'année (charges réelles saisies)"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {lot?.enCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FolderOpen className="h-4 w-4" />
+            )}
+            {lot?.enCours ? `Génération ${lot.fait}/${lot.total}…` : 'Générer tous les décomptes'}
+          </button>
+          <select
+            value={annee}
+            onChange={(e) => setAnnee(Number(e.target.value))}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+          >
+            {[anneeEnCours, anneeEnCours - 1, anneeEnCours - 2].map((a) => (
+              <option key={a} value={a}>
+                Année {a}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <p className="text-sm text-slate-500 dark:text-slate-400">
