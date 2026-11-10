@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { slugNomFichier, slugOuDefaut, nomFichierDecompte } from '../shared/nom-fichier'
+import {
+  slugNomFichier,
+  slugOuDefaut,
+  nomFichierDecompte,
+  nomFichierRecap2044
+} from '../shared/nom-fichier'
 
 describe('slugNomFichier', () => {
   it('retire accents et caractères spéciaux', () => {
@@ -39,5 +44,11 @@ describe('nomFichierDecompte', () => {
 
   it('replie sur « bail » quand le locataire est vide', () => {
     expect(nomFichierDecompte('', 2025)).toBe('regularisation_charges_bail_2025.pdf')
+  })
+})
+
+describe('nomFichierRecap2044', () => {
+  it('compose recap_2044_<annee>.pdf', () => {
+    expect(nomFichierRecap2044(2025)).toBe('recap_2044_2025.pdf')
   })
 })

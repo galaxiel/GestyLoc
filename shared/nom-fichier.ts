@@ -23,3 +23,8 @@ export function slugOuDefaut(nom: string, defaut: string): string {
 export function nomFichierDecompte(nomLocataire: string, annee: number): string {
   return `regularisation_charges_${slugOuDefaut(nomLocataire, 'bail')}_${annee}.pdf`
 }
+
+/** Récapitulatif fiscal 2044 : `recap_2044_<annee>.pdf`. */
+export function nomFichierRecap2044(annee: number): string {
+  return `recap_2044_${annee}.pdf`
+}

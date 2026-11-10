@@ -7,8 +7,13 @@ import {
   Ruler,
   AlertTriangle,
   Coins,
-  Percent
+  Percent,
+  FileText,
+  Loader2
 } from 'lucide-react'
+import pdfMake from 'pdfmake/build/pdfmake'
+import vfsFonts from 'pdfmake/build/vfs_fonts'
+import type { TDocumentDefinitions, TableCell } from 'pdfmake/interfaces'
 import {
   ResponsiveContainer,
   BarChart,
@@ -27,6 +32,19 @@ import { ipc } from '../lib/ipc'
 import type { Depense } from '@shared/types'
 import { formatEuro, formatPeriode } from '../lib/format'
 import { segmentsParType, suspects, type BienPourRatio } from '@shared/stats'
+import { calculerRecap2044 } from '@shared/fiscalite'
+import { nomFichierRecap2044 } from '@shared/nom-fichier'
+import { nomBien } from '@shared/labels'
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- formes de module variables */
+const vfs =
+  (vfsFonts as any)?.pdfMake?.vfs ??
+  (vfsFonts as any)?.default?.pdfMake?.vfs ??
+  (vfsFonts as any)?.vfs ??
+  (vfsFonts as any)?.default?.vfs ??
+  vfsFonts
+;(pdfMake as any).vfs = vfs
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /** Affiche un nombre avec 2 décimales max, format fr-FR. */
 function num2(v: number): string {
@@ -91,6 +109,9 @@ export function Statistiques(): React.JSX.Element {
   const [paiements, setPaiements] = useState<Paiement[]>([])
   const [depensesList, setDepensesList] = useState<Depense[]>([])
   const [loading, setLoading] = useState(true)
+  // Export PDF du récap 2044 (mode comptable).
+  const [export2044EnCours, setExport2044EnCours] = useState(false)
+  const [message2044, setMessage2044] = useState<string | null>(null)
   const sombre = useSombre()
 
   useEffect(() => {
@@ -143,6 +164,132 @@ export function Statistiques(): React.JSX.Element {
       { annee: String(annee), total: Math.round(enCours * 100) / 100 }
     ]
   }, [paiements, annee])
+
+  // --- Récap fiscal 2044 (calcul pur partagé entre l'écran et l'export PDF) ---
+  const recap2044 = calculerRecap2044(
+    paiements,
+    depensesList,
+    new Set(locations.filter((r) => r.bien.meuble).map((r) => r.bail.id)),
+    annee
+  )
+  const libelleParBail = new Map(
+    locations.map((r) => [r.bail.id, `${r.locataire.nom_complet} — ${nomBien(r.bien)}`])
+  )
+
+  /** Document PDF du récap 2044 (« mode comptable ») pour l'année affichée. */
+  const recap2044Data = (): TDocumentDefinitions => {
+    const entete: TableCell[] = [
+      { text: 'Bail', bold: true },
+      { text: 'Recettes', bold: true, alignment: 'right' }
+    ]
+    const lignes: TableCell[][] =
+      recap2044.recettesParBail.length > 0
+        ? recap2044.recettesParBail.map((l) => [
+            libelleParBail.get(l.bail_id) ?? `Bail ${l.bail_id}`,
+            { text: formatEuro(l.recettes), alignment: 'right' }
+          ])
+        : [['Aucune recette encaissée pour cette année', { text: '—', alignment: 'right' }]]
+
+    return {
+      content: [
+        { text: `RÉCAPITULATIF FISCAL ${annee} — REVENUS FONCIERS`, style: 'titre' },
+        {
+          text: '(déclaration 2044 régime réel / 2042 case 4BE micro-foncier)',
+          style: 'sousTitre',
+          margin: [0, 0, 0, 16]
+        },
+        {
+          table: {
+            widths: ['*', 'auto'],
+            body: [
+              [
+                { text: 'Poste', bold: true },
+                { text: 'Montant', bold: true, alignment: 'right' }
+              ],
+              [
+                'Recettes encaissées (loyers nus)',
+                { text: formatEuro(recap2044.recettes), alignment: 'right' }
+              ],
+              [
+                'Charges déductibles',
+                { text: formatEuro(recap2044.chargesDeductibles), alignment: 'right' }
+              ],
+              [
+                { text: 'Résultat foncier', bold: true },
+                {
+                  text: formatEuro(recap2044.resultat),
+                  bold: true,
+                  alignment: 'right'
+                }
+              ]
+            ]
+          },
+          margin: [0, 0, 0, 14]
+        },
+        { text: 'Détail des recettes par bail', style: 'etiquette' },
+        {
+          table: { widths: ['*', 'auto'], body: [entete, ...lignes] },
+          margin: [0, 0, 0, 14]
+        },
+        { text: 'Comparaison des régimes (estimation)', style: 'etiquette' },
+        {
+          table: {
+            widths: ['*', 'auto', 'auto'],
+            body: [
+              [
+                { text: 'Base imposable', bold: true },
+                { text: 'Micro-foncier (−30 %)', bold: true, alignment: 'right' },
+                { text: 'Régime réel', bold: true, alignment: 'right' }
+              ],
+              [
+                'Net imposable estimé',
+                { text: formatEuro(recap2044.netMicro), alignment: 'right' },
+                { text: formatEuro(recap2044.netReel), alignment: 'right' }
+              ]
+            ]
+          },
+          margin: [0, 0, 0, 14]
+        },
+        {
+          text: `Régime conseillé : ${
+            recap2044.microFoncier
+              ? 'micro-foncier (recettes nues ≤ 15 000 €)'
+              : 'réel (recettes nues > 15 000 €)'
+          }.`,
+          bold: true,
+          margin: [0, 0, 0, 8]
+        },
+        {
+          text: 'Les biens meublés sont exclus de ce récap (ils relèvent des BIC / LMNP, déclaration 2031). Un déficit foncier est reportable sur les revenus globaux jusqu’à 10 700 €/an. Document indicatif à vérifier avec votre comptable ou l’administration fiscale.',
+          style: 'note'
+        }
+      ],
+      styles: {
+        titre: { fontSize: 15, bold: true, alignment: 'center' },
+        sousTitre: { fontSize: 9, italics: true, alignment: 'center', color: '#666666' },
+        etiquette: { fontSize: 9, color: '#888888', margin: [0, 0, 0, 4] },
+        note: { fontSize: 9, italics: true, color: '#666666', margin: [0, 8, 0, 0] }
+      },
+      defaultStyle: { font: 'Roboto', fontSize: 10 }
+    }
+  }
+
+  const exporterRecap2044 = async (): Promise<void> => {
+    setExport2044EnCours(true)
+    setMessage2044(null)
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        pdfMake.createPdf(recap2044Data()).getBase64((b64: string) => resolve(b64))
+        setTimeout(() => reject(new Error('Génération PDF trop longue')), 30000)
+      })
+      const chemin = await ipc.quittances.save(base64, nomFichierRecap2044(annee))
+      setMessage2044(chemin ? `Récap 2044 enregistré : ${chemin}` : 'Enregistrement annulé.')
+    } catch (err) {
+      setMessage2044(`Erreur : ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setExport2044EnCours(false)
+    }
+  }
 
   // --- KPI ---
   const bauxPayants = locations.filter((r) => r.bail.actif && !r.bail.occupation_gratuite)
@@ -435,28 +582,27 @@ export function Statistiques(): React.JSX.Element {
 
       {/* Fiscalité — revenus fonciers (2044) */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Fiscalité — revenus fonciers {annee} (récap 2044)
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Fiscalité — revenus fonciers {annee} (récap 2044)
+          </h2>
+          <button
+            onClick={() => void exporterRecap2044()}
+            disabled={export2044EnCours}
+            title="Exporter le récap 2044 en PDF (mode comptable)"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            {export2044EnCours ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            Exporter le récap 2044 (PDF)
+          </button>
+        </div>
         {(() => {
-          // Baux meublés : hors revenus fonciers (BIC/LMNP, déclaration 2031).
-          const bauxMeubles = new Set(locations.filter((r) => r.bien.meuble).map((r) => r.bail.id))
-          const recettes = paiements
-            .filter(
-              (p) =>
-                p.periode.startsWith(String(annee)) &&
-                (p.statut === 'paye' || p.statut === 'partiel') &&
-                !bauxMeubles.has(p.bail_id)
-            )
-            .reduce((s, p) => s + p.montant_paye, 0)
-          // Charges déductibles : toutes les catégories du module Dépenses
-          const chargesDeductibles = depensesList
-            .filter((d) => d.date_depense?.startsWith(String(annee)))
-            .reduce((s, d) => s + d.montant, 0)
-          const resultat = recettes - chargesDeductibles
-          const microFoncier = recettes <= 15000
-          const netMicro = recettes * 0.7
-          const netReel = Math.max(resultat, 0)
+          const { recettes, chargesDeductibles, resultat, microFoncier, netMicro, netReel } =
+            recap2044
 
           return (
             <div className="space-y-3">
@@ -521,6 +667,11 @@ export function Statistiques(): React.JSX.Element {
                   globaux jusqu’à 10 700 €/an. Vérifie avec ton comptable ou l’administration
                   fiscale.
                 </p>
+                {message2044 && (
+                  <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">
+                    {message2044}
+                  </p>
+                )}
               </div>
             </div>
           )
