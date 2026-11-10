@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, nativeTheme } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, nativeTheme, Notification } from 'electron'
 import { join, dirname } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initAutoUpdater, checkForUpdates, downloadUpdate, quitAndInstall } from './updater'
@@ -6,6 +6,9 @@ import { getDb, getDbPath, closeDb } from './database/connection'
 import { runMigrations } from './database/migrate'
 import { registerDatabaseHandlers } from './database/ipc'
 import { executerSauvegardeAuto } from './services/donnees.service'
+import { bailRepository } from './repositories/bail.repository'
+import { computeAlertes } from './services/alertes.service'
+import { resumerAlertesUrgentes } from '@shared/notifications'
 import icon from '../../resources/icon.png?asset'
 
 // ============================================================================
@@ -72,6 +75,27 @@ function createWindow(): BrowserWindow {
   return mainWindow
 }
 
+/**
+ * Au démarrage, affiche une notification Windows si des alertes urgentes
+ * existent (impayés, bail expiré…). Silencieuse sinon ; toute erreur est
+ * ignorée (une notification ne doit jamais empêcher l'app de démarrer).
+ */
+function notifierAlertesUrgentes(win: BrowserWindow): void {
+  try {
+    const resume = resumerAlertesUrgentes(computeAlertes(bailRepository.listWithRelations()))
+    if (!resume || !Notification.isSupported()) return
+    const notif = new Notification({ title: resume.titre, body: resume.corps })
+    notif.on('click', () => {
+      win.show()
+      win.focus()
+    })
+    notif.show()
+    console.log(`Notification d'alertes : ${resume.titre}`)
+  } catch (err) {
+    console.warn('Notification d’alertes échouée :', err)
+  }
+}
+
 app.whenReady().then(() => {
   // Identifiant unique Windows (taskbar grouping, notifications).
   electronApp.setAppUserModelId('com.galaxiel.gestyloc')
@@ -109,6 +133,11 @@ app.whenReady().then(() => {
   nativeTheme.themeSource = 'system'
 
   const win = createWindow()
+
+  // ---- Notification Windows des alertes urgentes ----
+  // Au démarrage, si des alertes urgentes existent (impayés, bail expiré…),
+  // une notification native les résume ; un clic ramène sur GestyLoc.
+  notifierAlertesUrgentes(win)
 
   // ---- Auto-updater ----
   // Initialisé après la fenêtre pour pouvoir forwarder les évènements au renderer.
