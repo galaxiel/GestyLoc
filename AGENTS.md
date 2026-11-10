@@ -561,3 +561,23 @@ gestion-locative` est un doublon en cours de suppression, à ne pas éditer).
 - Pas de contrainte de serveur : tout est local et gratuit (GitHub Actions).
 - Le token `GH_TOKEN` n'est nécessaire que pour publier une release depuis
   une machine locale ; GitHub Actions utilise `secrets.GITHUB_TOKEN` auto.
+
+## 11. Suivi de l'avancement
+
+**Chaque séance laisse une trace dans le dépôt, pas seulement dans le fil de discussion d'un agent.** `ROADMAP.md` dit ce qui est prévu ; `docs/AVANCEMENT.md` dit ce qui a été réellement fait, ce qui est prouvé et ce qui reste.
+
+### 11.1 Le journal (`docs/AVANCEMENT.md`)
+
+`docs/AVANCEMENT.md` est le **journal daté** du travail : une entrée par séance (avec sa date) ou par PR, ajoutée à la suite du fichier — jamais une réécriture de l'historique. Chaque entrée contient trois blocs :
+
+- **Vérifié** : ce qui a été prouvé, et **comment** — commande et résultat (`npm test` → 146 vitest, `npm run test:db` → 42 BDD, `npm run lint` 0/0, `npm run build`, `check_demo_30` → 13 invariants, capture d'écran, relevé manuel…), pas seulement « ça fonctionne ».
+- **Trouvé cassé** : le défaut constaté, sa cause (si connue), le correctif et la preuve de non-régression ; écrire « rien » si la séance n'a rien révélé.
+- **Reste à faire** : les prochaines étapes concrètes, ou « rien ».
+
+La section « État actuel, en une page » du même fichier (tableau Sujet / État) est mise à jour à chaque entrée : elle donne la photographie à jour sans relire tout le journal.
+
+### 11.2 Règle de tenue (non négociable)
+
+- **Toute PR met `docs/AVANCEMENT.md` à jour**, dans le même commit ou dans le commit de documentation qui l'accompagne. Une PR qui change le comportement du produit (UI, calcul, migration, IPC, preload, build/release) **sans entrée correspondante n'est pas terminée** et ne doit pas être fusionnée en l'état.
+- **Une affirmation sans preuve s'écrit « non vérifié ».** Aucun « c'est fait », « ça marche » ou « corrigé » sans la commande ou la manipulation qui le prouve ; un point non exécuté se déclare explicitement.
+- Une PR purement documentaire (aucun changement de comportement) n'exige pas d'entrée datée, mais met à jour l'état actuel si elle change la compréhension du projet.
