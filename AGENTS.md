@@ -25,8 +25,10 @@ régularisation en lot (`shared/nom-fichier.ts`), export PDF du récap 2044
 avant effacement) puis v1.16.x (échéancier réel, rapprochement bancaire + v2,
 avis d'échéance, relances, contrat pré-rempli, traçage assurance, table
 `baux_revisions`, lint vert, harnais BDD, fixtures de 30 dossiers synthétiques).
-Tout le publié est **commité et poussé** ; les 5 commits du 10/11/2026 sont
-locaux (pas de push/tag sans ordre du propriétaire). Détails dans ROADMAP
+Tout le publié est **commité et poussé** ; les 6 commits du 10/11/2026 sont
+également **poussés sur `origin/main`** (aucun push de tag/release sans ordre du
+propriétaire — la prochaine version publiée reste à décider, v1.18.0 candidate).
+Détails dans ROADMAP
 (« Session 10/11/2026 », « Session 03/11/2026 », « Session 04/11/2026 »,
 « Session 06/11/2026 »). **Étude Best-of-N** (révision IRL + prorata — verdict :
 code actuel juste, 15 divergences = ambiguïté de spec sur dates inexistantes,
@@ -475,7 +477,7 @@ nouvelle table avec FK.
   système gelée en constante → fonctions pures, utile si R10 devient
   injectable).
 
-### Finition P3 (10/11/2026, `main` — 5 commits LOCAUX, non poussés)
+### Finition P3 (10/11/2026, `main` — poussé sur `origin/main`)
 
 Quatre fonctionnalités, un lot = un module pur dans `shared/` (donc testé en
 vitest et réutilisé par l'UI). Commits `9f5cc6b`, `ecd4883`, `9c47673`,
@@ -524,25 +526,29 @@ vitest et réutilisé par l'UI). Commits `9f5cc6b`, `ecd4883`, `9c47673`,
 
 ## 9. Prochaines étapes
 
-Lire `ROADMAP.md` (source de vérité). Restants :
+Lire `ROADMAP.md` (source de vérité). Restants (aucun bloquant) :
 
-- **Publier v1.16.0** : valider le chantier du 03/11/2026 dans l'app réelle
-  (16 baux : vérifier le pointage proratisé du premier mois, tester le
-  rapprochement avec un vrai relevé CSV de la banque), puis bump + tag + release
-- Corriger les IRL des 15-16 baux importés (paires non légales héritées du
+- **Publier v1.18.0** (Finition P3) — bump `package.json` + rituel
+  CONTRIBUTING, **UNIQUEMENT sur ordre explicite du propriétaire** (jamais
+  taguer/publier de sa propre initiative). Les 6 commits sont poussés sur `main`.
+- Corriger les IRL des 15-16 baux réels importés (paires non légales héritées du
   tableur — l'outil embarqué de la fiche bail le fait en 2 min chacun)
-- Avis d'échéance (document distinct, souhait de l'UIA)
-- Traçage des demandes d'assurance envoyées (le reçu refondu et
-  `baux_revisions` posent le décor)
-- ~~Sauvegarde auto hebdomadaire, notifications Windows, décomptes en lot,
-  export 2044 PDF (Finition P3)~~ → **LIVRÉS** (session 10/11/2026, `main` :
-  `shared/sauvegarde.ts`, `notifications.ts`, `nom-fichier.ts`, `fiscalite.ts` ;
-  27 tests, harnais 146 vitest + 42 BDD ; commits `9f5cc6b`, `ecd4883`,
-  `9c47673`, `1ac2535` — non poussés)
-- Signature de code (SmartScreen) : voir ROADMAP (Azure Trusted Signing) —
-  ⚠️ indisponible pour un particulier hors USA/Canada, cf. §7 « Pourquoi pas
-  de signature de code »
-- Vagues produit : bail pré-rempli, relances, état des lieux, SEPA/portail
+- **6 « NON DÉTERMINÉ » de l'étude Best-of-N** à trancher côté produit — détail
+  dans `docs/tests/BEST-OF-N.md` §5, ⚠️ fichier présent uniquement sur la
+  branche `essais/best-of-n` (non fusionnée) :
+  `git show essais/best-of-n:docs/tests/BEST-OF-N.md`. Sujets : rejet vs
+  rollover des dates d'import inexistantes, prorata de sortie, indice courant
+  invalide, borne temporelle non injectable (`new Date()` interne), taux fixe 0
+  compté comme révision jouée, méthode du prorata (jours civils vs dixièmes)
+- **Fixture D15** : paire IRL illégale T3 2024→T3 2026 (la réf. devrait être
+  T3 2025 = 145.77) — corriger `scripts/gen_demo_30.mjs`, régénérer les fixtures
+  et re-valider `check_demo_30` (cf. ETAT-HARNAIS.md, « Défauts documentés » §5)
+- ROADMAP « À faire » : table `emprunts` (cash-flow/TRI), modèle B (clé de
+  répartition des charges), automatisation Google Apps Script (HORS app)
+- **Vagues produit** (décision propriétaire) : état des lieux numérique, modèles
+  de lettres, SEPA/portail locataire, IA locale (Ollama), version anglaise
+- Signature de code (SmartScreen) : étudier MSIX/Microsoft Store AVANT tout
+  certificat — cf. §7 « Pourquoi pas de signature de code » et ROADMAP
 - Licence : PolyForm Noncommercial (usage commercial réservé au SAS projet)
 
 ## 10. Environnement humain

@@ -11,7 +11,7 @@
 > QUITT sur les quittances, audit de données, reçu pour paiement partiel.
 > Historique détaillé : voir les releases GitHub et l'historique git.
 >
-> **🔖 Session 10/11/2026 — Finition P3 (4 fonctionnalités, `main`, commitées non poussées)** :
+> **🔖 Session 10/11/2026 — Finition P3 (4 fonctionnalités, `main`, poussées)** :
 > sauvegarde automatique hebdomadaire (rotation 5, `shared/sauvegarde.ts`),
 > notification Windows des alertes urgentes au démarrage
 > (`shared/notifications.ts`), décomptes de régularisation en lot
@@ -260,6 +260,6 @@ suffira de re-mettre à jour LICENSE.
 
 ---
 
-_Dernière mise à jour : 10/11/2026 — Finition P3 livrée sur `main` (sauvegarde
-auto hebdo, notifications Windows, décomptes en lot, export PDF 2044 ; 5 commits
-locaux non poussés) — dernière version publiée : v1.17.1_
+_Dernière mise à jour : 10/11/2026 — Finition P3 livrée et poussée sur `main`
+(sauvegarde auto hebdo, notifications Windows, décomptes en lot, export PDF
+2044 ; 6 commits) — dernière version publiée : v1.17.1_

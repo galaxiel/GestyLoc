@@ -1,6 +1,6 @@
 # État du harnais de tests — GestyLoc
 
-> **Mise à jour : 10/11/2026** (Finition P3, 5 commits locaux `main`) :
+> **Mise à jour : 10/11/2026** (Finition P3, 6 commits poussés sur `main`) :
 > **146 tests vitest + 42 tests BDD**, couverture shared/ ~95,8 % statements /
 > 86,4 % branches / 98,6 % lignes, lint 0/0, `check_demo_30` 13 invariants,
 > `npm run build` vert. Quatre modules purs ajoutés — voir la section
