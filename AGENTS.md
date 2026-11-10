@@ -15,18 +15,27 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.17.1 publiée** (06/11/2026, tag `v1.17.1`, `main`) — v1.17.0
+État actuel : **v1.17.1 publiée** (06/11/2026, tag `v1.17.1`) ; `main` porte en
+plus **5 commits non poussés** (session 10/11/2026) : Finition P3 — sauvegarde
+automatique hebdomadaire (`shared/sauvegarde.ts`), notification Windows des
+alertes urgentes au démarrage (`shared/notifications.ts`), décomptes de
+régularisation en lot (`shared/nom-fichier.ts`), export PDF du récap 2044
+(`shared/fiscalite.ts`) + doc (`461c702`). Historique publié : v1.17.0
 (remise à zéro de l'app : Paramètres → Zone de danger, sauvegarde automatique
 avant effacement) puis v1.16.x (échéancier réel, rapprochement bancaire + v2,
 avis d'échéance, relances, contrat pré-rempli, traçage assurance, table
 `baux_revisions`, lint vert, harnais BDD, fixtures de 30 dossiers synthétiques).
-Tout est **commité et poussé** : un clone frais du dépôt le contient. Détails
-dans ROADMAP (« Session 03/11/2026 », « Session 04/11/2026 », « Session
-06/11/2026 »). **Étude Best-of-N** (révision IRL + prorata — verdict : code
-actuel juste, 15 divergences = ambiguïté de spec sur dates inexistantes,
+Tout le publié est **commité et poussé** ; les 5 commits du 10/11/2026 sont
+locaux (pas de push/tag sans ordre du propriétaire). Détails dans ROADMAP
+(« Session 10/11/2026 », « Session 03/11/2026 », « Session 04/11/2026 »,
+« Session 06/11/2026 »). **Étude Best-of-N** (révision IRL + prorata — verdict :
+code actuel juste, 15 divergences = ambiguïté de spec sur dates inexistantes,
 6 « NON DÉTERMINÉ » à trancher côté produit) : sur la branche
 `essais/best-of-n` (5 commits, poussée, NON fusionnée — fusion à la décision
 du propriétaire) ; verdict dans `docs/tests/BEST-OF-N.md` sur cette branche.
+⚠️ **Chemin du clone de travail : `D:\Bureau\Applications\GestyLoc`** (déplacé
+le 10/11/2026 ; l'ancien `D:\Bureau\projet gestion locative\gestion-locative`
+est un doublon que le propriétaire supprime — ne JAMAIS éditer l'ancien).
 Les données réelles de l'utilisateur (16 baux) sont déjà importées dans sa base
 locale. Considère toute case cochée de `ROADMAP.md` comme faite, ne la refais pas.
 
@@ -135,8 +144,8 @@ traçées dans la table `_migrations`. Règles :
 npm run dev          # dev (HMR, DevTools ouverts)
 npm run typecheck    # tsc node + web — OBLIGATOIRE avant commit
 npm run lint         # eslint — 0 erreur / 0 warning exigé (aussi en CI release)
-npm test             # vitest — 118 tests (modules purs de shared/ + format renderer)
-npm run test:db      # harnais BDD via Electron — 40 tests, 1 fichier par entité
+npm test             # vitest — 146 tests (modules purs de shared/ + format renderer)
+npm run test:db      # harnais BDD via Electron — 42 tests, 1 fichier par entité
 npm run test:coverage # couverture shared/ (seuils bloquants 80/70/80) — cf. docs/tests/ETAT-HARNAIS.md
 npm run build        # typecheck + build electron-vite
 npm run build:win    # typecheck + build + installeur NSIS dans dist/
@@ -146,8 +155,10 @@ npm run db:generate  # génère une migration depuis schema.ts (drizzle-kit)
 
 Les tests vitest (`npm test`, dossier `tests/`) couvrent les utilitaires purs
 de `shared/csv.ts`, `shared/stats.ts`, `shared/echeancier.ts`,
-`shared/rapprochement.ts` et `shared/relances.ts` — 118 tests (couverture
-shared/ : 98,31 % lignes / 85,62 % branches, seuils 80/70/80 bloquants via
+`shared/rapprochement.ts`, `shared/relances.ts`, `shared/sauvegarde.ts`,
+`shared/notifications.ts`, `shared/nom-fichier.ts` et `shared/fiscalite.ts`
+— 146 tests (couverture shared/ : ~95,8 % statements / 86,4 % branches /
+98,6 % lignes, seuils 80/70/80/80 bloquants via
 `npm run test:coverage`). Ils tournent
 sur Node pur : ne les fais PAS importer des modules qui chargent
 better-sqlite3 (incompatibilité de moteur, voir §2). Pour la BDD, utiliser
@@ -464,6 +475,43 @@ nouvelle table avec FK.
   système gelée en constante → fonctions pures, utile si R10 devient
   injectable).
 
+### Finition P3 (10/11/2026, `main` — 5 commits LOCAUX, non poussés)
+
+Quatre fonctionnalités, un lot = un module pur dans `shared/` (donc testé en
+vitest et réutilisé par l'UI). Commits `9f5cc6b`, `ecd4883`, `9c47673`,
+`1ac2535` + doc `461c702`. **Ne pas refaire** (cases cochées dans ROADMAP §Finition).
+
+- **Sauvegarde automatique hebdomadaire** (`shared/sauvegarde.ts`, 10 tests +
+  2 BDD) : au démarrage, `setTimeout(15 s).unref()` appelle
+  `executerSauvegardeAuto()` (dans `donnees.service.ts`) — au plus une fois par
+  7 jours, copie WAL-checkpointée dans `userData/backups/auto_<date>_<heure>.db`,
+  rotation des 5 plus récentes (`rotationSauvegardes`) ; les fichiers
+  `avant_restauration_*`/`avant_remise_a_zero_*` ne sont JAMAIS touchés. État
+  dans `parametres` clé `sauvegarde_auto` (`{ derniere }`), affiché dans
+  Paramètres.
+- **Notification Windows des alertes urgentes** (`shared/notifications.ts`,
+  4 tests) : `notifierAlertesUrgentes(win)` au démarrage dans `index.ts`
+  (même patron que l'updater) résume les alertes `severite: 'urgent'`
+  (3 détaillées max puis « … et N autres ») ; clic → `win.show()/focus()`.
+  Silencieuse s'il n'y a rien ; jamais fatale.
+- **Décomptes de régularisation en lot** (`shared/nom-fichier.ts`, 7 tests) :
+  bouton « Générer tous les décomptes » dans `Regularisation.tsx` — un PDF par
+  bail de l'année dont les charges réelles sont saisies, dossier choisi une
+  fois via `ipc.quittances.chooseFolder()`, puis `saveTo` (sans traçage : c'est
+  un décompte, pas une quittance), progression + compteur d'erreurs.
+- **Export PDF du récap 2044** (`shared/fiscalite.ts`, 6 tests) : le calcul du
+  récap (recettes hors meublés, charges déductibles, seuil micro 15 000 €
+  inclusif, net micro 70 %, net réel borné à 0, ventilation par bail) a été
+  EXTRAIT de `Statistiques.tsx` en module pur `calculerRecap2044()`, partagé
+  entre l'écran et le PDF (`recap2044Data()`, sauvegarde `recap_2044_<annee>.pdf`).
+- **Corrections d'outillage** : `electron-log` externalisé du bundle `test:db`
+  (`package.json` — sinon `donnees.service` cassait le require sous esbuild) ;
+  `essais/**` ajouté aux `ignores` d'`eslint.config.mjs` (les bundles esbuild de
+  l'étude Best-of-N généraient 708 faux problèmes de lint).
+- **État harnais** : 146 vitest + 42 BDD, lint 0/0, `check_demo_30` 13
+  invariants, `npm run build` vert. 5 preuves de mutation (fichier inversé puis
+  restauré). Détail : `docs/tests/ETAT-HARNAIS.md`.
+
 ### 🚨 Pièges runtime à connaître
 
 - **`window.prompt()` n'existe PAS dans Electron** — toute saisie se fait
@@ -501,6 +549,9 @@ Lire `ROADMAP.md` (source de vérité). Restants :
 
 - Utilisateur : **galaxiel** (GitHub), Windows 11, parlant français —
   communique en français.
+- Clone de travail : **`D:\Bureau\Applications\GestyLoc`** (référence unique
+  depuis le 10/11/2026 — l'ancien chemin `D:\Bureau\projet gestion locative\
+gestion-locative` est un doublon en cours de suppression, à ne pas éditer).
 - Pas de contrainte de serveur : tout est local et gratuit (GitHub Actions).
 - Le token `GH_TOKEN` n'est nécessaire que pour publier une release depuis
   une machine locale ; GitHub Actions utilise `secrets.GITHUB_TOKEN` auto.

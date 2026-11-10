@@ -260,4 +260,6 @@ suffira de re-mettre à jour LICENSE.
 
 ---
 
-_Dernière mise à jour : 04/11/2026 — v1.16.0 livrée (échéancier réel, rapprochement bancaire, audit)_
+_Dernière mise à jour : 10/11/2026 — Finition P3 livrée sur `main` (sauvegarde
+auto hebdo, notifications Windows, décomptes en lot, export PDF 2044 ; 5 commits
+locaux non poussés) — dernière version publiée : v1.17.1_
