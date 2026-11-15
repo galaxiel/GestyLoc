@@ -168,6 +168,29 @@
       comparatif micro-foncier vs réel et mentions ; calcul du récap extrait en
       module pur `shared/fiscalite.ts` (6 tests), partagé écran/PDF_
 
+### 🏪 Microsoft Store (MSIX) — décision 15/11/2026
+
+> Seule voie **gratuite** qui supprime l'avertissement SmartScreen : Microsoft
+> héberge, **signe** et met à jour le paquet, donc plus de « Windows a protégé
+> votre ordinateur ». La release GitHub (`setup.exe` NSIS) reste en parallèle et
+> gardera l'avertissement (app non signée — cf. `AGENTS.md` §7).
+> Procédure détaillée, phase par phase : **`docs/MICROSOFT-STORE.md`**.
+
+- [ ] Compte développeur individuel (gratuit depuis le 10/09/2025) + réservation
+      du nom « GestyLoc » ; récupérer `Identity/Name`, `Identity/Publisher` et
+      `PublisherDisplayName` dans Partner Center
+- [ ] Trancher l'identité d'éditeur affichée et publier l'URL de politique de
+      confidentialité (100 % local, aucune collecte)
+- [ ] Cible `msix` (repli `appx`) dans electron-builder, manifeste **full-trust**
+      `mediumIL` — pas d'`appContainer`, la base doit rester dans
+      `%APPDATA%\gestyloc`
+- [ ] Couper `electron-updater` et le mode portable dans le build Store (c'est le
+      Store qui met à jour, le dossier d'installation est en lecture seule)
+- [ ] Vérifier `better-sqlite3` et un parcours complet sur une installation MSIX
+      réelle, sur une **copie** de la base (jamais `%APPDATA%` du bailleur)
+- [ ] Soumission Partner Center : captures ≥ 1366×768, questionnaire IARC, notes
+      de certification (application utilisable sans données réelles)
+
 ### Dette technique
 
 - [x] Étendre les tests : 19 → 61 (échéancier, rapprochement, CSV Excel-fr/BOM,
@@ -206,11 +229,13 @@
       (baux.assurance_demandee_le), tracée à chaque envoi de l'email d'assurance,
       affichée sur la fiche bail ; l'alerte anniversaire ne repart pas si la
       demande a moins de 11 mois_
-- **Signature de code (SmartScreen)** : les installs affichent « Windows a
-  protégé votre ordinateur » (app non signée). Contournement immédiat :
-  « Informations complémentaires → Exécuter quand même ». Solutions : Azure
-  Trusted Signing (~10 €/mois), certificat OV (~100-250 €/an), EV (~300-500
-  €/an). À intégrer au workflow le jour de la diffusion publique (SAS)
+- **Signature de code (SmartScreen)** — _tranché le 15/11/2026 : pas de certificat
+  acheté (OV/EV ne supprime plus l'alerte depuis 2024 et exige un token matériel ;
+  Azure Artifact Signing fermé aux particuliers hors USA/Canada ; SignPath gratuit
+  exige une licence OSI, incompatible avec PolyForm). La voie retenue est le
+  chantier **Microsoft Store (MSIX)** ci-dessus ; la release GitHub garde
+  l'avertissement, contourné par « Informations complémentaires → Exécuter
+  quand même »._
 - **Multi-bailleur / SCI**, sync chiffrée multi-PC, TRI/prévisionnel
 - **Rappels automatiques** (nécessite la config SMTP, livrée)
 - **Version anglaise** : react-i18next + ~300 chaînes + PDF bilingues,
