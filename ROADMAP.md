@@ -1,6 +1,6 @@
 # Roadmap — GestyLoc
 
-> **Version courante : v1.16.0** (04/11/2026). Tout ce qui est livré depuis
+> **Version courante : v1.18.0** (15/11/2026). Tout ce qui est livré depuis
 > V1.0 : MVP complet (biens, locataires, baux, quittances PDF/impression/email
 > individuel et en groupe, paiements, alertes), patrimoine (dépenses,
 > rentabilité, 2044, régularisation des charges avec décompte PDF), IRL/ICC
@@ -11,7 +11,8 @@
 > QUITT sur les quittances, audit de données, reçu pour paiement partiel.
 > Historique détaillé : voir les releases GitHub et l'historique git.
 >
-> **🔖 Session 10/11/2026 — Finition P3 (4 fonctionnalités, `main`, poussées)** :
+> **🔖 Session 10/11/2026 — Finition P3 (4 fonctionnalités), livrée en v1.18.0
+> le 15/11/2026** :
 > sauvegarde automatique hebdomadaire (rotation 5, `shared/sauvegarde.ts`),
 > notification Windows des alertes urgentes au démarrage
 > (`shared/notifications.ts`), décomptes de régularisation en lot
@@ -19,19 +20,13 @@
 > 4 modules purs ajoutés (27 tests), harnais 146 vitest + 42 BDD, lint 0/0,
 > démo 13 invariants. Commits `9f5cc6b`, `ecd4883`, `9c47673`, `1ac2535`.
 >
-> **🔖 Session 03/11/2026 — livré en v1.16.0** : échéancier
-> réel complet, rapprochement bancaire assisté, duplication de bail, recherche
-> globale, reçu refondu, historique des révisions, durcissement sécurité du
-> preload, + 10 bugs corrigés (audit externe). Détails dans les cases cochées
-> ci-dessous — publié en v1.16.0 le 04/11/2026 (tag `v1.16.0`, rituel CONTRIBUTING).
->
-> **🔖 Session 06-07/11/2026 — étude Best-of-N (branche `essais/best-of-n`, non
-> fusionnée)** : contrat gelé + 8 tentatives indépendantes par sous-agents +
+> **🔖 Session 06-07/11/2026 — étude Best-of-N (document seul fusionné sur
+> `main` le 15/11/2026, branche d'essais supprimée)** : contrat gelé + 8 tentatives indépendantes par sous-agents +
 > jeu scellé de 2 000 cas + jugement par oracle. **Verdict : code actuel juste
 > sur 2 485/2 500 cas** (0 unanimité KO) ; 15 divergences = uniquement des
 > dates de début inexistantes (30/02, 31/06…) — ambiguïté de spec, à trancher
-> côté produit. 6 « NON DÉTERMINÉ » listés dans `docs/tests/BEST-OF-N.md`
-> (sur la branche). Détail : §Best-of-N de AGENTS.md.
+> côté produit. 6 « NON DÉTERMINÉ » listés dans `docs/tests/BEST-OF-N.md`.
+> Détail : §Best-of-N de AGENTS.md.
 >
 > **🔖 Session 06/11/2026 (soir) — v1.17.0 et v1.17.1** : v1.17.0 = remise à
 > zéro de l'application (Paramètres → Zone de danger, sauvegarde automatique
@@ -54,6 +49,12 @@
 > (0 erreur / 0 warning + lint en CI), harnais de tests BDD (8 tests
 > repositories/alertes via Electron : `npm run test:db`). 70 tests vitest +
 > 8 tests BDD au vert.
+>
+> **🔖 Session 03/11/2026 — livré en v1.16.0** : échéancier
+> réel complet, rapprochement bancaire assisté, duplication de bail, recherche
+> globale, reçu refondu, historique des révisions, durcissement sécurité du
+> preload, + 10 bugs corrigés (audit externe). Publié en v1.16.0 le 04/11/2026
+> (tag `v1.16.0`, rituel CONTRIBUTING).
 
 ## 🔜 À faire — priorisé
 
@@ -121,26 +122,6 @@
       pour les propositions sûres, bouton « Pointer la sélection » (statut payé,
       date = date de l'opération, référence = libellé bancaire, note
       « Rapprochement bancaire »)_
-
-### Automatisation hors app — quittances par Google Apps Script (29/10/2026)
-
-> GestyLoc est hors ligne par conception : l'app ne peut rien envoyer seule, et
-> seulement quand le PC est allumé. Google, lui, exécute du code sans le PC
-> (Apps Script, gratuit : 90 min de triggers/jour, 100 destinataires de mail/jour,
-> 6 min max par exécution, JavaScript uniquement). But : la quittance du mois
-> part sans ouvrir GestyLoc. **Ce n'est pas une fonctionnalité de l'app** — aucun
-> code Electron, rien dans `src/`.
-
-- [ ] ☁️ **Trigger mensuel** : remplit un gabarit (le Doc « Contrat de Location
-      Meublee - Champs a Remplir » est déjà dans le Drive) depuis une Google Sheet,
-      exporte en PDF, envoie au locataire — le jour de paiement du bail
-- [ ] 🗃️ **Alimenter la Sheet sans double saisie** — point à trancher avant de
-      coder : GestyLoc ne parle pas à Google. Soit (a) export CSV de l'app → import
-      dans la Sheet, soit (b) Hermes pousse les lignes depuis `app.db` quand le PC
-      tourne. Sans cette étape le script enverra des montants périmés
-- [ ] 📝 **Périmètre** : quittance et avis d'échéance uniquement, gabarit validé
-      une fois à la main (mentions loi 1989 art. 21). Jamais de données locataires
-      hors du Drive personnel
 
 ### Finition (P3 de l'audit)
 
@@ -259,7 +240,7 @@ Rapport via les [Issues GitHub](https://github.com/galaxiel/GestyLoc/issues) :
 1. **Titre** : une phrase claire (« La page X affiche Y au lieu de Z »)
 2. **Étapes pour reproduire** : exactement ce que tu as cliqué, dans l'ordre
 3. **Attendu vs obtenu**
-4. **Version** : affichée dans la barre latérale (ex : v1.15.0)
+4. **Version** : affichée dans la barre latérale (ex : v1.18.0)
 5. **Pièce jointe utile** : le fichier `logs/main.log`
    (%APPDATA%\gestyloc\logs\main.log) — il contient les migrations, les
    erreurs de mise à jour et les exceptions.
@@ -277,14 +258,20 @@ sans accord écrit — ce qui réserve l'usage commercial au projet de SAS de
 l'auteur. Si le jour venu tu veux libérer certaines parties (ou tout) : il
 suffira de re-mettre à jour LICENSE.
 
-## ❌ Abandonnés (décision 25/10/2026)
+## ❌ Abandonnés
 
+- **Automatisation Google Apps Script des quittances** (abandonnée le
+  15/11/2026) — une automatisation cloud dans un logiciel 100 % hors ligne, qui
+  demandait soit un export CSV manuel de l'app, soit un tiers poussant les lignes
+  depuis `app.db` ; et le besoin est de toute façon couvert par les relances, les
+  avis d'échéance et les quittances en lot livrés depuis la v1.16.0
 - **Chiffrement de la base** — jugé inutile pour l'usage actuel
 - **Multi-profils sur un même PC** — piste ouverte, à traiter seulement si le
   PC est partagé (un autre bailleur = il installe l'app sur son propre PC)
 
 ---
 
-_Dernière mise à jour : 10/11/2026 — Finition P3 livrée et poussée sur `main`
-(sauvegarde auto hebdo, notifications Windows, décomptes en lot, export PDF
-2044 ; 6 commits) — dernière version publiée : v1.17.1_
+_Dernière mise à jour : 15/11/2026 — nettoyage de la documentation (en-tête de
+version, journal remis dans l'ordre, Google Apps Script abandonné, Best-of-N
+ramené sur `main`) — dernière version publiée : **v1.18.0** (Finition P3 :
+sauvegarde auto hebdo, notifications Windows, décomptes en lot, export PDF 2044)._

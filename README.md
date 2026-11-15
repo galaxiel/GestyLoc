@@ -34,7 +34,7 @@ quittances — sans abonnement, sans internet, sans quitter votre PC.
 ## 📥 Installation
 
 1. Rendez-vous sur la page [Releases](https://github.com/galaxiel/GestyLoc/releases/latest)
-2. Téléchargez **`gestyloc-x.y.z-setup.exe`**
+2. Téléchargez **`GestyLoc-x.y.z-setup.exe`**
 3. Lancez-le : l'installation prend quelques secondes
 
 **Quel fichier télécharger ?** Une release contient 4 fichiers — un seul t'intéresse
@@ -42,7 +42,7 @@ généralement :
 
 | Fichier                               | Pour qui                                                                                                                |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `gestyloc-x.y.z-setup.exe`            | 👤 **Toi** — l'installateur classique (recommandé)                                                                      |
+| `GestyLoc-x.y.z-setup.exe`            | 👤 **Toi** — l'installateur classique (recommandé)                                                                      |
 | `GestyLoc-x.y.z-portable.zip`         | 👤 **Toi** — version portable : extrais le dossier où tu veux (Bureau, clé USB), l'exe et tes données y vivent ensemble |
 | `…setup.exe.blockmap` et `latest.yml` | ⚙️ **La machine** — utilisés automatiquement par les mises à jour, ignore-les                                           |
 
@@ -59,7 +59,7 @@ redémarrage. Vous n'avez rien à faire.
 > complémentaires » → « Exécuter quand même »** : l'avertissement ne
 > réapparait plus ensuite, et le logiciel fonctionne normalement.
 
-> **Deux formats disponibles** : l'**installateur** (`gestyloc-x.y.z-setup.exe`,
+> **Deux formats disponibles** : l'**installateur** (`GestyLoc-x.y.z-setup.exe`,
 > recommandé : raccourci bureau, mises à jour automatiques) et la **version
 > portable** (`GestyLoc-portable.zip` : extrais le dossier où tu veux — Bureau,
 > clé USB — et toutes les données vivent dans ce dossier, à côté de l'exe).

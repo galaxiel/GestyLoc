@@ -15,19 +15,18 @@ locataires, baux, quittances PDF, suivi des paiements, alertes) fonctionnant
 de l'utilisateur. Distribué publiquement via GitHub Releases avec
 auto-mise-à-jour.
 
-État actuel : **v1.17.1 publiée** (06/11/2026, tag `v1.17.1`) ; `main` porte en
-plus **5 commits non poussés** (session 10/11/2026) : Finition P3 — sauvegarde
-automatique hebdomadaire (`shared/sauvegarde.ts`), notification Windows des
-alertes urgentes au démarrage (`shared/notifications.ts`), décomptes de
-régularisation en lot (`shared/nom-fichier.ts`), export PDF du récap 2044
-(`shared/fiscalite.ts`) + doc (`461c702`). Historique publié : v1.17.0
+État actuel : **v1.18.0 publiée** (15/11/2026, tag `v1.18.0`) — c'est la
+Finition P3 : sauvegarde automatique hebdomadaire (`shared/sauvegarde.ts`),
+notification Windows des alertes urgentes au démarrage
+(`shared/notifications.ts`), décomptes de régularisation en lot
+(`shared/nom-fichier.ts`), export PDF du récap 2044 (`shared/fiscalite.ts`).
+Historique publié : v1.17.1, v1.17.0
 (remise à zéro de l'app : Paramètres → Zone de danger, sauvegarde automatique
 avant effacement) puis v1.16.x (échéancier réel, rapprochement bancaire + v2,
 avis d'échéance, relances, contrat pré-rempli, traçage assurance, table
 `baux_revisions`, lint vert, harnais BDD, fixtures de 30 dossiers synthétiques).
-Tout le publié est **commité et poussé** ; les 6 commits du 10/11/2026 sont
-également **poussés sur `origin/main`** (aucun push de tag/release sans ordre du
-propriétaire — la prochaine version publiée reste à décider, v1.18.0 candidate).
+Tout est **commité et poussé** : `main` == tag `v1.18.0` (aucun push de
+tag/release sans ordre du propriétaire).
 Détails dans ROADMAP
 (« Session 10/11/2026 », « Session 03/11/2026 », « Session 04/11/2026 »,
 « Session 06/11/2026 »). **Étude Best-of-N** (révision IRL + prorata — verdict :
@@ -528,23 +527,24 @@ vitest et réutilisé par l'UI). Commits `9f5cc6b`, `ecd4883`, `9c47673`,
 
 Lire `ROADMAP.md` (source de vérité). Restants (aucun bloquant) :
 
-- **Publier v1.18.0** (Finition P3) — bump `package.json` + rituel
-  CONTRIBUTING, **UNIQUEMENT sur ordre explicite du propriétaire** (jamais
-  taguer/publier de sa propre initiative). Les 6 commits sont poussés sur `main`.
+- **Chantier Microsoft Store (MSIX)** — seule voie gratuite pour supprimer
+  l'avertissement SmartScreen : procédure dans `docs/MICROSOFT-STORE.md`, cases
+  dans ROADMAP. Toute release reste **UNIQUEMENT sur ordre explicite du
+  propriétaire** (jamais taguer/publier de sa propre initiative).
 - Corriger les IRL des 15-16 baux réels importés (paires non légales héritées du
   tableur — l'outil embarqué de la fiche bail le fait en 2 min chacun)
 - **6 « NON DÉTERMINÉ » de l'étude Best-of-N** à trancher côté produit — détail
-  dans `docs/tests/BEST-OF-N.md` §5, ⚠️ fichier présent uniquement sur la
-  branche `essais/best-of-n` (non fusionnée) :
-  `git show essais/best-of-n:docs/tests/BEST-OF-N.md`. Sujets : rejet vs
+  dans `docs/tests/BEST-OF-N.md` §5 (sur `main` depuis le 15/11/2026).
+  Sujets : rejet vs
   rollover des dates d'import inexistantes, prorata de sortie, indice courant
   invalide, borne temporelle non injectable (`new Date()` interne), taux fixe 0
   compté comme révision jouée, méthode du prorata (jours civils vs dixièmes)
 - **Fixture D15** : paire IRL illégale T3 2024→T3 2026 (la réf. devrait être
   T3 2025 = 145.77) — corriger `scripts/gen_demo_30.mjs`, régénérer les fixtures
   et re-valider `check_demo_30` (cf. ETAT-HARNAIS.md, « Défauts documentés » §5)
-- ROADMAP « À faire » : table `emprunts` (cash-flow/TRI), modèle B (clé de
-  répartition des charges), automatisation Google Apps Script (HORS app)
+- ROADMAP « À faire » : table `emprunts` (cash-flow/TRI) et modèle B (clé de
+  répartition des charges) — l'automatisation Google Apps Script est **abandonnée**
+  (décision 15/11/2026, voir ROADMAP § Abandonnés)
 - **Vagues produit** (décision propriétaire) : état des lieux numérique, modèles
   de lettres, SEPA/portail locataire, IA locale (Ollama), version anglaise
 - Signature de code (SmartScreen) : étudier MSIX/Microsoft Store AVANT tout

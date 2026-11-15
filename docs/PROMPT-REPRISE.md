@@ -9,8 +9,7 @@
 ```text
 Projet : GestyLoc (galaxiel/GestyLoc) — gestion locative Electron 40 + React 19
 + TS + better-sqlite3/Drizzle, 100 % local. Clone de travail :
-D:\Bureau\projet gestion locative\gestion-locative (branche main = v1.17.1
-publiée). Utilisateur : galaxiel, français, Windows 11, propriétaire de 16
+D:\Bureau\Applications\GestyLoc (branche main = v1.18.0 publiée). Utilisateur : galaxiel, français, Windows 11, propriétaire de 16
 baux RÉELS — ne JAMAIS toucher à %APPDATA%\gestyloc\data\app.db.
 
 1. LIS D'ABORD (dans cet ordre, ~15 min de contexte) :
@@ -19,22 +18,23 @@ baux RÉELS — ne JAMAIS toucher à %APPDATA%\gestyloc\data\app.db.
      pièges runtime. Ne refais rien de coché dans ROADMAP.md.
    - ROADMAP.md : journal des sessions 03/11 → 07/11 et sections À faire /
      Pistes produit / Abandonnés.
-   - docs/tests/ETAT-HARNAIS.md : harnais (118 vitest + 40 BDD via
-     `npm run test:db` sous Electron, couverture shared/ 98,31 % lignes,
+   - docs/tests/ETAT-HARNAIS.md : harnais (146 vitest + 42 BDD via
+     `npm run test:db` sous Electron, couverture shared/ ~98,6 % lignes,
      10 preuves de mutation, 5 défauts/comportements documentés NON corrigés).
-   - docs/tests/BEST-OF-N.md (branche essais/best-of-n) : étude Best-of-N
+   - docs/tests/BEST-OF-N.md (désormais sur `main`) : étude Best-of-N
      révision IRL + prorata — verdict : code actuel juste (2 485/2 500 cas en
      unanimité 9 colonnes + oracle) ; 15 divergences = dates inexistantes
      (ambiguïté de spec) ; 6 « NON DÉTERMINÉ » à trancher côté produit.
 
 2. ÉTAT DES BRANCHES :
-   - main = v1.17.1 (tout poussé, working tree propre).
-   - essais/best-of-n = étude Best-of-N (5 commits, poussée, NON fusionnée —
-     fusion à la décision du propriétaire ; aucun code d'app dedans).
+   - main = v1.18.0 publiée (tout poussé, working tree propre) — c'est la seule
+     branche du dépôt : `essais/best-of-n` et `docs/journal-avancement` ont été
+     supprimées le 15/11/2026, seul le document `docs/tests/BEST-OF-N.md` a été
+     ramené sur `main`.
 
 3. COMMANDES DE VALIDATION (toutes obligatoires avant commit) :
-   npm run typecheck && npm run lint (0/0) && npm test (118) &&
-   npm run test:db (40, base temporaire). Couverture : npm run test:coverage.
+   npm run typecheck && npm run lint (0/0) && npm test (146) &&
+   npm run test:db (42, base temporaire). Couverture : npm run test:coverage.
    Démo : node scripts/check_demo_30.mjs (13 invariants, base temporaire).
 
 4. RÈGLES NON NÉGOCIABLES :
@@ -49,18 +49,19 @@ baux RÉELS — ne JAMAIS toucher à %APPDATA%\gestyloc\data\app.db.
      sous Electron, vitest sur Node pur — ne jamais mélanger).
 
 5. SUJETS OUVERTS (dans l'ordre de valeur) :
-   a. Retour utilisateur sur v1.17.x : remise à zéro + import
+   a. Retour utilisateur sur v1.18.x : remise à zéro + import
       fixtures/demo-30/baux.csv, puis ses 16 baux réels (prorata 1er mois,
       rapprochement avec un vrai relevé).
    b. Trancher les 6 « NON DÉTERMINÉ » du Best-of-N (docs/tests/BEST-OF-N.md
-      §5, sur la branche essais/best-of-n) — dont rejet vs rollover des dates
-      d'import inexistantes et prorata de sortie.
+      §5) — dont rejet vs rollover des dates d'import inexistantes et prorata
+      de sortie.
    c. Corriger la paire IRL de la fixture D15 (T3 2024→T3 2026 illégale —
       réf. devrait être T3 2025 = 145.77), régénérer fixtures + check_demo.
-   d. ROADMAP « À faire » : IRL des 16 baux réels, sauvegarde auto hebdo,
-      notifications Windows, décomptes en lot, export 2044 PDF.
-   e. Pistes produit (décision propriétaire) : bail pré-rempli... déjà fait ;
-      restent état des lieux, SEPA, i18n, signature (MSIX avant certificat).
+   d. ROADMAP « À faire » : chantier Microsoft Store (MSIX, procédure dans
+      docs/MICROSOFT-STORE.md), table `emprunts`, modèle B des charges.
+   e. Pistes produit (décision propriétaire) : restent état des lieux, SEPA,
+      i18n, et la signature — tranchée : ce sera le Store en MSIX, pas un
+      certificat.
 
 6. MÉTHODE DE TRAVAIL ATTENDUE :
    - Un lot = un module ; les 4 commandes de validation après chaque lot ;

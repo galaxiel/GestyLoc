@@ -29,8 +29,8 @@ Détail de ce problème de compilation : voir `AGENTS.md` §2.
 
 ```bash
 npm run dev          # développement
-npm test             # tests vitest (118 tests — modules purs de shared/ + format)
-npm run test:db      # tests BDD via Electron (40 tests — 1 fichier par entité)
+npm test             # tests vitest (146 tests — modules purs de shared/ + format)
+npm run test:db      # tests BDD via Electron (42 tests — 1 fichier par entité)
 npm run test:coverage # couverture de shared/ (seuils bloquants 80 % lignes)
 node scripts/gen_demo_30.mjs   # régénère fixtures/demo-30/ (seed 20261106, --dry-run dispo)
 node scripts/check_demo_30.mjs # vérifie les 30 dossiers de démo (13 invariants, base temporaire)
